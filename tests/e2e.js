@@ -219,7 +219,8 @@ test('流程資料：AIGC 與全文電子檔考前備妥、畢業專區不再比
     assert.ok(d[k].includes('學位論文原創比對（Turnitin）證明表'), k + ' 缺 Turnitin 全名');
     assert.ok(!/原創比對(?!（Turnitin）(證明表|全文電子檔))/.test(d[k]), k + ' 有不完整的 Turnitin 名稱');
   }
-  assert.ok(await page.evaluate(() => [...document.scripts].map((x) => x.textContent).join('').split('inventoryItem("歷年成績單"').length - 1 >= 2), '兩個系統的最後確認清單都應有「歷年成績單」');
+  // 程式拆成外部檔（data／js）後，textContent 是空的；要連外部 script 的原始碼一起讀
+  assert.ok(await page.evaluate(async () => (await Promise.all([...document.scripts].map((x) => (x.src ? fetch(x.src).then((r) => r.text()) : Promise.resolve(x.textContent))))).join('').split('inventoryItem("歷年成績單"').length - 1 >= 2), '兩個系統的最後確認清單都應有「歷年成績單」');
   await dismissModals(page);
   await page.click('#openGraduation'); await page.waitForSelector('.graduation-grade-card');
   await page.locator('.graduation-grade-card', { hasText: '113級' }).click();

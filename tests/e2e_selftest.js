@@ -21,6 +21,9 @@ const FAULTS = [
   ['預選登記：沒排課時不顯示說明', 'course-registration.html', '目前沒有排入會修或考慮中的課程。', '', 1, '沒有排入'],
 ];
 
+// index.html 拆檔後，首頁的內容分散在這幾個檔案；FAULTS 寫 'index.html' 時，到這幾個檔案裡找含有目標文字的那一個來改
+const SITE_FILES = ['index.html', 'css/tokens.css', 'css/style.css', 'data/flow.js', 'js/app.js'];
+
 function nth(s, sub, n) { let i = -1; for (let k = 0; k < n; k++) { i = s.indexOf(sub, i + 1); if (i < 0) return -1; } return i; }
 
 (async () => {
@@ -31,12 +34,19 @@ function nth(s, sub, n) { let i = -1; for (let k = 0; k < n; k++) { i = s.indexO
   for (const [name, file, old, neu, nthOcc, key] of FAULTS) {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'eap_e2e_'));
     for (const f of ['index.html', 'course-registration.html']) fs.copyFileSync(path.join(ROOT, f), path.join(tmp, f));
+    for (const d of ['css', 'js', 'data']) if (fs.existsSync(path.join(ROOT, d))) fs.cpSync(path.join(ROOT, d), path.join(tmp, d), { recursive: true });
     for (const d of ['documents', 'graduation']) if (!STUB && fs.existsSync(path.join(ROOT, d))) fs.cpSync(path.join(ROOT, d), path.join(tmp, d), { recursive: true });
-    let s = fs.readFileSync(path.join(tmp, file), 'utf8');
-    const at = nth(s, old, nthOcc);
-    if (at < 0) { console.log('自我測試的替換目標不存在：' + name); ok = false; continue; }
+    let target = null, at = -1, s = '';
+    for (const f of (file === 'index.html' ? SITE_FILES : [file])) {
+      const fp = path.join(tmp, f);
+      if (!fs.existsSync(fp)) continue;
+      const txt = fs.readFileSync(fp, 'utf8');
+      const i = nth(txt, old, nthOcc);
+      if (i >= 0) { target = fp; at = i; s = txt; break; }
+    }
+    if (at < 0) { console.log('自我測試的替換目標不存在：' + name); ok = false; fs.rmSync(tmp, { recursive: true, force: true }); continue; }
     s = s.slice(0, at) + neu + s.slice(at + old.length);
-    fs.writeFileSync(path.join(tmp, file), s);
+    fs.writeFileSync(target, s);
     const rs = await runSuite(tmp, { stub: STUB, only: new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) });
     fs.rmSync(tmp, { recursive: true, force: true });
     const caught = rs.length > 0 && rs.some((r) => !r.ok);

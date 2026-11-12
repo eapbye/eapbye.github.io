@@ -27,16 +27,27 @@ def clone():
     wf = os.path.join(ROOT, ".github", "workflows")
     if os.path.isdir(wf):
         shutil.copytree(wf, os.path.join(tmp, ".github", "workflows"))
-    for d in ("documents", "graduation"):
-        shutil.copytree(os.path.join(ROOT, d), os.path.join(tmp, d))
+    for d in ("documents", "graduation", "css", "js", "data"):
+        if os.path.isdir(os.path.join(ROOT, d)):
+            shutil.copytree(os.path.join(ROOT, d), os.path.join(tmp, d))
     return tmp
 
 
+# index.html 拆檔後，「首頁的內容」分散在這幾個檔案；fname 給 "index.html" 時，到這幾個檔案裡找含有目標字串的那一個來改
+SITE_FILES = ("index.html", "css/tokens.css", "css/style.css", "data/flow.js", "js/app.js")
+
+
 def sub(tmp, fname, old, new, count=1):
-    p = os.path.join(tmp, fname)
-    s = open(p, encoding="utf-8").read()
-    assert old in s, f"自我測試的替換目標不存在：{old[:30]}"
-    open(p, "w", encoding="utf-8").write(s.replace(old, new, count))
+    names = SITE_FILES if fname == "index.html" else (fname,)
+    for n in names:
+        p = os.path.join(tmp, n)
+        if not os.path.isfile(p):
+            continue
+        s = open(p, encoding="utf-8").read()
+        if old in s:
+            open(p, "w", encoding="utf-8").write(s.replace(old, new, count))
+            return
+    raise AssertionError(f"自我測試的替換目標不存在：{old[:30]}")
 
 
 def odt_sub(tmp, rel, old, new):
@@ -76,6 +87,9 @@ FAULTS = [
     ("下載表單內文換回舊流程字樣", lambda t: odt_sub(t, "documents/defense/02-originality-report.odt", '申請學位論文</text:span><text:span text:style-name="T66">考</text:span><text:span text:style-name="T67">試', '送繳學位論文考試成績單'), "舊流程字樣"),
     ("拿掉內容安全政策", lambda t: sub(t, "index.html", 'http-equiv="Content-Security-Policy"', 'http-equiv="X-Removed"'), "內容安全政策"),
     ("刪掉畢業封面圖", lambda t: rm(t, "graduation/113/cover-detail.jpg"), "缺圖"),
+    ("刪掉首頁引用的 js", lambda t: rm(t, "js/app.js"), "連結的檔案不存在"),
+    ("pages.yml 漏掉 js 資料夾", lambda t: sub(t, ".github/workflows/pages.yml", "          cp -r js _site/js\n", ""), "所在資料夾不會被部署"),
+    ("首頁不再載入流程資料 flow.js", lambda t: sub(t, "index.html", '  <script src="data/flow.js"></script>\n', ""), "學位論文考試申請缺少"),
 ]
 
 

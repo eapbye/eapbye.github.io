@@ -1,14 +1,25 @@
 # 教政一點通 自動檢查（tests/）
 
 這個資料夾只放檢查用的檔案，不會被部署到網站（.github/workflows/pages.yml 只複製指定的檔案）。
-每次改 index.html、course-registration.html 或 documents／graduation 的檔案後，先跑下面兩項，再更新首頁「最後更新日」。
+每次改 index.html、css／js／data 的檔案、course-registration.html 或 documents／graduation 的檔案後，先跑下面兩項，再更新首頁「最後更新日」。
+
+## 網站的檔案結構
+
+首頁 index.html 只留頁面骨架，樣式、程式、流程資料分開放：
+
+- css/tokens.css：配色與陰影變數（:root）。要調視覺先改這份。
+- css/style.css：其餘樣式。
+- data/flow.js：流程步驟與文件資料（baseFlow、flowModes）。
+- js/app.js：其餘程式。
+
+index.html 依 `<link>`、`<script src>` 的順序載入（tokens.css 在 style.css 前，flow.js 在 app.js 前）。靜態檢查會把 index.html 和它引用的 css／js 串成一份全文再檢查，訊息裡的位置是「檔名＋該檔行號」。course-registration.html 仍是單一檔案。
 
 ## 1. 靜態一致性檢查（只要 Python 3，不用安裝任何東西）
 
     python3 tests/check_consistency.py
 
 檢查內容：
-- 程式裡引用的下載檔、圖片是否真的存在，且在 .github/workflows/pages.yml 的部署清單內（FAIL）
+- 程式裡引用的下載檔、圖片、css、js 是否真的存在，且在 .github/workflows/pages.yml 的部署清單內（FAIL）；新增資料夾要記得在 pages.yml 加 `cp -r`
 - 畢業專區封面圖是否齊全（FAIL）
 - localStorage 的 key 有沒有被改名（FAIL；改名會讓用過網站的人進度消失）
 - 畢業專區勾選項 index 有沒有重複或消失（FAIL；不可位移）
@@ -38,5 +49,6 @@
 
 ## 改規則時
 - 故意改名稱、key、index 時，同步改 check_consistency.py 最上方的基準（BASELINE_KEYS、BASELINE_GRAD_INDEXES）。
+- 兩支自我測試的「改壞」清單寫 index.html 時，會自動到 index.html 與 css／js／data 裡找含該文字的檔案來改；新增檔案資料夾時，把它加進兩支自我測試的 SITE_FILES。
 - 新增流程文件或勾選項後，確認 e2e.js 的「走完整個流程」仍通過；它會自動點到完成彈窗，數量變動不用改測試。
 - 預選登記換學期：改 registrationData 與頁面標題，跑第 1 項確認 time 與節次一致。

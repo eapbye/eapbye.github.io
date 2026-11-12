@@ -36,6 +36,34 @@ def line_of(text, pos):
     return text.count("\n", 0, pos) + 1
 
 
+def read_site(root):
+    """讀 index.html，再把它用 <link>／<script src> 引用的本機 css、js 依序接在後面，
+    串成一份文字交給下面的檢查（拆檔後，原本對 index.html 全文做的檢查照常有效）。
+    回傳 (全文, 各段來源)；各段來源用來把位置換回「檔名＋行號」。"""
+    html = read(os.path.join(root, "index.html"))
+    parts = [("index.html", html)]
+    for m in re.finditer(r'<link[^>]+href="([^"#:]+\.css)"|<script[^>]+src="([^"#:]+\.js)"', html):
+        rel = m.group(1) or m.group(2)
+        fp = os.path.join(root, rel)
+        if os.path.isfile(fp):
+            parts.append((rel, read(fp)))
+    text, segs = "", []
+    for rel, body in parts:
+        segs.append((len(text), len(text) + len(body), rel))
+        text += body + "\n"
+    return html, text, segs
+
+
+def where(text, segs, pos):
+    """全文中的位置 → (檔名, 該檔第幾行, 該行文字)。"""
+    for start, end, rel in segs:
+        if start <= pos <= end:
+            body = text[start:end]
+            ln = body.count("\n", 0, pos - start) + 1
+            return rel, ln, body.split("\n")[ln - 1].strip()
+    return "?", 0, ""
+
+
 def check(root):
     res = []
 
@@ -48,8 +76,16 @@ def check(root):
         if not os.path.isfile(p):
             add("FAIL", f"找不到 {os.path.basename(p)}")
             return res
-    idx = read(idx_path)
+    html, idx, segs = read_site(root)
     reg = read(reg_path)
+
+    def loc(pos):
+        rel, ln, _ = where(idx, segs, pos)
+        return f"{rel} 第 {ln} 行"
+
+    def loc_line(pos):
+        rel, ln, line = where(idx, segs, pos)
+        return f"{rel} 第 {ln} 行 {line[:60]}"
 
     # ---- 部署清單（.github/workflows/pages.yml；舊的 .gitlab-ci.yml 亦可）----
     deployed_files = {"index.html", "course-registration.html"}
@@ -71,14 +107,14 @@ def check(root):
     # ---- 本機連結與檔案是否存在、是否會被部署 ----
     refs = {}
     for m in re.finditer(r'"((?:documents|graduation)/[^"$`{}\s]+\.[A-Za-z0-9]+)"', idx):
-        refs.setdefault(m.group(1), line_of(idx, m.start()))
-    for m in re.finditer(r'(?:href|src)="([^"#:$]+\.(?:html|svg|png|jpg|pdf|odt|docx))(?:\?[^"]*)?"', idx):
-        refs.setdefault(m.group(1), line_of(idx, m.start()))
+        refs.setdefault(m.group(1), loc(m.start()))
+    for m in re.finditer(r'(?:href|src)="([^"#:$]+\.(?:html|svg|png|jpg|pdf|odt|docx|css|js))(?:\?[^"]*)?"', idx):
+        refs.setdefault(m.group(1), loc(m.start()))
     for m in re.finditer(r'(?:href|src)="([^"#:$]+\.(?:html|svg|png|jpg))(?:\?[^"]*)?"', reg):
-        refs.setdefault(m.group(1), line_of(reg, m.start()))
+        refs.setdefault(m.group(1), f"course-registration.html 第 {line_of(reg, m.start())} 行")
     for path, ln in sorted(refs.items()):
         if not os.path.isfile(os.path.join(root, path)):
-            add("FAIL", f"連結的檔案不存在：{path}（程式第 {ln} 行）")
+            add("FAIL", f"連結的檔案不存在：{path}（{ln}）")
         top = path.split("/")[0]
         if "/" in path:
             if top not in deployed_dirs:
@@ -142,26 +178,23 @@ def check(root):
     for m in re.finditer("原創比對", idx):
         tail = idx[m.start():m.start() + len("原創比對（Turnitin）證明表")]
         if tail != "原創比對（Turnitin）證明表" and not idx[m.start():].startswith("原創比對（Turnitin）全文電子檔"):
-            add("FAIL", f"Turnitin 名稱不完整（應為「{TURNITIN_FULL}」）：index.html 第 {line_of(idx, m.start())} 行")
+            add("FAIL", f"Turnitin 名稱不完整（應為「{TURNITIN_FULL}」）：{loc(m.start())}")
     for m in re.finditer("Turnitin", idx):
         before = idx[max(0, m.start() - 6):m.start()]
         after = idx[m.end():m.end() + 6]
         if before.endswith("原創比對（") and (after.startswith("）證明表") or after.startswith("）全文電子")):
             continue
-        ln = line_of(idx, m.start())
-        add("INFO", f"Turnitin 單獨出現（請人確認是否合理）：第 {ln} 行 {idx.splitlines()[ln - 1].strip()[:60]}")
+        add("INFO", f"Turnitin 單獨出現（請人確認是否合理）：{loc_line(m.start())}")
     for m in re.finditer("AIGC", idx):
         s = idx[max(0, m.start() - 4):m.end() + 5]
         if s != AIGC_FULL:
-            ln = line_of(idx, m.start())
-            add("WARN", f"AIGC 未用全名「{AIGC_FULL}」：第 {ln} 行 {idx.splitlines()[ln - 1].strip()[:60]}")
+            add("WARN", f"AIGC 未用全名「{AIGC_FULL}」：{loc_line(m.start())}")
     for m in re.finditer("成績單", idx):
         # 「高普特考及格證明影本或成績單」是考試成績，不是歷年成績單，屬正常寫法
         if idx[max(0, m.start() - 2):m.start()] == "歷年" or idx[max(0, m.start() - 11):m.start()] == "高普特考及格證明影本或":
             continue
         if True:
-            ln = line_of(idx, m.start())
-            add("WARN", f"「成績單」前面沒有「歷年」：第 {ln} 行 {idx.splitlines()[ln - 1].strip()[:60]}")
+            add("WARN", f"「成績單」前面沒有「歷年」：{loc_line(m.start())}")
 
     # ---- 2026-11-12 流程改版：考前就要備妥比對與 AIGC，考後只剩簽名頁 ----
     a = idx.find('id: "defense-docs"')
@@ -205,7 +238,7 @@ def check(root):
                     add("FAIL", f"表單內文仍是舊流程字樣「{ph}」：{os.path.relpath(fp, root)}")
 
     # ---- 基本安全設定：內容安全政策（CSP）與外部資源 ----
-    for name, text in (("index.html", idx), ("course-registration.html", reg)):
+    for name, text in (("index.html", html), ("course-registration.html", reg)):
         if 'http-equiv="Content-Security-Policy"' not in text:
             add("FAIL", f"{name} 缺少內容安全政策（Content-Security-Policy）meta")
         if re.search(r"<script[^>]+src=[\"']?https?:", text):
@@ -219,7 +252,7 @@ def check(root):
     else:
         stamped = datetime.date.fromisoformat(ups[0])
         newest = None
-        scan = [idx_path, reg_path]
+        scan = [idx_path, reg_path] + [os.path.join(root, rel) for _, _, rel in segs[1:]]
         for dp, _, files in os.walk(doc_root):
             scan += [os.path.join(dp, f) for f in files]
         for p in scan:
