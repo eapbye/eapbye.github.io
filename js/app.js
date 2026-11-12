@@ -340,13 +340,21 @@
             chineseDownloadName("資格考試申請表（ODT）", "documents/proposal/qualifying-exam-application.odt")
           );
           qualificationForm.classList.add("qualification-download");
-          qualificationForm.addEventListener("click", () => {
-            if (isDownloadUnavailable("documents/proposal/qualifying-exam-application.odt")) return;
+          const afterQualificationDownload = () => {
             state.qualificationFormDownloaded = true;
             saveState();
             render();
             scrollTarget(".qualification-question", { block: "nearest" });
-          });
+          };
+          const qualificationHref = "documents/proposal/qualifying-exam-application.odt";
+          const qualificationHandled = !isDownloadUnavailable(qualificationHref) && window.FillForm &&
+            FillForm.attach(qualificationForm, qualificationHref, chineseDownloadName("資格考試申請表（ODT）", qualificationHref), afterQualificationDownload);
+          if (!qualificationHandled) {
+            qualificationForm.addEventListener("click", () => {
+              if (isDownloadUnavailable(qualificationHref)) return;
+              afterQualificationDownload();
+            });
+          }
           const resultActions = document.createElement("div");
           resultActions.className = "result-actions qualification-actions";
           resultActions.append(qualificationForm);
@@ -578,7 +586,10 @@
       if (doc.word) {
         const wordLink = linkButton(doc.word[0], doc.word[1], downloadLocked, chineseDownloadName(doc.word[0], doc.word[1]));
         if (!downloadLocked && !isDownloadUnavailable(doc.word[1])) {
-          wordLink.addEventListener("click", () => markDocumentDownloaded(doc.id));
+          const markDone = () => markDocumentDownloaded(doc.id);
+          // 可自動填寫的表單：交給 FillForm（下載完成才標記）；其他檔案維持原本行為
+          const handled = window.FillForm && FillForm.attach(wordLink, doc.word[1], chineseDownloadName(doc.word[0], doc.word[1]), markDone);
+          if (!handled) wordLink.addEventListener("click", markDone);
         }
         actions.append(wordLink);
       }

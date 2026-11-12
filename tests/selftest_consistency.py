@@ -27,7 +27,7 @@ def clone():
     wf = os.path.join(ROOT, ".github", "workflows")
     if os.path.isdir(wf):
         shutil.copytree(wf, os.path.join(tmp, ".github", "workflows"))
-    for d in ("documents", "graduation", "css", "js", "data"):
+    for d in ("documents", "graduation", "css", "js", "data", "vendor"):
         if os.path.isdir(os.path.join(ROOT, d)):
             shutil.copytree(os.path.join(ROOT, d), os.path.join(tmp, d))
     return tmp
@@ -89,6 +89,8 @@ FAULTS = [
     ("刪掉畢業封面圖", lambda t: rm(t, "graduation/113/cover-detail.jpg"), "缺圖"),
     ("刪掉首頁引用的 js", lambda t: rm(t, "js/app.js"), "連結的檔案不存在"),
     ("pages.yml 漏掉 js 資料夾", lambda t: sub(t, ".github/workflows/pages.yml", "          cp -r js _site/js\n", ""), "所在資料夾不會被部署"),
+    ("pages.yml 漏掉 vendor 資料夾", lambda t: sub(t, ".github/workflows/pages.yml", "          cp -r vendor _site/vendor\n", ""), "所在資料夾不會被部署"),
+    ("首頁引用的 jszip 檔被刪掉", lambda t: os.remove(os.path.join(t, "vendor", "jszip.min.js")), "連結的檔案不存在"),
     ("首頁不再載入流程資料 flow.js", lambda t: sub(t, "index.html", '  <script src="data/flow.js"></script>\n', ""), "學位論文考試申請缺少"),
 ]
 

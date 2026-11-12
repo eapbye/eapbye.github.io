@@ -18,11 +18,16 @@ const FAULTS = [
   ['文件下載後不再標記完成', 'index.html', 'state.done[id] = true;\n      state.done["submission-check"] = false;', 'state.done[id] = false;\n      state.done["submission-check"] = false;', 1, '走完整個流程'],
   ['預選登記：衝堂不再擋會修', 'course-registration.html', 'if (conflictCourse) {', 'if (false) {', 1, '衝堂擋會修'],
   ['預選登記：手機不再切到截圖版', 'course-registration.html', '"compact" : "detail"', '"detail" : "detail"', 1, '手機結果頁'],
+  ['自動填表：姓名不再寫進表單', 'index.html', '    p.appendChild(node);\n  }\n\n  async function fillOdtBuffer', '    /* 不寫入 */\n  }\n\n  async function fillOdtBuffer', 1, '第一次跳窗'],
+  ['自動填表：已有資料仍每次跳窗', 'index.html', '      if (hasAny(p)) { run(href, downloadName, p, onDone); return; }', '      if (false) { run(href, downloadName, p, onDone); return; }', 1, '第一次跳窗'],
+  ['自動填表：按取消也算已下載', 'index.html', '$("#fillCancel").addEventListener("click", closeModal);', '$("#fillCancel").addEventListener("click", function () { var j = pending; closeModal(); if (j && j.onDone) j.onDone(); });', 1, '不填，下載空白表'],
+  ['自動填表：「不填」仍帶入資料', 'index.html', 'skippedThisVisit = true;\n      closeModal();\n      if (job) run(job.href, job.name, null, job.onDone);', 'skippedThisVisit = true;\n      closeModal();\n      if (job) run(job.href, job.name, { name: "X" }, job.onDone);', 1, '不填，下載空白表'],
+  ['自動填表：留空欄位不標紅色 ○', 'index.html', '    if (!val) { p.appendChild(redCircle(doc)); return; }', '    if (!val) { return; }', 1, '標紅色'],
   ['預選登記：沒排課時不顯示說明', 'course-registration.html', '目前沒有排入會修或考慮中的課程。', '', 1, '沒有排入'],
 ];
 
 // index.html 拆檔後，首頁的內容分散在這幾個檔案；FAULTS 寫 'index.html' 時，到這幾個檔案裡找含有目標文字的那一個來改
-const SITE_FILES = ['index.html', 'css/tokens.css', 'css/style.css', 'data/flow.js', 'js/app.js'];
+const SITE_FILES = ['index.html', 'css/tokens.css', 'css/style.css', 'data/flow.js', 'js/app.js', 'js/odtfill.js', 'js/fillform.js'];
 
 function nth(s, sub, n) { let i = -1; for (let k = 0; k < n; k++) { i = s.indexOf(sub, i + 1); if (i < 0) return -1; } return i; }
 
@@ -34,7 +39,7 @@ function nth(s, sub, n) { let i = -1; for (let k = 0; k < n; k++) { i = s.indexO
   for (const [name, file, old, neu, nthOcc, key] of FAULTS) {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'eap_e2e_'));
     for (const f of ['index.html', 'course-registration.html']) fs.copyFileSync(path.join(ROOT, f), path.join(tmp, f));
-    for (const d of ['css', 'js', 'data']) if (fs.existsSync(path.join(ROOT, d))) fs.cpSync(path.join(ROOT, d), path.join(tmp, d), { recursive: true });
+    for (const d of ['css', 'js', 'data', 'vendor']) if (fs.existsSync(path.join(ROOT, d))) fs.cpSync(path.join(ROOT, d), path.join(tmp, d), { recursive: true });
     for (const d of ['documents', 'graduation']) if (!STUB && fs.existsSync(path.join(ROOT, d))) fs.cpSync(path.join(ROOT, d), path.join(tmp, d), { recursive: true });
     let target = null, at = -1, s = '';
     for (const f of (file === 'index.html' ? SITE_FILES : [file])) {

@@ -66,6 +66,9 @@ async function dismissModals(page) {
       const l = page.locator(sel);
       if (await l.isVisible()) { await l.click({ timeout: 15000 }); hit = true; await page.waitForTimeout(150); }
     }
+    // 點到可自動填寫的表單會先跳出填表視窗；一般流程測試選「不填，下載空白表」
+    const skip = page.locator('#fillSkip');
+    if (await skip.isVisible()) { await skip.click({ timeout: 15000 }); hit = true; await page.waitForTimeout(150); }
     if (!hit) return;
   }
 }
@@ -245,6 +248,7 @@ for (const opt of [0, 1, 2]) {
     const label = await page.evaluate(() => baseFlow.precheck.passedLabel);
     await retry(page, () => page.getByText(label, { exact: false }).first().click());
     await retry(page, () => page.locator('.qualification-download').click());
+    await dismissModals(page);
     await page.waitForSelector('.qualification-question');
     await retry(page, () => page.locator('.qualification-question label').nth(opt).click());
     // 「已確認，前往第二步」也是 step-done-action 按鈕，交給 greedyWalk 處理（含重畫時的重試）
@@ -338,16 +342,133 @@ test('預選登記：全部選不會修時，截圖版顯示「沒有排入」',
   assert.deepStrictEqual(page.errors, []);
 });
 
+// ---------- 自動填表 ----------
+const JSZipNode = require('../vendor/jszip.min.js');
+const PROFILE = { name: '歐陽慕容小明', sid: '112123456', phone: '0912345678', email: 'ouyang.murong@example.com', title: '測試論文題目' };
+const FILL_KEY = 'eapFillProfile_v1';
+const QUAL = 'documents/proposal/qualifying-exam-application.odt';
+
+async function openQualification(page) {
+  await openHome(page); await dismissModals(page);
+  await enterMode(page, 'proposal');
+  const label = await page.evaluate(() => baseFlow.precheck.passedLabel);
+  await retry(page, () => page.getByText(label, { exact: false }).first().click());
+  await page.waitForSelector('.qualification-download');
+}
+async function readDownload(dl) {
+  const buf = fs.readFileSync(await dl.path());
+  const zip = await JSZipNode.loadAsync(buf);
+  return { buf, zip, xml: await zip.file('content.xml').async('string'), name: dl.suggestedFilename() };
+}
+const fillModalOpen = (page) => page.evaluate(() => !document.querySelector('#fillModal').classList.contains('hidden'));
+
+test('自動填表：第一次跳窗、填好下載、檔名與內容正確；第二次不再跳窗；晶片可修改', async (b, base) => {
+  const page = await newPage(b, base);
+  await openQualification(page);
+  const [dl] = await Promise.all([page.waitForEvent('download'), (async () => {
+    await retry(page, () => page.locator('.qualification-download').click());
+    await page.waitForSelector('#fillModal:not(.hidden)');
+    for (const k of Object.keys(PROFILE)) await page.fill('#fill_' + k, PROFILE[k]);
+    await page.click('#fillSubmit');
+  })()]);
+  const r = await readDownload(dl);
+  assert.strictEqual(r.name, '資格考試申請表.odt');
+  assert.ok(r.xml.includes(PROFILE.name) && r.xml.includes(PROFILE.sid) && r.xml.includes(PROFILE.email), '下載檔應含姓名、學號、e-mail');
+  const names = Object.keys(r.zip.files);
+  assert.strictEqual(names[0], 'mimetype', 'mimetype 必須是第一個檔案');
+  assert.strictEqual(await r.zip.file('mimetype').async('string'), 'application/vnd.oasis.opendocument.text');
+  // 流程有接續（按下載後才標記）
+  await page.waitForSelector('.qualification-question');
+  // 晶片
+  await page.waitForSelector('#fillChip:not([hidden])');
+  assert.ok((await page.locator('#fillChipText').innerText()).includes(PROFILE.name));
+  // 第二次：不跳窗直接下載已填檔
+  const [dl2] = await Promise.all([page.waitForEvent('download'), retry(page, () => page.locator('.qualification-download').click())]);
+  assert.ok(!(await fillModalOpen(page)), '第二次不應再跳窗');
+  assert.ok((await readDownload(dl2)).xml.includes(PROFILE.name));
+  // 改資料
+  await page.click('#fillChipEdit'); await page.waitForSelector('#fillModal:not(.hidden)');
+  assert.strictEqual(await page.inputValue('#fill_name'), PROFILE.name);
+  assert.ok(await page.locator('#fillSkip').isHidden(), '編輯模式不顯示「不填」');
+  await page.fill('#fill_name', '王小明'); await page.click('#fillSubmit');
+  assert.ok((await page.locator('#fillChipText').innerText()).includes('王小明'));
+  assert.strictEqual(JSON.parse(await page.evaluate((k) => localStorage.getItem(k), FILL_KEY)).name, '王小明');
+  assert.deepStrictEqual(page.errors, []);
+});
+
+test('自動填表：「不填，下載空白表」下載的就是原檔；取消則不下載也不標記', async (b, base) => {
+  const page = await newPage(b, base);
+  await openQualification(page);
+  // 取消
+  await retry(page, () => page.locator('.qualification-download').click());
+  await page.waitForSelector('#fillModal:not(.hidden)');
+  await page.click('#fillCancel');
+  await page.waitForTimeout(400);
+  assert.strictEqual(await page.locator('.qualification-question').count(), 0, '取消不應視為已下載');
+  assert.strictEqual(await page.evaluate((k) => localStorage.getItem(k), FILL_KEY), null);
+  // 不填
+  const [dl] = await Promise.all([page.waitForEvent('download'), (async () => {
+    await retry(page, () => page.locator('.qualification-download').click());
+    await page.waitForSelector('#fillModal:not(.hidden)');
+    await page.click('#fillSkip');
+  })()]);
+  const orig = Buffer.from(await page.evaluate(async (u) => [...new Uint8Array(await (await fetch(u)).arrayBuffer())], QUAL));
+  assert.ok((await readDownload(dl)).buf.equals(orig), '空白表應與原檔位元組相同');
+  await page.waitForSelector('.qualification-question');
+  assert.strictEqual(await page.evaluate((k) => localStorage.getItem(k), FILL_KEY), null, '選不填不應存資料');
+  assert.deepStrictEqual(page.errors, []);
+});
+
+test('自動填表：欄位留空標紅色 ○；不可填的表單不受影響', async (b, base) => {
+  const page = await newPage(b, base);
+  await openQualification(page);
+  const [dl] = await Promise.all([page.waitForEvent('download'), (async () => {
+    await retry(page, () => page.locator('.qualification-download').click());
+    await page.waitForSelector('#fillModal:not(.hidden)');
+    await page.fill('#fill_name', PROFILE.name); // 其他留空
+    await page.click('#fillSubmit');
+  })()]);
+  const r = await readDownload(dl);
+  assert.ok(r.xml.includes('TfillRed') && r.xml.includes('○'), '留空欄位應標紅色 ○');
+  const res = await page.evaluate(() => {
+    const a = document.createElement('a');
+    return { fillable: FillForm.isFillable('documents/proposal/committee-invitation.odt'), attached: FillForm.attach(a, 'documents/proposal/committee-invitation.odt', 'x.odt', () => {}) };
+  });
+  assert.deepStrictEqual(res, { fillable: false, attached: false });
+  assert.deepStrictEqual(page.errors, []);
+});
+
+test('自動填表：已有資料時走完整個流程，所有可填表單都直接下載、不跳窗', async (b, base) => {
+  const page = await newPage(b, base);
+  await page.context().addInitScript(([k, v]) => { if (!localStorage.getItem('__fillseeded')) { localStorage.setItem(k, v); localStorage.setItem('__fillseeded', '1'); } }, [FILL_KEY, JSON.stringify(PROFILE)]);
+  const downloads = [];
+  page.on('download', (d) => downloads.push(d));
+  await openQualification(page);
+  await retry(page, () => page.locator('.qualification-download').click());
+  await page.waitForSelector('.qualification-question');
+  await retry(page, () => page.locator('.qualification-question label').nth(0).click());
+  await page.waitForTimeout(500);
+  await greedyWalk(page);
+  const r = await walkAssertFinished(page);
+  assert.ok(r.total > 0 && r.done === r.total && r.celebration, `流程未走完：${r.text}`);
+  assert.ok(downloads.length >= 4, `應有多份下載，實際 ${downloads.length}`);
+  assert.ok(downloads.every((d) => d.suggestedFilename().endsWith('.odt') || d.suggestedFilename().endsWith('.docx')), '下載副檔名異常');
+  assert.ok(!(await fillModalOpen(page)));
+  assert.deepStrictEqual(page.errors, []);
+});
+
 async function runSuite(root, { stub = false, only = null } = {}) {
   const srv = await serve(root, stub);
   const base = 'http://localhost:' + srv.address().port;
   const exe = process.env.PW_CHROMIUM;
-  const browser = await chromium.launch({ args: ['--no-sandbox'], ...(exe ? { executablePath: exe } : {}) });
+  const browser = await chromium.launch({ args: ['--no-sandbox'], env: { ...process.env, LC_ALL: 'C.UTF-8' }, ...(exe ? { executablePath: exe } : {}) })  // UTF-8：否則中文下載檔名會被 Chromium 換成 download;
   const results = [];
   for (const t of tests) {
     if (only && !only.test(t.name)) continue;
     try { await t.fn(browser, base); results.push({ name: t.name, ok: true }); }
     catch (e) { results.push({ name: t.name, ok: false, msg: String(e.message).split('\n')[0].slice(0, 300) }); }
+    // 每個測試結束就關掉它開的分頁：留著會一直吃 CPU，拖慢後面的測試（倒數計時走不動而逾時）
+    for (const c of browser.contexts()) await c.close().catch(() => {});
   }
   await browser.close(); srv.close();
   return results;

@@ -35,6 +35,7 @@ jobs:
           cp -r css _site/css
           cp -r js _site/js
           cp -r data _site/data
+          cp -r vendor _site/vendor
           cp -r documents _site/documents
           cp -r graduation _site/graduation
       - uses: actions/configure-pages@v5
