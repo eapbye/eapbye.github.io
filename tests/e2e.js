@@ -1,0 +1,365 @@
+#!/usr/bin/env node
+// 教政一點通 功能測試（Playwright）。只讀網站檔案，不會改動。
+// 用法：node tests/e2e.js [網站根目錄]        （預設為本檔上一層）
+// 環境變數：E2E_STUB=1  缺少的下載檔／圖片以空檔回應（只在沒有 documents／graduation 的環境用；
+//                       檔案是否真的存在由 check_consistency.py 負責）
+//           PW_CHROMIUM  指定 Chromium 執行檔路徑（選填）
+// 需要：npm i playwright（並安裝瀏覽器）。結束碼 0＝全過、1＝有失敗。
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const assert = require('assert');
+let playwright;
+try { playwright = require('playwright'); } catch (e) { playwright = require(path.join(process.env.NODE_PATH || '', 'playwright')); }
+const { chromium } = playwright;
+
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml',
+  '.jpg': 'image/jpeg', '.png': 'image/png', '.pdf': 'application/pdf' };
+const STORAGE_KEY = 'thesisChecklistProgressV3';
+
+function serve(root, stub) {
+  const srv = http.createServer((req, res) => {
+    const p = decodeURIComponent(req.url.split('?')[0]);
+    const f = path.join(root, p === '/' ? 'index.html' : p);
+    if (!f.startsWith(root)) { res.writeHead(403); return res.end(); }
+    fs.readFile(f, (err, data) => {
+      if (err) {
+        if (stub && /^\/(documents|graduation)\/|\.svg$/.test(p)) { res.writeHead(200, { 'content-type': MIME[path.extname(p)] || 'application/octet-stream' }); return res.end(''); }
+        res.writeHead(404); return res.end();
+      }
+      res.writeHead(200, { 'content-type': MIME[path.extname(f)] || 'application/octet-stream' });
+      res.end(data);
+    });
+  });
+  return new Promise((r) => srv.listen(0, () => r(srv)));
+}
+
+async function newPage(browser, base, opts = {}) {
+  const ctx = await browser.newContext({ viewport: opts.viewport || { width: 1440, height: 900 }, acceptDownloads: true,
+    isMobile: !!opts.mobile, hasTouch: !!opts.mobile });
+  if (opts.seed) await ctx.addInitScript(([k, v]) => { if (!localStorage.getItem('__seeded')) { localStorage.setItem(k, v); localStorage.setItem('__seeded', '1'); } }, [STORAGE_KEY, JSON.stringify(opts.seed)]);
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push('PAGEERR ' + e.message));
+  page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push('CONSOLE ' + m.text()); });
+  page.on('dialog', (d) => d.accept());
+  page.on('popup', (p) => p.close().catch(() => {}));
+  page.setDefaultTimeout(6000);
+  page.errors = errors;
+  page.base = base;
+  return page;
+}
+
+// 畫面常整個重畫，點擊偶爾落在剛被換掉的元素上；短逾時、重試幾次
+async function retry(page, fn, n = 4) {
+  let last;
+  for (let i = 0; i < n; i++) {
+    try { await dismissModals(page); return await fn(); } catch (e) { last = e; await page.waitForTimeout(400); }
+  }
+  throw last;
+}
+
+async function dismissModals(page) {
+  for (let i = 0; i < 6; i++) {
+    let hit = false;
+    for (const sel of ['#closeSubmissionNotice', '#closeGuide', '#closeDeadline']) {
+      const l = page.locator(sel);
+      if (await l.isVisible()) { await l.click({ timeout: 15000 }); hit = true; await page.waitForTimeout(150); }
+    }
+    if (!hit) return;
+  }
+}
+
+async function openHome(page) {
+  await page.goto(page.base + '/index.html');
+  await page.waitForSelector('.mode-card');
+  // 第一次進站，期限提醒彈窗會在版面完成後才跳出；先等它，免得它晚到蓋住按鈕
+  await page.waitForSelector('#deadlineModal:not(.hidden)', { timeout: 2500 }).catch(() => {});
+}
+
+async function enterMode(page, mode) {
+  await retry(page, async () => { await dismissModals(page); await page.click(`.mode-card[data-mode="${mode}"]`); });
+  await dismissModals(page);
+}
+
+// 沿著目前畫面依序點「現在能點的下一個控制項」，直到沒有可點的為止
+async function greedyWalk(page, max = 400) {
+  const order = [
+    '#stepsList .important-reminder input[type=checkbox]:not(:checked)',
+    '#stepsList .document-item:not(.is-info):not(.is-done):not(.is-locked) a.download-link:not(.is-unavailable)',
+    '#stepsList .document-item:not(.is-info):not(.is-done):not(.is-locked) button:not([disabled])',
+    '#stepsList button.documents-done-gate:not([disabled]):not(.is-complete)',
+    '#stepsList .inventory-chip[aria-pressed="false"]',
+    '#stepsList button.step-done-action:not([disabled]):not(.is-complete)',
+  ];
+  let clicks = 0;
+  const seen = new Map();   // 同一個控制項連點好幾次仍沒進展，視為卡住（避免無窮點擊）
+  for (let i = 0; i < max; i++) {
+    await dismissModals(page);
+    if (await page.locator('#celebrationModal:not(.hidden)').count()) return clicks;
+    let done = true;
+    for (const sel of order) {
+      const loc = page.locator(sel);
+      const n = await loc.count();
+      for (let k = 0; k < n; k++) {
+        const it = loc.nth(k);
+        if (!(await it.isVisible())) continue;
+        const txt = (await it.textContent().catch(() => '')) || '';
+        if (/^\s*取消/.test(txt)) continue;
+        // 自訂勾選框的 input 常被 label 蓋住，改點外層 label；畫面重畫造成點不到時重試
+        const sig = sel + '|' + txt.trim();
+        seen.set(sig, (seen.get(sig) || 0) + 1);
+        if (seen.get(sig) > 4) throw new Error('卡住：重複點了仍沒進展「' + txt.trim().slice(0, 24) + '」');
+        const isInput = await it.evaluate((el) => el.tagName === 'INPUT').catch(() => false);
+        const target = isInput ? it.locator('xpath=ancestor::label[1]') : it;
+        let ok = false;
+        for (let a = 0; a < 3 && !ok; a++) {
+          // 最後確認那一步會延遲跳出「繳交提醒」彈窗，可能剛好蓋住按鈕：每次嘗試前先關彈窗
+          try { await dismissModals(page); await target.click({ timeout: 4000 }); ok = true; } catch (e) { await page.waitForTimeout(300); }
+        }
+        if (!ok) throw new Error('點不到：' + sel.split(' ').slice(-1)[0] + '「' + txt.trim().slice(0, 24) + '」');
+        await page.waitForTimeout(90);
+        clicks++; done = false; break;
+      }
+      if (!done) break;
+    }
+    if (done) return clicks;
+  }
+  throw new Error('walk 超過 ' + max + ' 次仍未結束');
+}
+
+function walkAssertFinished(page) {
+  return page.evaluate(() => {
+    const t = document.querySelector('#progressText').textContent.trim();
+    const m = t.match(/(\d+)\s*\/\s*(\d+)/);
+    return { text: t, done: m ? +m[1] : -1, total: m ? +m[2] : -2, celebration: !document.querySelector('#celebrationModal').classList.contains('hidden'),
+      links: document.querySelectorAll('#celebrationLinks a').length };
+  });
+}
+
+const tests = [];
+const test = (name, fn) => tests.push({ name, fn });
+
+test('首頁：載入無錯誤、三個入口、提醒彈窗只出現一次', async (b, base) => {
+  const page = await newPage(b, base);
+  await openHome(page);
+  assert.strictEqual(await page.locator('.mode-card[data-mode]').count(), 2, '口試入口應有 2 個');
+  assert.ok(await page.locator('#openGraduation').isVisible(), '缺畢業專區入口');
+  assert.ok(await page.locator('#deadlineModal:not(.hidden)').count(), '第一次進站應出現期限提醒彈窗');
+  const foot = await page.locator('footer, body').first().innerText();
+  assert.ok(/（最後更新日：\d{4}-\d{2}-\d{2}）/.test(foot), '首頁看不到全形括號的最後更新日');
+  await dismissModals(page);
+  await page.reload(); await page.waitForTimeout(1500);
+  assert.ok(!(await page.locator('#deadlineModal:not(.hidden)').count()), '30 天內再進站不應再跳期限提醒');
+  assert.deepStrictEqual(page.errors, []);
+});
+
+test('畢業專區：級數、勾滿 13 項才出彩蛋、取消任一項即消失、重新整理保留勾選', async (b, base) => {
+  const page = await newPage(b, base);
+  await openHome(page); await dismissModals(page);
+  await page.click('#openGraduation');
+  await page.waitForSelector('.graduation-grade-card');
+  assert.strictEqual(await page.locator('.graduation-grade-card').count(), 5);
+  assert.strictEqual(await page.locator('.graduation-grade-card.is-open').count(), 3, '111、112、113 應開放');
+  assert.strictEqual(await page.locator('.graduation-grade-card.is-closed').count(), 2, '114、115 應為尚未開放');
+  await page.locator('.graduation-grade-card', { hasText: '113級' }).click();
+  const boxes = page.locator('.graduation-task input');
+  assert.strictEqual(await boxes.count(), 13, '畢業流程應有 13 個勾選項（index 1 已停用）');
+  const n = await boxes.count();
+  for (let i = 0; i < n - 1; i++) await boxes.nth(i).check();
+  assert.ok(!(await page.locator('#graduationModal.is-graduation-complete').count()), '還差一項，不該顯示完成');
+  assert.ok(!(await page.locator('.graduation-easter-egg').count()), '還差一項，不該出現彩蛋');
+  await boxes.nth(n - 1).check();
+  assert.ok(await page.locator('#graduationModal.is-graduation-complete').count(), '全勾後應顯示完成');
+  await page.waitForSelector('.graduation-easter-egg', { timeout: 3000 });
+  await boxes.nth(5).uncheck();
+  assert.ok(!(await page.locator('#graduationModal.is-graduation-complete').count()), '取消一項後應取消完成狀態');
+  assert.ok(!(await page.locator('.graduation-easter-egg').count()), '取消一項後彩蛋應消失');
+  await page.reload(); await page.waitForSelector('.mode-card'); await dismissModals(page);
+  await page.click('#openGraduation');
+  await page.locator('.graduation-grade-card', { hasText: '113級' }).click();
+  assert.strictEqual(await page.locator('.graduation-task input:checked').count(), 12, '重新整理後應保留 12 個勾選');
+  assert.deepStrictEqual(page.errors, []);
+});
+
+test('畢業專區：舊使用者的勾選依 index 對應（12、13 沒有位移）', async (b, base) => {
+  const page = await newPage(b, base, { seed: { graduationTasks: { 'graduation:113:12': true, 'graduation:113:3': true, 'graduation:113:1': true } } });
+  await openHome(page); await dismissModals(page);
+  await page.click('#openGraduation');
+  await page.locator('.graduation-grade-card', { hasText: '113級' }).click();
+  assert.strictEqual(await page.locator('.graduation-task input:checked').count(), 2);
+  for (const i of [12, 3]) assert.ok(await page.locator(`.graduation-task[data-graduation-task-index="${i}"] input:checked`).count(), `index ${i} 應為已勾`);
+  for (const i of [0, 13]) assert.ok(!(await page.locator(`.graduation-task[data-graduation-task-index="${i}"] input:checked`).count()), `index ${i} 不應被勾`);
+  assert.deepStrictEqual(page.errors, []);
+});
+
+test('畢業專區：114、115 級都顯示還不能畢業', async (b, base) => {
+  const page = await newPage(b, base);
+  await openHome(page); await dismissModals(page);
+  await page.click('#openGraduation');
+  await page.locator('.graduation-grade-card', { hasText: '114級' }).click();
+  assert.ok(await page.locator('.graduation-note', { hasText: '還不能畢業' }).count());
+  await page.click('#closeGraduation'); await page.click('#openGraduation');
+  await page.locator('.graduation-grade-card', { hasText: '115級' }).click();
+  assert.ok(await page.locator('.graduation-note', { hasText: '還不能畢業' }).count());
+  assert.deepStrictEqual(page.errors, []);
+});
+
+test('流程資料：AIGC 與全文電子檔考前備妥、畢業專區不再比對、名稱用全名', async (b, base) => {
+  const page = await newPage(b, base);
+  await openHome(page);
+  // 計畫口試的步驟放在 baseFlow，口試資格等在 flowModes.proposal；學位考試整套在 flowModes.defense
+  const d = await page.evaluate(() => ({ proposal: JSON.stringify([baseFlow, flowModes.proposal]), defense: JSON.stringify(flowModes.defense) }));
+  assert.ok(d.defense.includes('學位論文AIGC檢測報告書'), '學位論文考試申請應有 AIGC 全名');
+  assert.ok(d.defense.includes('Turnitin）全文電子檔'), '學位論文考試申請應有 Turnitin 全文電子檔');
+  assert.ok(d.proposal.includes('學位論文AIGC檢測報告書'), '計畫口試應有 AIGC 全名');
+  const inv = await page.evaluate(() => buildDefenseSubmissionInventory().map((x) => x.label).join('|'));
+  for (const w of ['Turnitin）證明表', 'Turnitin）全文電子檔', '學位論文AIGC檢測報告書']) assert.ok(inv.includes(w), '學位論文考試最後確認清單缺：' + w);
+  for (const k of ['proposal', 'defense']) {
+    assert.ok(d[k].includes('學位論文原創比對（Turnitin）證明表'), k + ' 缺 Turnitin 全名');
+    assert.ok(!/原創比對(?!（Turnitin）(證明表|全文電子檔))/.test(d[k]), k + ' 有不完整的 Turnitin 名稱');
+  }
+  assert.ok(await page.evaluate(() => [...document.scripts].map((x) => x.textContent).join('').split('inventoryItem("歷年成績單"').length - 1 >= 2), '兩個系統的最後確認清單都應有「歷年成績單」');
+  await dismissModals(page);
+  await page.click('#openGraduation'); await page.waitForSelector('.graduation-grade-card');
+  await page.locator('.graduation-grade-card', { hasText: '113級' }).click();
+  await page.waitForSelector('.graduation-flow');
+  const gtext = await page.locator('.graduation-flow').innerText();
+  assert.ok(!/Turnitin|AIGC/.test(gtext), '畢業專區不應再出現 Turnitin／AIGC');
+  assert.ok(gtext.includes('繳交紙本論文 1 本至所辦'), '畢業專區應寫所辦只收 1 本');
+  await page.click('#closeGraduation');
+  const hrefs = await page.evaluate(() => [...new Set((JSON.stringify(flowModes).match(/documents\/[^"]+/g) || []))]);
+  for (const h of hrefs) {
+    const st = await page.evaluate(async (u) => (await fetch(u, { method: 'HEAD' })).status, h);
+    assert.strictEqual(st, 200, '下載連結無法取得：' + h);
+  }
+  assert.deepStrictEqual(page.errors, []);
+});
+
+for (const opt of [0, 1, 2]) {
+  test(`計畫口試：走完整個流程到完成彈窗（資格類型第 ${opt + 1} 種）`, async (b, base) => {
+    const page = await newPage(b, base);
+    await openHome(page); await dismissModals(page);
+    await enterMode(page, 'proposal');
+    const label = await page.evaluate(() => baseFlow.precheck.passedLabel);
+    await retry(page, () => page.getByText(label, { exact: false }).first().click());
+    await retry(page, () => page.locator('.qualification-download').click());
+    await page.waitForSelector('.qualification-question');
+    await retry(page, () => page.locator('.qualification-question label').nth(opt).click());
+    // 「已確認，前往第二步」也是 step-done-action 按鈕，交給 greedyWalk 處理（含重畫時的重試）
+    await page.waitForTimeout(500);
+    await greedyWalk(page);
+    const r = await walkAssertFinished(page);
+    assert.ok(r.total > 0 && r.done === r.total, `進度未滿：${r.text}`);
+    assert.ok(r.celebration, '完成後應出現完成彈窗');
+    assert.ok(r.links >= 3, `完成彈窗的示範檔案連結太少：${r.links}`);
+    assert.deepStrictEqual(page.errors, []);
+  });
+}
+
+test('學位論文考試：走完整個流程到完成彈窗（含 AIGC 與全文電子檔）', async (b, base) => {
+  const page = await newPage(b, base);
+  await openHome(page); await dismissModals(page);
+  await enterMode(page, 'defense');
+  const n = await page.locator('.precheck-choice').count();
+  assert.ok(n >= 2, '資格確認應有至少 2 個勾選');
+  for (let i = 0; i < n; i++) {
+    // 每勾一項畫面會整個重畫，所以每次重新找
+    const item = page.locator('.precheck-choice').nth(i);
+    if (!(await item.evaluate((el) => el.classList.contains('is-checked')))) await retry(page, () => item.click());
+  }
+  // 「已確認，前往下一步」也是 step-done-action 按鈕，交給 greedyWalk
+  await greedyWalk(page);
+  const r = await walkAssertFinished(page);
+  assert.ok(r.total > 0 && r.done === r.total, `進度未滿：${r.text}`);
+  assert.ok(r.celebration, '完成後應出現完成彈窗');
+  const text = await page.locator('body').innerText();
+  assert.ok(text.includes('AIGC'), '學位論文考試畫面應出現 AIGC');
+  assert.ok(text.includes('歷年成績單'));
+  assert.deepStrictEqual(page.errors, []);
+});
+
+async function fillRegistration(page, picks) {
+  await page.fill('#studentId', '112171000'); await page.fill('#studentName', '王小明');
+  for (const [id, choice] of Object.entries(picks)) await page.click(`button[data-course="${id}"][data-choice="${choice}"]`);
+}
+
+test('預選登記：必填、衝堂擋會修、考慮中可重疊並提醒', async (b, base) => {
+  const page = await newPage(b, base);
+  await page.goto(base + '/course-registration.html'); await page.waitForSelector('.course-card');
+  assert.strictEqual(await page.locator('.course-card').count(), await page.evaluate(() => courses.length));
+  await page.click('#submitButton');
+  assert.ok((await page.locator('#message').innerText()).includes('學號與姓名'), '未填姓名學號不可送出');
+  await page.fill('#studentId', '112171000'); await page.fill('#studentName', '王小明');
+  await page.click('#submitButton');
+  assert.ok((await page.locator('#message').innerText()).includes('每門課程'), '未選完不可送出');
+  const pair = await page.evaluate(() => { for (const a of courses) for (const c of courses) if (a.id < c.id && coursesOverlap(a, c)) return [a.id, c.id]; return null; });
+  assert.ok(pair, '資料中應至少有一組時間重疊的課程');
+  await page.click(`button[data-course="${pair[0]}"][data-choice="yes"]`);
+  await page.click(`button[data-course="${pair[1]}"][data-choice="yes"]`);
+  assert.ok((await page.locator('#message').innerText()).includes('時間重疊'), '兩門衝堂都選會修應被擋');
+  assert.ok(!(await page.locator(`button[data-course="${pair[1]}"][data-choice="yes"].is-selected`).count()), '被擋的那門不應顯示為已選');
+  await page.click(`button[data-course="${pair[1]}"][data-choice="maybe"]`);
+  const rest = await page.evaluate(([a, c]) => courses.filter((x) => x.id !== a && x.id !== c).map((x) => x.id), pair);
+  for (const id of rest) await page.click(`button[data-course="${id}"][data-choice="no"]`);
+  await page.click('#submitButton');
+  await page.waitForSelector('#resultCard:not(.hidden)');
+  assert.ok(await page.locator('#overlapWarning:not(.hidden)').count(), '會修與考慮中重疊時，結果頁應列出重疊提醒');
+  assert.deepStrictEqual(page.errors, []);
+});
+
+test('預選登記：手機結果頁只顯示截圖版，且只含有排入課程的日期', async (b, base) => {
+  const page = await newPage(b, base, { viewport: { width: 390, height: 844 }, mobile: true });
+  await page.goto(base + '/course-registration.html'); await page.waitForSelector('.course-card');
+  const plan = await page.evaluate(() => {
+    const yes = []; const picks = {};
+    for (const c of courses) { if (c.day === 2 && !yes.some((y) => coursesOverlap(y, c))) { yes.push(c); picks[c.id] = 'yes'; } else picks[c.id] = 'no'; }
+    return { picks, days: [...new Set(yes.map((c) => c.day))].length };
+  });
+  await fillRegistration(page, plan.picks);
+  await page.click('#submitButton');
+  await page.waitForSelector('#resultCard:not(.hidden)');
+  assert.strictEqual(await page.locator('#resultCard').getAttribute('data-schedule-view'), 'compact');
+  assert.ok(!(await page.locator('.schedule-wrap').isVisible()), '手機不應顯示詳細版週課表');
+  assert.ok(await page.locator('.compact-schedule-panel').isVisible(), '手機應顯示截圖版');
+  assert.strictEqual(await page.locator('.compact-day-head').count(), 1 + plan.days, '截圖版只該有「節」加上有課的日期');
+  assert.deepStrictEqual(page.errors, []);
+});
+
+test('預選登記：全部選不會修時，截圖版顯示「沒有排入」', async (b, base) => {
+  const page = await newPage(b, base, { viewport: { width: 390, height: 844 }, mobile: true });
+  await page.goto(base + '/course-registration.html'); await page.waitForSelector('.course-card');
+  const picks = await page.evaluate(() => Object.fromEntries(courses.map((c) => [c.id, 'no'])));
+  await fillRegistration(page, picks);
+  await page.click('#submitButton');
+  await page.waitForSelector('#resultCard:not(.hidden)');
+  assert.ok((await page.locator('#compactScheduleGrid').innerText()).includes('目前沒有排入會修或考慮中的課程'));
+  assert.deepStrictEqual(page.errors, []);
+});
+
+async function runSuite(root, { stub = false, only = null } = {}) {
+  const srv = await serve(root, stub);
+  const base = 'http://localhost:' + srv.address().port;
+  const exe = process.env.PW_CHROMIUM;
+  const browser = await chromium.launch({ args: ['--no-sandbox'], ...(exe ? { executablePath: exe } : {}) });
+  const results = [];
+  for (const t of tests) {
+    if (only && !only.test(t.name)) continue;
+    try { await t.fn(browser, base); results.push({ name: t.name, ok: true }); }
+    catch (e) { results.push({ name: t.name, ok: false, msg: String(e.message).split('\n')[0].slice(0, 300) }); }
+  }
+  await browser.close(); srv.close();
+  return results;
+}
+
+module.exports = { runSuite, tests, newPage, openHome, dismissModals, greedyWalk, serve, retry, enterMode };
+
+if (require.main === module) {
+  const root = path.resolve(process.argv[2] || path.join(__dirname, '..'));
+  runSuite(root, { stub: process.env.E2E_STUB === '1' }).then((rs) => {
+    for (const r of rs) console.log((r.ok ? '通過  ' : '失敗  ') + r.name + (r.ok ? '' : '\n      → ' + r.msg));
+    const bad = rs.filter((r) => !r.ok).length;
+    console.log(`\n結果：${rs.length - bad} 通過、${bad} 失敗`);
+    process.exit(bad ? 1 : 0);
+  });
+}

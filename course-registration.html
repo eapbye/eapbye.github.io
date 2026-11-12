@@ -1,0 +1,1280 @@
+﻿<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>115 學年度第 1 學期課程預選登記</title>
+  <style>
+    :root {
+      --ink: #16456f;
+      --text: #17212b;
+      --muted: #5f7084;
+      --line: #aec5dc;
+      --surface: #ffffff;
+      --soft: #e4eef7;
+      --blue: #2b78b6;
+      --blue-soft: #d3e9f8;
+      --blue-pale: #eaf5fc;
+      --action-bg: #d2e7f5;
+      --action-bg-strong: #bcd8ec;
+      --action-border: #6e9fc2;
+      --action-text: #123d66;
+      --green: #1f7a62;
+      --green-soft: #d6efe5;
+      --amber: #b7651e;
+      --amber-soft: #fff0df;
+      --red: #b7392f;
+      --red-soft: #ffe8e5;
+      --purple: #6a55a8;
+      --purple-soft: #e4daf7;
+      --shadow: 0 18px 42px rgba(34, 57, 86, 0.14);
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding-bottom: 72px;
+      background:
+        linear-gradient(180deg, rgba(43, 120, 182, 0.26), rgba(43, 120, 182, 0.07) 360px),
+        var(--soft);
+      color: var(--text);
+      font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.65;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .wrap {
+      width: min(1160px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 18px;
+    }
+
+    .home-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 58px;
+      padding: 12px 24px;
+      border: 1px solid rgba(154, 90, 21, 0.32);
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, #fff8ef, var(--amber-soft));
+      color: var(--amber);
+      text-decoration: none;
+      font-size: 1.12rem;
+      font-weight: 820;
+      white-space: nowrap;
+      box-shadow: 0 12px 28px rgba(154, 90, 21, 0.1);
+    }
+
+    .hero,
+    .student-card,
+    .course-card,
+    .submit-panel,
+    .result-card {
+      border: 1.6px solid rgba(43, 120, 182, 0.54);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 18px 42px rgba(34, 57, 86, 0.17);
+    }
+
+    .hero {
+      padding: clamp(26px, 4.2vw, 44px);
+      margin-bottom: 22px;
+      background:
+        radial-gradient(circle at 86% 18%, rgba(43, 120, 182, 0.22), transparent 30%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(229, 242, 252, 0.96));
+    }
+
+    .hero h1 {
+      margin: 0 0 12px;
+      color: var(--ink);
+      font-size: clamp(2.15rem, 4.1vw, 3.35rem);
+      line-height: 1.18;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(1.12rem, 1.75vw, 1.32rem);
+      font-weight: 800;
+    }
+
+    .student-card {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+      padding: 24px;
+      margin-bottom: 28px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 1.18rem;
+      font-weight: 820;
+    }
+
+    .field input {
+      width: 100%;
+      min-height: 62px;
+      padding: 12px 16px;
+      border: 1.4px solid #a9c3d9;
+      border-radius: var(--radius);
+      background: #ffffff;
+      color: var(--text);
+      font-size: 1.16rem;
+      font-weight: 760;
+    }
+
+    .field input:focus {
+      outline: 3px solid rgba(43, 120, 182, 0.18);
+      border-color: rgba(43, 120, 182, 0.62);
+    }
+
+    .course-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .course-card {
+      position: relative;
+      display: grid;
+      gap: 14px;
+      min-height: 208px;
+      padding: 22px 24px;
+      overflow: hidden;
+      box-shadow: 0 13px 30px rgba(37, 68, 103, 0.125);
+    }
+
+    .course-card.is-required {
+      border-color: rgba(43, 120, 182, 0.6);
+      background: linear-gradient(135deg, #ffffff, #e8f4fd);
+    }
+
+    .course-card.is-elective {
+      border-color: rgba(31, 122, 98, 0.54);
+      background: linear-gradient(135deg, #ffffff, #e8f8f1);
+    }
+
+    .course-main {
+      display: grid;
+      gap: 10px;
+      padding-right: 144px;
+    }
+
+    .course-card h2 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 1.48rem;
+      font-weight: 820;
+      line-height: 1.35;
+    }
+
+    .teacher-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 1;
+      max-width: 160px;
+      padding: 6px 11px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.88);
+      color: var(--ink);
+      font-size: 0.98rem;
+      font-weight: 820;
+      text-align: right;
+      box-shadow: 0 8px 20px rgba(37, 68, 103, 0.08);
+    }
+
+    .course-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.98rem;
+      font-weight: 760;
+    }
+
+    .course-meta span {
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: var(--blue-pale);
+      box-shadow: inset 0 0 0 1px rgba(43, 120, 182, 0.06);
+    }
+
+    .course-type {
+      color: var(--blue);
+      background: var(--blue-soft) !important;
+    }
+
+    .course-card.is-elective .course-type {
+      color: var(--green);
+      background: var(--green-soft) !important;
+    }
+
+    .choice-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      align-self: end;
+    }
+
+    .choice-button {
+      min-height: 56px;
+      border: 1.75px solid #9fbdd6;
+      border-radius: var(--radius);
+      background: #ffffff;
+      color: var(--ink);
+      font-size: 1.02rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .choice-button:hover,
+    .choice-button:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(43, 120, 182, 0.54);
+      outline: none;
+    }
+
+    .choice-button.is-selected {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px rgba(37, 68, 103, 0.16);
+    }
+
+    .choice-button.is-selected[data-choice="yes"] {
+      background: linear-gradient(135deg, var(--green), #17634f);
+      border-color: #1b624d;
+      color: #fff;
+    }
+
+    .choice-button.is-selected[data-choice="maybe"] {
+      background: linear-gradient(135deg, var(--amber-soft), #ffd79b);
+      border-color: #c7771f;
+      color: #7a430b;
+    }
+
+    .choice-button.is-selected[data-choice="no"] {
+      background: linear-gradient(135deg, var(--red-soft), #ffd8d3);
+      border-color: #d14b3f;
+      color: #8f1f16;
+    }
+
+    .submit-panel {
+      position: sticky;
+      bottom: 18px;
+      z-index: 20;
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      margin: 22px 0 0;
+      padding: 13px 16px;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 13px 30px rgba(34, 57, 86, 0.15);
+    }
+
+    .summary-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: var(--ink);
+      font-weight: 820;
+    }
+
+    .summary-pills span {
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: var(--blue-soft);
+    }
+
+    .submit-button,
+    .edit-button {
+      min-height: 50px;
+      border: 1.6px solid var(--action-border);
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, #f9fdff, var(--action-bg));
+      color: var(--action-text);
+      padding: 9px 24px;
+      font-weight: 820;
+      cursor: pointer;
+      box-shadow: 0 12px 24px rgba(43, 120, 182, 0.12);
+    }
+
+    .submit-button:hover,
+    .edit-button:hover {
+      border-color: #7aa9ca;
+      background: linear-gradient(135deg, #f4fbff, var(--action-bg-strong));
+    }
+
+    .submit-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      box-shadow: none;
+    }
+
+    .message {
+      min-height: 24px;
+      margin: 12px 0 0;
+      color: var(--red);
+      font-weight: 820;
+    }
+
+    .result-card {
+      margin-top: 22px;
+      padding: 22px;
+    }
+
+    .result-card.hidden {
+      display: none;
+    }
+
+    .result-head {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .check-mark {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border-radius: 999px;
+      background: var(--green);
+      color: #fff;
+      font-size: 1.7rem;
+      font-weight: 820;
+    }
+
+    .result-head h2 {
+      margin: 0;
+      color: var(--ink);
+      font-size: clamp(1.38rem, 2.2vw, 1.86rem);
+    }
+
+    .result-head p {
+      margin: 0;
+      color: var(--muted);
+      font-weight: 720;
+    }
+
+    .result-summary {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 0.7fr);
+      gap: 14px;
+      align-items: center;
+      margin: 14px 0 0;
+      padding-top: 14px;
+      border-top: 1.4px solid rgba(43, 120, 182, 0.18);
+    }
+
+    .overlap-warning {
+      display: grid;
+      gap: 8px;
+      margin: 0 0 18px;
+      padding: 16px 18px;
+      border: 1.6px solid rgba(183, 101, 30, 0.56);
+      border-left: 7px solid var(--amber);
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, #fff4e5, #fffdf8);
+      color: #7a430b;
+      font-weight: 780;
+    }
+
+    .overlap-warning.hidden {
+      display: none;
+    }
+
+    .overlap-warning strong {
+      color: var(--amber);
+      font-size: 1.12rem;
+    }
+
+    .overlap-warning ul {
+      margin: 0;
+      padding-left: 1.2em;
+      color: var(--muted);
+      font-weight: 720;
+    }
+
+    .schedule-view-toggle {
+      display: none;
+    }
+
+    .compact-schedule-panel {
+      display: none;
+    }
+
+    .schedule-wrap {
+      overflow-x: auto;
+      padding-bottom: 6px;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-inline: contain;
+    }
+
+    .schedule-grid {
+      display: grid;
+      min-width: 900px;
+      grid-template-columns: 118px repeat(5, minmax(136px, 1fr));
+      grid-template-rows: 52px repeat(12, 76px);
+      border: 1.6px solid #afa392;
+      background: #fff;
+    }
+
+    .cell,
+    .day-head,
+    .period-cell {
+      border-right: 1px solid #d3cbbd;
+      border-bottom: 1px solid #d3cbbd;
+      padding: 8px;
+    }
+
+    .day-head {
+      display: grid;
+      place-items: center;
+      background: #f7efd8;
+      color: var(--ink);
+      font-weight: 820;
+      font-size: 1.08rem;
+    }
+
+    .period-cell {
+      display: grid;
+      place-items: center;
+      background: #fff3dc;
+      color: #5d6470;
+      font-size: 0.9rem;
+      font-weight: 720;
+      text-align: center;
+      line-height: 1.32;
+    }
+
+    .period-cell strong {
+      display: block;
+      color: var(--ink);
+      font-size: 1.02rem;
+    }
+
+    .course-block {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      gap: 8px;
+      margin: 4px;
+      width: calc(var(--lane-width, 100%) - 8px);
+      left: var(--lane-left, 0);
+      padding: 10px 8px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #3a86b8, #23699f);
+      color: #fff;
+      text-align: center;
+      font-weight: 820;
+      font-size: 0.94rem;
+      line-height: 1.25;
+      overflow: hidden;
+    }
+
+    .course-block.is-maybe {
+      border: 2px dashed var(--blue);
+      background: #e1f0fa;
+      color: var(--ink);
+    }
+
+    .course-block .course-name {
+      color: inherit;
+      font-size: 1em;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .course-block .teacher {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      max-width: 100%;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 0.86rem;
+      font-weight: 850;
+      line-height: 1.25;
+    }
+
+    .course-block.is-maybe .teacher {
+      background: rgba(43, 120, 182, 0.11);
+      color: #4f6d83;
+    }
+
+    .compact-schedule-card {
+      border: 1.6px solid #afa392;
+      background: #ffffff;
+      overflow: hidden;
+    }
+
+    .compact-schedule-title {
+      display: grid;
+      gap: 2px;
+      padding: 9px 10px;
+      border-bottom: 1px solid #d3cbbd;
+      background: linear-gradient(135deg, #fff9ef, #f7efd8);
+      color: var(--ink);
+      text-align: center;
+      font-weight: 900;
+      line-height: 1.25;
+    }
+
+    .compact-schedule-title span {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 780;
+    }
+
+    .compact-schedule-note {
+      color: #7a430b !important;
+      font-size: 0.72rem !important;
+      font-weight: 820 !important;
+    }
+
+    .compact-schedule-grid {
+      display: grid;
+      grid-template-columns: 38px repeat(5, minmax(0, 1fr));
+      grid-template-rows: 30px repeat(12, 42px);
+      background: #ffffff;
+    }
+
+    .compact-cell,
+    .compact-day-head,
+    .compact-period-cell {
+      min-width: 0;
+      border-right: 1px solid #d3cbbd;
+      border-bottom: 1px solid #d3cbbd;
+    }
+
+    .compact-day-head,
+    .compact-period-cell {
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .compact-day-head {
+      background: #f7efd8;
+      font-size: 0.84rem;
+    }
+
+    .compact-period-cell {
+      background: #fff3dc;
+      color: #576370;
+      font-size: 0.66rem;
+      line-height: 1.08;
+    }
+
+    .compact-period-cell strong {
+      display: block;
+      color: var(--ink);
+      font-size: 0.78rem;
+    }
+
+    .compact-course-block {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      gap: 2px;
+      margin: 2px;
+      width: calc(var(--lane-width, 100%) - 4px);
+      left: var(--lane-left, 0);
+      padding: 4px 3px;
+      border-radius: 5px;
+      background: linear-gradient(135deg, #3a86b8, #23699f);
+      color: #ffffff;
+      text-align: center;
+      line-height: 1.12;
+      overflow: hidden;
+    }
+
+    .compact-course-block.is-maybe {
+      border: 1.5px dashed var(--blue);
+      background: #e1f0fa;
+      color: var(--ink);
+    }
+
+    .compact-course-name {
+      max-width: 100%;
+      font-size: 0.62rem;
+      font-weight: 950;
+      letter-spacing: 0;
+    }
+
+    .compact-course-teacher {
+      max-width: 100%;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 0.56rem;
+      font-weight: 820;
+    }
+
+    .compact-course-block.is-maybe .compact-course-teacher {
+      color: #4f6d83;
+    }
+
+    .compact-schedule-grid.is-empty {
+      display: block;
+      min-height: 96px;
+    }
+
+    .compact-empty {
+      display: grid;
+      place-items: center;
+      min-height: 96px;
+      padding: 14px;
+      border-bottom: 1px solid #d3cbbd;
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 820;
+      text-align: center;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      margin: 0;
+      color: var(--muted);
+      font-weight: 820;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .legend i {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      background: var(--blue);
+    }
+
+    .legend .maybe i {
+      border: 2px dashed var(--blue);
+      background: #e8f3fc;
+    }
+
+    .credit-card {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      border-radius: var(--radius);
+      background: transparent;
+      color: var(--text);
+    }
+
+    .credit-card span {
+      color: var(--muted);
+      font-weight: 850;
+    }
+
+    .credit-card strong {
+      display: block;
+      color: var(--ink);
+      font-size: 1.34rem;
+      line-height: 1.1;
+    }
+
+    .edit-button {
+      width: auto;
+      min-width: 148px;
+      background: linear-gradient(135deg, #f8fcff, var(--blue-soft));
+      color: var(--blue);
+      border: 1.8px solid rgba(43, 120, 182, 0.56);
+      box-shadow: 0 12px 24px rgba(31, 111, 178, 0.12);
+    }
+
+    @media (max-width: 760px) {
+      body { padding-bottom: 132px; }
+      body.is-result-view { padding-bottom: 20px; }
+      .wrap { width: min(100% - 20px, 1120px); padding-top: 16px; }
+      .topbar { justify-content: stretch; }
+      .home-link { width: 100%; }
+      .hero { padding: 24px 20px; }
+      .hero h1 {
+        white-space: normal;
+        font-size: clamp(2rem, 8vw, 2.8rem);
+      }
+      .student-card {
+        padding: 20px;
+        gap: 16px;
+      }
+      .student-card,
+      .course-grid,
+      .submit-panel,
+      .credit-card {
+        grid-template-columns: 1fr;
+      }
+      .course-grid { gap: 14px; }
+      .course-card {
+        min-height: auto;
+        padding: 20px;
+        gap: 14px;
+      }
+      .course-main {
+        padding-right: 0;
+        padding-top: 0;
+      }
+      .teacher-badge {
+        position: static;
+        justify-self: start;
+        max-width: 100%;
+        text-align: left;
+      }
+      .choice-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .choice-button {
+        min-height: 52px;
+        padding: 8px 6px;
+        font-size: 0.98rem;
+      }
+      .submit-panel {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 8;
+        width: 100%;
+        transform: none;
+        margin: 0;
+        padding: 10px 12px 12px;
+        border-right: 0;
+        border-left: 0;
+        border-radius: 0;
+        box-shadow: 0 -12px 30px rgba(34, 57, 86, 0.14);
+      }
+      body.is-result-view .submit-panel {
+        display: none;
+      }
+      .summary-pills {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        font-size: 0.86rem;
+      }
+      .summary-pills span {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        padding: 5px 6px;
+        text-align: center;
+      }
+      .message {
+        min-height: 18px;
+        margin-top: 6px;
+        font-size: 0.9rem;
+      }
+      .submit-button {
+        width: 100%;
+        min-height: 46px;
+      }
+      .result-head {
+        grid-template-columns: auto minmax(0, 1fr);
+      }
+      .result-head .edit-button {
+        grid-column: 1 / -1;
+        width: 100%;
+      }
+      .schedule-view-toggle {
+        display: none;
+      }
+      .schedule-view-button {
+        min-height: 42px;
+        border: 1.5px solid rgba(43, 120, 182, 0.42);
+        border-radius: var(--radius);
+        background: #ffffff;
+        color: var(--ink);
+        font-weight: 860;
+      }
+      .schedule-view-button.is-active {
+        border-color: rgba(43, 120, 182, 0.68);
+        background: var(--blue-soft);
+        color: var(--action-text);
+        box-shadow: inset 0 0 0 1px rgba(43, 120, 182, 0.12);
+      }
+      .result-card .compact-schedule-panel {
+        display: block;
+      }
+      .result-card .schedule-wrap {
+        display: none;
+      }
+      .result-summary {
+        grid-template-columns: 1fr;
+      }
+      .schedule-wrap {
+        margin: 0 -10px;
+        padding: 0 10px 8px;
+      }
+      .schedule-grid {
+        min-width: 720px;
+        grid-template-columns: 104px repeat(5, minmax(112px, 1fr));
+        grid-template-rows: 50px repeat(12, 64px);
+      }
+      .course-block {
+        padding: 8px 6px;
+        font-size: 0.88rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="home-link" href="index.html">返回政大教政一點通</a>
+    </div>
+
+    <section class="hero">
+      <h1 id="registrationTitle">115 學年度第 1 學期課程預選登記</h1>
+      <p>請為每門課程選擇修課意願，送出後即可查看預排課表。</p>
+    </section>
+
+    <section class="student-card" aria-label="學生資料">
+      <div class="field">
+        <label for="studentId">學號</label>
+        <input id="studentId" inputmode="numeric" autocomplete="off" placeholder="例如：112171000">
+      </div>
+      <div class="field">
+        <label for="studentName">姓名</label>
+        <input id="studentName" autocomplete="name" placeholder="例如：王小明">
+      </div>
+    </section>
+
+    <section class="course-grid" id="courseGrid" aria-label="課程列表"></section>
+
+    <section class="submit-panel">
+      <div>
+        <div class="summary-pills">
+          <span id="answeredCount">已選 0 / 9 門</span>
+          <span id="yesCredits">會修 0 學分</span>
+          <span id="maybeCredits">含考慮中 0 學分</span>
+        </div>
+        <p class="message" id="message" aria-live="polite"></p>
+      </div>
+      <button class="submit-button" id="submitButton" type="button">送出並查看預排課表</button>
+    </section>
+
+    <section class="result-card hidden" id="resultCard" aria-live="polite">
+      <div class="result-head">
+        <div class="check-mark">✓</div>
+        <div>
+          <h2>已成功送出</h2>
+          <p id="resultLead"></p>
+        </div>
+        <button class="edit-button" id="editButton" type="button">修改我的選課</button>
+      </div>
+
+      <div class="overlap-warning hidden" id="overlapWarning" role="status" aria-live="polite"></div>
+
+      <div class="schedule-view-toggle" aria-label="課表顯示方式">
+        <button class="schedule-view-button is-active" type="button" data-schedule-view="compact">截圖版課表</button>
+        <button class="schedule-view-button" type="button" data-schedule-view="detail">詳細版課表</button>
+      </div>
+
+      <section class="compact-schedule-panel" aria-label="截圖版週課表">
+        <div class="compact-schedule-card">
+          <div class="compact-schedule-title">
+            <strong>115 學年度第 1 學期預排課表</strong>
+            <span id="compactScheduleStudent"></span>
+            <span class="compact-schedule-note">僅顯示已排入課程的日期，方便手機截圖。</span>
+          </div>
+          <div class="compact-schedule-grid" id="compactScheduleGrid"></div>
+        </div>
+      </section>
+
+      <div class="schedule-wrap">
+        <div class="schedule-grid" id="scheduleGrid"></div>
+      </div>
+      <div class="result-summary">
+        <div class="legend">
+          <span><i></i>會修（確定）</span>
+          <span class="maybe"><i></i>考慮中</span>
+        </div>
+        <div class="credit-card">
+          <div><span>確定修課</span><strong id="finalYesCredits">0 學分</strong></div>
+          <div><span>加上考慮中</span><strong id="finalMaybeCredits">0 學分</strong></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // 明年更新課程時，優先改這一段設定。
+    const registrationData = {
+      title: "115 學年度第 1 學期課程預選登記",
+      courses: [
+        { id: "policy-analysis", name: "教育政策分析研究", type: "必修", credits: 3, day: 2, start: 2, span: 3, time: "週二 09:10-12:00", teacher: "湯家偉教授" },
+        { id: "research-methods", name: "教育研究法", type: "院必修", credits: 3, day: 3, start: 2, span: 3, time: "週三 09:10-12:00", teacher: "張奕華教授" },
+        { id: "testing-theory", name: "測驗理論研究", type: "選修", credits: 3, day: 3, start: 2, span: 3, time: "週三 09:10-12:00", teacher: "謝名娟教授" },
+        { id: "admin-seminar", name: "教育行政專題（一）", type: "選修", credits: 2, day: 2, start: 6, span: 2, time: "週二 13:10-15:00", teacher: "秦夢群教授" },
+        { id: "higher-ed-quality", name: "全球高教學術競爭及品質與績效評估", type: "選修", credits: 3, day: 2, start: 6, span: 3, time: "週二 13:10-16:00", teacher: "侯永琪教授" },
+        { id: "admin-research", name: "教育行政研究", type: "必修", credits: 3, day: 3, start: 6, span: 3, time: "週三 13:10-16:00", teacher: "莊俊儒教授" },
+        { id: "digital-education", name: "數位賦能教育科技管理研究", type: "選修", credits: 3, day: 4, start: 6, span: 3, time: "週四 13:10-16:00", teacher: "顏敏仁教授" },
+        { id: "comparative-admin", name: "各國教育行政研究", type: "選修", credits: 3, day: 3, start: 9, span: 3, time: "週三 16:10-19:00", teacher: "陳榮政教授" },
+        { id: "research-colloquium", name: "教育研究專題討論（一）", type: "院必修", credits: 0, day: 4, start: 12, span: 1, time: "週四 19:10-20:00", teacher: "陳榮政教授" }
+      ]
+    };
+
+    const courses = registrationData.courses;
+
+    const periods = [
+      ["1", "08:10-09:00"],
+      ["2", "09:10-10:00"],
+      ["3", "10:10-11:00"],
+      ["4", "11:10-12:00"],
+      ["C", "12:10-13:00"],
+      ["D", "13:10-14:00"],
+      ["5", "14:10-15:00"],
+      ["6", "15:10-16:00"],
+      ["7", "16:10-17:00"],
+      ["8", "17:10-18:00"],
+      ["E", "18:10-19:00"],
+      ["F", "19:10-20:00"]
+    ];
+
+    const choices = {};
+    const courseGrid = document.querySelector("#courseGrid");
+    const message = document.querySelector("#message");
+    document.querySelector("#registrationTitle").textContent = registrationData.title;
+
+    function renderCourses() {
+      courseGrid.replaceChildren();
+      courses.forEach((course) => {
+        const card = document.createElement("article");
+        card.className = `course-card ${isRequired(course) ? "is-required" : "is-elective"}`;
+        card.innerHTML = `
+          <span class="teacher-badge">${course.teacher}</span>
+          <div class="course-main">
+            <h2>${course.name}</h2>
+            <div class="course-meta">
+              <span class="course-type">${course.type}</span>
+              <span>${course.credits} 學分</span>
+              <span>${course.time}</span>
+            </div>
+          </div>
+          <div class="choice-row" role="group" aria-label="${course.name}修課意願">
+            <button class="choice-button" type="button" data-course="${course.id}" data-choice="yes">會修</button>
+            <button class="choice-button" type="button" data-course="${course.id}" data-choice="maybe">考慮中</button>
+            <button class="choice-button" type="button" data-course="${course.id}" data-choice="no">不會修</button>
+          </div>
+        `;
+        courseGrid.append(card);
+      });
+    }
+
+    courseGrid.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-course]");
+      if (!button) return;
+      const targetCourse = courses.find((course) => course.id === button.dataset.course);
+      if (button.dataset.choice === "yes") {
+        const conflictCourse = courses.find((course) => course.id !== targetCourse.id && choices[course.id] === "yes" && coursesOverlap(course, targetCourse));
+        if (conflictCourse) {
+          const warning = `「${targetCourse.name}」和「${conflictCourse.name}」時間重疊，不能同時選會修。可改選為「考慮中」。`;
+          window.alert(warning);
+          message.textContent = warning;
+          return;
+        }
+      }
+      choices[button.dataset.course] = button.dataset.choice;
+      button.parentElement.querySelectorAll(".choice-button").forEach((item) => item.classList.remove("is-selected"));
+      button.classList.add("is-selected");
+      message.textContent = "";
+      updateSummary();
+    });
+
+    function isRequired(course) {
+      return course.type.includes("必修");
+    }
+
+    function updateSummary() {
+      const answered = Object.keys(choices).length;
+      const yesCredits = courses
+        .filter((course) => choices[course.id] === "yes")
+        .reduce((sum, course) => sum + course.credits, 0);
+      const maybeCredits = courses
+        .filter((course) => choices[course.id] === "yes" || choices[course.id] === "maybe")
+        .reduce((sum, course) => sum + course.credits, 0);
+      document.querySelector("#answeredCount").textContent = `已選 ${answered} / ${courses.length} 門`;
+      document.querySelector("#yesCredits").textContent = `會修 ${yesCredits} 學分`;
+      document.querySelector("#maybeCredits").textContent = `含考慮中 ${maybeCredits} 學分`;
+    }
+
+    function coursesOverlap(a, b) {
+      return a.day === b.day && a.start < b.start + b.span && b.start < a.start + a.span;
+    }
+
+    function yesConflictMessage() {
+      const yesCourses = courses.filter((course) => choices[course.id] === "yes");
+      for (let i = 0; i < yesCourses.length; i += 1) {
+        for (let j = i + 1; j < yesCourses.length; j += 1) {
+          if (coursesOverlap(yesCourses[i], yesCourses[j])) {
+            return `「${yesCourses[i].name}」和「${yesCourses[j].name}」時間重疊，不能同時選會修。`;
+          }
+        }
+      }
+      return "";
+    }
+
+    function selectedOverlapPairs() {
+      const selected = courses.filter((course) => choices[course.id] === "yes" || choices[course.id] === "maybe");
+      const pairs = [];
+      for (let i = 0; i < selected.length; i += 1) {
+        for (let j = i + 1; j < selected.length; j += 1) {
+          if (coursesOverlap(selected[i], selected[j])) {
+            pairs.push([selected[i], selected[j]]);
+          }
+        }
+      }
+      return pairs;
+    }
+
+    function renderOverlapWarning() {
+      const warningBox = document.querySelector("#overlapWarning");
+      const pairs = selectedOverlapPairs();
+      if (!pairs.length) {
+        warningBox.classList.add("hidden");
+        warningBox.replaceChildren();
+        return;
+      }
+      warningBox.classList.remove("hidden");
+      warningBox.innerHTML = `
+        <strong>時間重疊提醒</strong>
+        <ul>
+          ${pairs.map(([first, second]) => `<li>${first.name}／${second.name}</li>`).join("")}
+        </ul>
+      `;
+    }
+
+    function scheduleLayoutItems() {
+      const selected = courses
+        .filter((course) => choices[course.id] === "yes" || choices[course.id] === "maybe")
+        .map((course) => ({ ...course, choice: choices[course.id], end: course.start + course.span, lane: 0, laneCount: 1 }));
+      const byDay = new Map();
+      selected.forEach((item) => {
+        if (!byDay.has(item.day)) byDay.set(item.day, []);
+        byDay.get(item.day).push(item);
+      });
+      byDay.forEach((items) => {
+        items.sort((a, b) => a.start - b.start || b.span - a.span);
+        let group = [];
+        let groupEnd = -1;
+        const flush = () => {
+          if (!group.length) return;
+          const laneEnds = [];
+          group.forEach((item) => {
+            let lane = laneEnds.findIndex((end) => end <= item.start);
+            if (lane === -1) lane = laneEnds.length;
+            item.lane = lane;
+            laneEnds[lane] = item.end;
+          });
+          group.forEach((item) => {
+            item.laneCount = laneEnds.length;
+          });
+          group = [];
+          groupEnd = -1;
+        };
+        items.forEach((item) => {
+          if (!group.length || item.start < groupEnd) {
+            group.push(item);
+            groupEnd = Math.max(groupEnd, item.end);
+          } else {
+            flush();
+            group.push(item);
+            groupEnd = item.end;
+          }
+        });
+        flush();
+      });
+      return selected;
+    }
+
+    function validate() {
+      const studentId = document.querySelector("#studentId").value.trim();
+      const studentName = document.querySelector("#studentName").value.trim();
+      if (!studentId || !studentName) return "請先填寫學號與姓名。";
+      if (Object.keys(choices).length !== courses.length) return "請先完成每門課程的修課意願選擇。";
+      const conflict = yesConflictMessage();
+      if (conflict) return conflict;
+      return "";
+    }
+
+    function renderSchedule() {
+      const grid = document.querySelector("#scheduleGrid");
+      grid.replaceChildren();
+      grid.append(cell("day-head", "節次"));
+      ["一", "二", "三", "四", "五"].forEach((day) => grid.append(cell("day-head", day)));
+      periods.forEach(([label, time], index) => {
+        const period = cell("period-cell", `<strong>${label}</strong>${time}`);
+        period.style.gridColumn = "1";
+        period.style.gridRow = `${index + 2}`;
+        grid.append(period);
+        for (let day = 1; day <= 5; day += 1) {
+          const blank = cell("cell", "");
+          blank.style.gridColumn = `${day + 1}`;
+          blank.style.gridRow = `${index + 2}`;
+          grid.append(blank);
+        }
+      });
+
+      scheduleLayoutItems().forEach((course) => {
+        const choice = course.choice;
+        const block = document.createElement("div");
+        block.className = `course-block${choice === "maybe" ? " is-maybe" : ""}`;
+        block.style.gridColumn = `${course.day + 1}`;
+        block.style.gridRow = `${course.start + 1} / span ${course.span}`;
+        block.style.setProperty("--lane-width", `${100 / course.laneCount}%`);
+        block.style.setProperty("--lane-left", `${(100 / course.laneCount) * course.lane}%`);
+        block.innerHTML = `<span class="course-name">${course.name}</span><span class="teacher">${course.teacher}</span>`;
+        grid.append(block);
+      });
+
+      const yesCredits = courses
+        .filter((course) => choices[course.id] === "yes")
+        .reduce((sum, course) => sum + course.credits, 0);
+      const maybeCredits = courses
+        .filter((course) => choices[course.id] === "yes" || choices[course.id] === "maybe")
+        .reduce((sum, course) => sum + course.credits, 0);
+      document.querySelector("#finalYesCredits").textContent = `${yesCredits} 學分`;
+      document.querySelector("#finalMaybeCredits").textContent = `${maybeCredits} 學分`;
+    }
+
+    function renderCompactSchedule(studentName, studentId) {
+      const grid = document.querySelector("#compactScheduleGrid");
+      const layoutItems = scheduleLayoutItems();
+      const visibleDays = [...new Set(layoutItems.map((course) => course.day))].sort((a, b) => a - b);
+      const dayLabels = { 1: "一", 2: "二", 3: "三", 4: "四", 5: "五" };
+      grid.replaceChildren();
+      grid.classList.toggle("is-empty", visibleDays.length === 0);
+      document.querySelector("#compactScheduleStudent").textContent = `${studentName}（${studentId}）`;
+
+      if (!visibleDays.length) {
+        grid.style.gridTemplateColumns = "1fr";
+        grid.style.gridTemplateRows = "auto";
+        grid.append(cell("compact-empty", "目前沒有排入會修或考慮中的課程。"));
+        return;
+      }
+
+      grid.style.gridTemplateColumns = `38px repeat(${visibleDays.length}, minmax(0, 1fr))`;
+      grid.style.gridTemplateRows = "30px repeat(12, 42px)";
+      grid.append(cell("compact-day-head", "節"));
+      visibleDays.forEach((day) => grid.append(cell("compact-day-head", dayLabels[day])));
+      periods.forEach(([label, time], index) => {
+        const period = cell("compact-period-cell", `<strong>${label}</strong>${time.replace("-", "<br>")}`);
+        period.style.gridColumn = "1";
+        period.style.gridRow = `${index + 2}`;
+        grid.append(period);
+        visibleDays.forEach((day, dayIndex) => {
+          const blank = cell("compact-cell", "");
+          blank.style.gridColumn = `${dayIndex + 2}`;
+          blank.style.gridRow = `${index + 2}`;
+          grid.append(blank);
+        });
+      });
+
+      layoutItems.forEach((course) => {
+        const dayIndex = visibleDays.indexOf(course.day);
+        if (dayIndex === -1) return;
+        const block = document.createElement("div");
+        block.className = `compact-course-block${course.choice === "maybe" ? " is-maybe" : ""}`;
+        block.style.gridColumn = `${dayIndex + 2}`;
+        block.style.gridRow = `${course.start + 1} / span ${course.span}`;
+        block.style.setProperty("--lane-width", `${100 / course.laneCount}%`);
+        block.style.setProperty("--lane-left", `${(100 / course.laneCount) * course.lane}%`);
+        block.innerHTML = `<span class="compact-course-name">${course.name}</span><span class="compact-course-teacher">${course.teacher}</span>`;
+        grid.append(block);
+      });
+    }
+
+    function setScheduleView(view) {
+      const resultCard = document.querySelector("#resultCard");
+      resultCard.dataset.scheduleView = view;
+      document.querySelectorAll(".schedule-view-button[data-schedule-view]").forEach((button) => {
+        button.classList.toggle("is-active", button.dataset.scheduleView === view);
+      });
+    }
+
+    function cell(className, html) {
+      const element = document.createElement("div");
+      element.className = className;
+      element.innerHTML = html;
+      return element;
+    }
+
+    document.querySelectorAll(".schedule-view-button[data-schedule-view]").forEach((button) => {
+      button.addEventListener("click", () => setScheduleView(button.dataset.scheduleView));
+    });
+
+    document.querySelector("#submitButton").addEventListener("click", () => {
+      const error = validate();
+      if (error) {
+        message.textContent = error;
+        return;
+      }
+      const studentId = document.querySelector("#studentId").value.trim();
+      const studentName = document.querySelector("#studentName").value.trim();
+      document.querySelector("#resultLead").textContent = `${studentName}（${studentId}）`;
+      renderSchedule();
+      renderCompactSchedule(studentName, studentId);
+      renderOverlapWarning();
+      setScheduleView(window.matchMedia("(max-width: 760px)").matches ? "compact" : "detail");
+      document.body.classList.add("is-result-view");
+      document.querySelector("#resultCard").classList.remove("hidden");
+      document.querySelector("#resultCard").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    document.querySelector("#editButton").addEventListener("click", () => {
+      document.querySelector("#resultCard").classList.add("hidden");
+      document.querySelector("#overlapWarning").classList.add("hidden");
+      document.body.classList.remove("is-result-view");
+      message.textContent = "";
+      updateSummary();
+      document.querySelector("#courseGrid").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    renderCourses();
+    updateSummary();
+  </script>
+</body>
+</html>

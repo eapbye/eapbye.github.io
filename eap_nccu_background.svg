@@ -1,0 +1,71 @@
+<svg width="100%" viewBox="0 0 760 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NCCU building background">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbfdff"/>
+      <stop offset="0.56" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#fcfaff"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#dbe8f2"/>
+      <stop offset="1" stop-color="#b8c9d9"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="760" height="260" rx="28" fill="url(#sky)"/>
+
+  <!-- Background building only. Foreground cart, assistant, sign and progress are controlled by the page. -->
+  <g opacity="0.62">
+    <path d="M52 38 Q380 8 708 38 L708 58 Q380 34 52 58 Z" fill="#d9dde5" stroke="#b6bfca" stroke-width="1.2"/>
+    <path d="M52 56 Q380 34 708 56 L708 178 L52 178 Z" fill="#fbfcfe"/>
+
+    <g stroke="#d7dde7" stroke-width="1">
+      <path d="M52 94H708"/>
+      <path d="M52 132H708"/>
+      <path d="M52 178H708"/>
+    </g>
+    <g stroke="#c2cbd6" stroke-width="2">
+      <path d="M116 58V178"/>
+      <path d="M178 53V178"/>
+      <path d="M240 49V178"/>
+      <path d="M302 46V178"/>
+      <path d="M364 44V178"/>
+      <path d="M436 44V178"/>
+      <path d="M498 46V178"/>
+      <path d="M560 49V178"/>
+      <path d="M622 53V178"/>
+    </g>
+
+    <g fill="url(#glass)" stroke="#abc1d2" stroke-width="0.65">
+      <rect x="72" y="72" width="24" height="31"/><rect x="135" y="70" width="24" height="33"/>
+      <rect x="197" y="68" width="24" height="35"/><rect x="259" y="66" width="24" height="37"/>
+      <rect x="321" y="65" width="24" height="38"/><rect x="388" y="65" width="24" height="38"/>
+      <rect x="455" y="66" width="24" height="37"/><rect x="517" y="68" width="24" height="35"/>
+      <rect x="579" y="70" width="24" height="33"/><rect x="653" y="72" width="24" height="31"/>
+
+      <rect x="72" y="116" width="24" height="31"/><rect x="135" y="114" width="24" height="33"/>
+      <rect x="197" y="112" width="24" height="35"/><rect x="259" y="110" width="24" height="37"/>
+      <rect x="321" y="109" width="24" height="38"/><rect x="388" y="109" width="24" height="38"/>
+      <rect x="455" y="110" width="24" height="37"/><rect x="517" y="112" width="24" height="35"/>
+      <rect x="579" y="114" width="24" height="33"/><rect x="653" y="116" width="24" height="31"/>
+    </g>
+  </g>
+
+  <!-- Entrance and lamps are intentionally clearer than the building so they remain readable under the cards. -->
+  <g opacity="0.9">
+    <path d="M318 150 Q380 143 442 150 L442 168 Q380 163 318 168 Z" fill="#eef1f6" stroke="#aab3c0" stroke-width="1.2"/>
+    <text x="380" y="164" text-anchor="middle" font-family="Arial, sans-serif" font-size="14.5" font-weight="700" fill="#7873bf">NCCU EAP</text>
+    <rect x="354" y="168" width="52" height="35" rx="2" fill="#28384a"/>
+    <rect x="359" y="173" width="19" height="26" fill="#8db5d8"/>
+    <rect x="382" y="173" width="19" height="26" fill="#8db5d8"/>
+    <path d="M326 203H434L420 218H340Z" fill="#d9d5cc" stroke="#aaa69d" stroke-width="1"/>
+    <path d="M314 218H446" stroke="#aaa69d" stroke-width="2"/>
+    <path d="M302 228H458" stroke="#bbb7ae" stroke-width="2"/>
+  </g>
+
+  <g opacity="0.9">
+    <line x1="84" y1="224" x2="84" y2="182" stroke="#6f6b61" stroke-width="1.4"/>
+    <ellipse cx="84" cy="178" rx="5.5" ry="8" fill="#fff4d9" stroke="#8b8072" stroke-width="1"/>
+    <line x1="676" y1="224" x2="676" y2="182" stroke="#6f6b61" stroke-width="1.4"/>
+    <ellipse cx="676" cy="178" rx="5.5" ry="8" fill="#fff4d9" stroke="#8b8072" stroke-width="1"/>
+  </g>
+</svg>

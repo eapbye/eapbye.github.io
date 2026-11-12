@@ -1,0 +1,42 @@
+# 推送到 main 後，自動把網站發佈到 GitHub Pages。
+# 只會發佈下面 cp 列出的檔案；tests/、README.md 等不會上線。
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare site
+        run: |
+          mkdir _site
+          cp index.html _site/
+          cp course-registration.html _site/
+          cp animation-preview.html _site/
+          cp eap_nccu_background.svg _site/
+          cp eap_nccu_v8_terminal.svg _site/
+          cp -r documents _site/documents
+          cp -r graduation _site/graduation
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

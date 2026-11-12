@@ -1,0 +1,42 @@
+# 教政一點通 自動檢查（tests/）
+
+這個資料夾只放檢查用的檔案，不會被部署到網站（.github/workflows/pages.yml 只複製指定的檔案）。
+每次改 index.html、course-registration.html 或 documents／graduation 的檔案後，先跑下面兩項，再更新首頁「最後更新日」。
+
+## 1. 靜態一致性檢查（只要 Python 3，不用安裝任何東西）
+
+    python3 tests/check_consistency.py
+
+檢查內容：
+- 程式裡引用的下載檔、圖片是否真的存在，且在 .github/workflows/pages.yml 的部署清單內（FAIL）
+- 畢業專區封面圖是否齊全（FAIL）
+- localStorage 的 key 有沒有被改名（FAIL；改名會讓用過網站的人進度消失）
+- 畢業專區勾選項 index 有沒有重複或消失（FAIL；不可位移）
+- Turnitin 名稱是否完整、AIGC 是否用全名、「成績單」前是否有「歷年」（FAIL／WARN）
+- 首頁「（最後更新日：YYYY-MM-DD）」格式是否正確，以及有沒有比它更新的檔案（FAIL／WARN）
+- 預選登記每門課的 time 是否與 day／start／span 對得上、課程 id 是否重複、學期是否一致（FAIL）
+- documents 裡沒被連結的檔案（WARN／INFO，舊 DOCX 只列 INFO）
+
+結果有 FAIL 時結束碼為 1。檢查腳本本身的自我測試：
+
+    python3 -B tests/selftest_consistency.py
+
+## 2. 功能測試（Playwright）
+
+    npm i playwright        # 第一次
+    npx playwright install chromium
+    node tests/e2e.js
+
+測試內容：首頁與彈窗；畢業專區（13 項勾滿才出彩蛋、取消任一項即消失、舊使用者的勾選依 index 對應）；
+計畫口試三種資格類型、學位論文考試各走完整個流程到完成彈窗；學位論文考試申請須含 AIGC 與 Turnitin 全文電子檔、畢業專區不得再有 Turnitin/AIGC；
+預選登記的必填、衝堂擋會修、考慮中提醒、手機截圖版。
+
+沒有 documents／graduation 的環境（例如只複製了兩個 html）請加 `E2E_STUB=1`，缺的檔案以空檔回應；
+檔案是否真的存在由第 1 項負責。功能測試的自我測試：
+
+    node tests/e2e_selftest.js
+
+## 改規則時
+- 故意改名稱、key、index 時，同步改 check_consistency.py 最上方的基準（BASELINE_KEYS、BASELINE_GRAD_INDEXES）。
+- 新增流程文件或勾選項後，確認 e2e.js 的「走完整個流程」仍通過；它會自動點到完成彈窗，數量變動不用改測試。
+- 預選登記換學期：改 registrationData 與頁面標題，跑第 1 項確認 time 與節次一致。
