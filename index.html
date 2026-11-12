@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/fill.css">
+  <link rel="stylesheet" href="css/notice.css">
 </head>
 <body>
   <div class="wrap">
@@ -31,6 +32,14 @@
     </header>
 
     <main>
+      <aside class="update-notice" id="updateNotice" role="note" aria-label="改版公告" hidden>
+        <span class="notice-tag">改版公告</span>
+        <div>
+          <strong>論文比對與檢測，改在考前完成</strong>
+          <p>申請計畫口試、學位論文考試時，就要備妥「學位論文原創比對（Turnitin）證明表」與「學位論文AIGC檢測報告書」（學位論文考試另需「學位論文原創比對（Turnitin）全文電子檔」）；畢業專區不再要求比對。</p>
+        </div>
+        <button type="button" id="closeUpdateNotice">知道了，不再顯示</button>
+      </aside>
       <section class="intro" id="modePicker" aria-label="網站功能入口">
         <div class="mode-grid">
           <button class="mode-card" type="button" data-mode="proposal">
@@ -292,6 +301,7 @@
   <script src="vendor/jszip.min.js"></script>
   <script src="js/odtfill.js"></script>
   <script src="js/fillform.js"></script>
+  <script src="js/notice.js"></script>
   <script src="data/flow.js"></script>
   <script src="js/app.js"></script>
 </body>
