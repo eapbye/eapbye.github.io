@@ -74,6 +74,7 @@ FAULTS = [
     ("畢業專區所辦紙本論文又變成 2 本", lambda t: sub(t, "index.html", "繳交紙本論文 1 本至所辦", "繳交紙本論文 2 本至所辦"), "1 本至所辦"),
     ("畢業專區停用的 index 1 被重新使用", lambda t: sub(t, "index.html", 'data-graduation-task-index="2"', 'data-graduation-task-index="1"'), "已停用"),
     ("下載表單內文換回舊流程字樣", lambda t: odt_sub(t, "documents/defense/02-originality-report.odt", '申請學位論文</text:span><text:span text:style-name="T66">考</text:span><text:span text:style-name="T67">試', '送繳學位論文考試成績單'), "舊流程字樣"),
+    ("拿掉內容安全政策", lambda t: sub(t, "index.html", 'http-equiv="Content-Security-Policy"', 'http-equiv="X-Removed"'), "內容安全政策"),
     ("刪掉畢業封面圖", lambda t: rm(t, "graduation/113/cover-detail.jpg"), "缺圖"),
 ]
 

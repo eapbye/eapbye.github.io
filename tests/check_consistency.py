@@ -204,6 +204,13 @@ def check(root):
                 if ph in text:
                     add("FAIL", f"表單內文仍是舊流程字樣「{ph}」：{os.path.relpath(fp, root)}")
 
+    # ---- 基本安全設定：內容安全政策（CSP）與外部資源 ----
+    for name, text in (("index.html", idx), ("course-registration.html", reg)):
+        if 'http-equiv="Content-Security-Policy"' not in text:
+            add("FAIL", f"{name} 缺少內容安全政策（Content-Security-Policy）meta")
+        if re.search(r"<script[^>]+src=[\"']?https?:", text):
+            add("FAIL", f"{name} 載入外部 script，違反目前的內容安全政策設計")
+
     # ---- 最後更新日 ----
     ups = re.findall(r"（最後更新日：(\d{4}-\d{2}-\d{2})）", idx)
     if len(ups) != 1 or idx.count("最後更新日") != 1:
