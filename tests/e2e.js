@@ -480,9 +480,12 @@ test('預約教室：訊息即時更新、帶入已填的姓名學號、有選�
     const sel = box.querySelectorAll('select'); sel[0].value = '14:00'; sel[0].dispatchEvent(new Event('change', { bubbles: true }));
     const r = { blank, filled: area.value, end: sel[1].value }; box.remove(); return r;
   });
-  assert.ok(out.blank.includes('○○○○年') && out.blank.includes('○○:○○'), '沒選日期時間時用 ○ 佔位');
-  assert.ok(out.filled.includes('郭哲宇') && out.filled.includes('113171009'), '應帶入已填的姓名與學號');
-  assert.ok(out.filled.includes('2027年3月10日（三）') && out.filled.includes('14:00–16:00') && out.filled.includes('學位論文計畫口試'), '日期、時段與流程名稱');
+  assert.ok(out.blank.includes('○○月○○日（星期○）') && out.blank.includes('00:00–00:00'), '沒選日期以 ○、時間以 00:00 佔位');
+  assert.ok(out.filled.includes('郭哲宇') && out.filled.includes('113171009') && out.filled.includes('教政所113級'), '應帶入已填的姓名、學號與級數');
+  assert.ok(out.filled.includes('2027年3月10日（星期三）') && out.filled.includes('14:00–16:00') && out.filled.includes('學位論文計畫口試'), '日期、時段與流程名稱');
+  assert.ok(out.filled.startsWith('莊姐您好') && out.filled.includes('303 教室'), '照範本：給莊姐、借 303 教室');
+  const empty = await page.evaluate(() => RoomBooking.draft('學位論文考試', {}));
+  assert.ok(empty.includes('學號：000000000') && empty.includes('教政所○○○級'), '沒填學號時以 0 佔位、級數以 ○ 佔位');
   assert.strictEqual(out.end, '16:00', '選開始後結束時間預設 2 小時後');
   assert.ok(!/@|mailto:/.test(out.filled), '訊息不應含 e-mail 位址');
   const tools = await page.evaluate(() => baseFlow.steps.find((st) => st.id === 'proposal-docs').documents.find((d) => d.id === 'proposal-application').tool);

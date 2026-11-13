@@ -1,10 +1,9 @@
 /* 預約口試教室：不寄信，只幫學生產生一段可以直接複製、貼到 LINE 或 e-mail 的預約訊息。
-   選日期與時間，訊息會即時更新；沒選的地方先用 ○ 佔位，貼出去前再補。
-   姓名、學號若已在「自動填表」填過，會自動帶入；沒填過就以 ○ 佔位。不儲存任何資料、不傳送任何資料。
+   選日期與時間，訊息會即時更新；沒選的日期以 ○、時間以 00:00 佔位，貼出去前再補。
+   姓名、學號若已在「自動填表」填過，會自動帶入，級數取學號前三碼；沒填過，姓名與級數以 ○、學號以 0 佔位。不儲存任何資料、不傳送任何資料。
    依賴：js/fillform.js（選用，只讀姓名與學號）。 */
 (function (global) {
   var WEEK = ["日", "一", "二", "三", "四", "五", "六"];
-  var DEFAULT_PEOPLE = 4; // 學生 1 位 + 指導教授 + 兩位口試委員
 
   function pad(n) { return (n < 10 ? "0" : "") + n; }
   function circles(n) { return new Array(n + 1).join("○"); }
@@ -25,26 +24,32 @@
   }
   function clean(v) { return String(v == null ? "" : v).replace(/[\s　]+/g, " ").trim(); }
 
+  // 沒選日期：年份用今年，月日以 ○ 佔位
   function dateText(v) {
     var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || "");
-    if (!m) return circles(4) + "年" + "○月○日（○）";
+    if (!m) return new Date().getFullYear() + "年○○月○○日（星期○）";
     var d = new Date(+m[1], +m[2] - 1, +m[3]);
-    return m[1] + "年" + (+m[2]) + "月" + (+m[3]) + "日（" + WEEK[d.getDay()] + "）";
+    return m[1] + "年" + (+m[2]) + "月" + (+m[3]) + "日（星期" + WEEK[d.getDay()] + "）";
   }
+  // 沒選時間：以 00:00 佔位（數字欄位用 0，R 指定）
   function timeText(a, b) {
-    return (a || "○○:○○") + "–" + (b || "○○:○○");
+    return (a || "00:00") + "–" + (b || "00:00");
+  }
+  // 級數＝學號前三碼（入學學年度），與畢業專區的級數算法相同
+  function cohort(sid) {
+    var m = /^(\d{3})\d{6}$/.exec(sid || "");
+    return m ? m[1] : circles(3);
   }
 
-  // 產生訊息本文（純函式，方便測試）
+  // 產生訊息本文（純函式，方便測試）。格式依 R 提供的範本（給莊姐、借 303 教室）
   function draft(kind, s) {
     var name = clean(s.name) || circles(3);
-    var sid = clean(s.sid) || circles(9);
-    var people = parseInt(s.people, 10) > 0 ? parseInt(s.people, 10) : DEFAULT_PEOPLE;
+    var sid = clean(s.sid);
     return [
-      "助教您好，",
-      "我是教育行政與政策研究所碩士班的" + name + "（學號：" + sid + "），指導教授是" + circles(3) + "老師。",
-      "我預計於 " + dateText(s.date) + " " + timeText(s.start, s.end) + " 進行" + kind + "，現場共 " + people + " 位（含我）。想請問當天教育學院（井塘樓）是否有教室可以借用？",
-      "如果這個時段沒有空教室，也麻煩告知可以借用的其他時段，謝謝您！"
+      "莊姐您好，",
+      "我是教政所" + cohort(sid) + "級的" + name + "（學號：" + (sid || "000000000") + "），指導教授是" + circles(3) + "老師。",
+      "我預計於 " + dateText(s.date) + timeText(s.start, s.end) + "進行" + kind + "，想請問當天 303 教室是否可以借用？",
+      "麻煩莊姐了，謝謝您～"
     ].join("\n");
   }
 
@@ -86,11 +91,10 @@
       var o = el("option", "", "選擇"); o.value = ""; sel.append(o);
       timeOptions().forEach(function (t) { var op = el("option", "", t); op.value = t; sel.append(op); });
     });
-    var people = el("input"); people.type = "number"; people.id = uid + "p"; people.min = "2"; people.max = "20"; people.value = String(DEFAULT_PEOPLE);
 
     var grid = el("div", "booking-grid");
-    grid.append(field("日期", date, date.id), field("開始", start, start.id), field("結束", end, end.id), field("人數", people, people.id));
-    var area = el("textarea", "booking-text"); area.rows = 7; area.setAttribute("aria-label", "預約訊息，可直接修改");
+    grid.append(field("日期", date, date.id), field("開始", start, start.id), field("結束", end, end.id));
+    var area = el("textarea", "booking-text"); area.rows = 5; area.setAttribute("aria-label", "預約訊息，可直接修改");
     var actions = el("div", "booking-actions");
     var copy = el("button", "ack-button booking-copy", "複製這段訊息"); copy.type = "button";
     actions.append(copy);
@@ -99,10 +103,10 @@
 
     function refresh() {
       var p = profile();
-      area.value = draft(kind, { name: p.name, sid: p.sid, date: date.value, start: start.value, end: end.value, people: people.value });
+      area.value = draft(kind, { name: p.name, sid: p.sid, date: date.value, start: start.value, end: end.value });
     }
     start.addEventListener("change", function () { if (start.value && !end.value) end.value = plusMinutes(start.value, 120); refresh(); });
-    [date, end, people].forEach(function (c) { c.addEventListener("input", refresh); c.addEventListener("change", refresh); });
+    [date, end].forEach(function (c) { c.addEventListener("input", refresh); c.addEventListener("change", refresh); });
     box.addEventListener("toggle", function () { if (box.open) refresh(); });
     var timer = null;
     copy.addEventListener("click", function () {
