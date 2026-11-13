@@ -113,9 +113,6 @@
       ],
       graduation: [
         ["建置中", "建置中。"]
-      ],
-      site: [
-        ["預選登記系統會正式送出資料嗎？", "系統僅在每學期預選登記時段會開放將資料傳送至後台，其餘時間並不會真的送出資料。"]
       ]
     };
     const MOBILE_OPERATION_QUERY = "(max-width: 760px), (pointer: coarse)";
@@ -1772,7 +1769,6 @@
           <button class="qa-choice-card" type="button" data-qa-choice="proposal"><strong>學位論文計畫口試 QA</strong></button>
           <button class="qa-choice-card" type="button" data-qa-choice="defense"><strong>學位論文考試 QA</strong></button>
           <button class="qa-choice-card" type="button" data-qa-choice="graduation"><strong>畢業離校 QA</strong></button>
-          <button class="qa-choice-card" type="button" data-qa-choice="site"><strong>網站操作 QA</strong></button>
         `;
         list.append(choices);
         choices.querySelectorAll("[data-qa-choice]").forEach((button) => {

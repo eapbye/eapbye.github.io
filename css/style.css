@@ -5,10 +5,8 @@
       min-height: 100vh;
       font-family: "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
       background:
-        radial-gradient(1200px 520px at 12% -120px, var(--bg-glow), transparent 70%),
-        radial-gradient(900px 420px at 100% -80px, rgba(102, 80, 166, 0.08), transparent 70%),
+        linear-gradient(180deg, rgba(43, 120, 182, 0.26), rgba(43, 120, 182, 0.07) 340px),
         var(--bg);
-      background-attachment: fixed;
       color: var(--ink);
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
@@ -18,7 +16,7 @@
       content: "";
       position: fixed;
       inset: 0 0 auto;
-      height: 4px;
+      height: 6px;
       background: linear-gradient(90deg, var(--blue-dark), var(--blue), var(--indigo));
       z-index: 10;
       pointer-events: none;
@@ -1929,6 +1927,10 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
       margin: 12px 0 18px;
+    }
+
+    .qa-choice-card:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
     }
 
     .qa-choice-card {

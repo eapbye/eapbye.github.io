@@ -1,8 +1,7 @@
     :root {
       color-scheme: light;
-      /* 3.0 視覺：保留藍／紫／綠三色分流，畫布改成較安靜的冷灰白，讓卡片與「下一步」自己浮出來 */
-      --bg: #edf2f7;
-      --bg-glow: rgba(43, 120, 182, 0.12);
+      /* 背景沿用舊版的淡藍；格子、邊框、陰影為 3.0 版 */
+      --bg: #e4eef7;
       --surface: #ffffff;
       --soft: #f5f8fc;
       --ink: #14202c;
