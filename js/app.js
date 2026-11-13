@@ -580,6 +580,7 @@
       }
       if (doc.tool === "roomBooking" && window.RoomBooking && !isInfoOnly) {
         box.append(RoomBooking.build(currentFlow().label));
+        if (window.Deadline) box.append(Deadline.buildDetails(currentFlow().label));
       }
       const actions = document.createElement("div");
       actions.className = "document-actions";

@@ -471,6 +471,71 @@ test('預約教室：訊息即時更新、帶入已填的姓名學號、有選�
   assert.deepStrictEqual(page.errors, []);
 });
 
+test('倒推申請日：口試前 14 天、跨月跨年、超過期限提醒；.ics 內容正確可下載', async (b, base) => {
+  const page = await newPage(b, base);
+  await openHome(page);
+  const u = await page.evaluate(() => {
+    const t = new Date(Date.UTC(2027, 0, 1));
+    const f = (iso) => { const p = Deadline.plan(iso, t); return p && { due: p.due.toISOString().slice(0, 10), left: p.daysLeft, status: p.status }; };
+    const ics = Deadline.buildIcs('2027-03-10', new Date(Date.UTC(2027, 0, 1, 2, 3, 4)));
+    const long = Deadline.buildIcs('2027-03-10', new Date(Date.UTC(2027, 0, 1)), '學位論文計畫口試與其他很長很長很長很長很長很長很長很長的名稱');
+    return { a: f('2027-03-10'), b: f('2028-03-05'), c: f('2027-01-05'), d: f('2027-01-15'), bad: f('2027-02-30'), empty: f(''), ics, long };
+  });
+  assert.deepStrictEqual(u.a, { due: '2027-02-24', left: 54, status: 'ok' });
+  assert.strictEqual(u.b.due, '2028-02-20', '閏年 2 月');
+  assert.strictEqual(u.c.due, '2026-12-22', '跨年');
+  assert.strictEqual(u.c.status, 'late');
+  assert.strictEqual(u.d.status, 'today', '剛好就是申請最晚日');
+  assert.strictEqual(u.bad, null, '不存在的日期');
+  assert.strictEqual(u.empty, null);
+  assert.ok(u.ics.startsWith('BEGIN:VCALENDAR\r\n') && u.ics.endsWith('END:VCALENDAR\r\n'));
+  assert.ok(u.ics.includes('DTSTART;VALUE=DATE:20270224\r\nDTEND;VALUE=DATE:20270225') && u.ics.includes('DTSTART;VALUE=DATE:20270310\r\nDTEND;VALUE=DATE:20270311'));
+  assert.ok(u.ics.includes('DTSTAMP:20270101T020304Z') && u.ics.includes('TRIGGER:-PT15H') && u.ics.includes('TRIGGER:-P2DT15H'));
+  assert.strictEqual((u.ics.match(/BEGIN:VEVENT/g) || []).length, 2);
+  for (const text of [u.ics, u.long]) {
+    assert.ok(!/[^\r]\n/.test(text), '換行必須是 CRLF');
+    for (const line of text.split('\r\n')) assert.ok(Buffer.byteLength(line, 'utf8') <= 75, '每行不超過 75 位元組：' + line);
+    assert.ok(!text.replace(/\r\n /g, '').includes('\ufffd'), '折行不可切壞中文字');
+  }
+  assert.ok(u.long.replace(/\r\n /g, '').includes('很長很長很長很長很長很長很長很長的名稱'), '折行後接回內容完整');
+  // 介面：首頁的期限提醒視窗（第一次進站才會跳出）與申請步驟裡的可收合版本，兩處都要能用
+  await page.waitForSelector('#deadlineModal:not(.hidden)', { timeout: 4000 }).catch(() => {});
+  assert.ok(await page.locator('#deadlineModal .deadline-calc').count() === 1, '期限提醒視窗裡有倒推工具');
+  const pg2 = await newPage(b, base);
+  await openHome(pg2); await dismissModals(pg2);
+  await enterMode(pg2, 'defense');
+  const n2 = await pg2.locator('.precheck-choice').count();
+  for (let i = 0; i < n2; i++) {
+    const item = pg2.locator('.precheck-choice').nth(i);
+    if (!(await item.evaluate((el) => el.classList.contains('is-checked')))) await retry(pg2, () => item.click());
+  }
+  await greedyWalk(pg2);
+  assert.ok((await pg2.locator('#stepsList .deadline-details').count()) >= 1, '學位論文考試的申請步驟應有倒推工具');
+  assert.deepStrictEqual(pg2.errors, []);
+  // 互動部分用首頁的期限提醒視窗測（第一次進站時它是開著的）
+  const page3 = page;
+  const dateInput = page3.locator('#deadlineModal .deadline-exam-date').first().first();
+  assert.ok(await page3.locator('#deadlineModal .deadline-ics').first().isDisabled(), '沒選日期時下載鈕不可按');
+  await dateInput.fill('2099-03-10');
+  const res = await page3.locator('#deadlineModal .deadline-calc-result').first().innerText();
+  assert.ok(res.includes('2099年2月24日（二）') && res.includes('還有'), res);
+  const href = await page3.locator('#deadlineModal .deadline-google').first().getAttribute('href');
+  assert.ok(href.startsWith('https://calendar.google.com/calendar/render?') && href.includes('dates=20990224/20990225'), href);
+  assert.strictEqual(await page3.locator('#deadlineModal .deadline-google').first().getAttribute('rel'), 'noopener noreferrer');
+  const icsBtn = page3.locator('#deadlineModal .deadline-ics').first();
+  await icsBtn.scrollIntoViewIfNeeded();
+  const [dl] = await Promise.all([page3.waitForEvent('download'), icsBtn.click({ timeout: 4000 })]);
+  assert.ok(dl.suggestedFilename().endsWith('.ics'));
+  const body = fs.readFileSync(await dl.path(), 'utf8');
+  assert.ok(body.includes('DTSTART;VALUE=DATE:20990224') && body.includes('DTSTART;VALUE=DATE:20990310'));
+  await dateInput.fill('2000-01-20');
+  assert.ok((await page3.locator('#deadlineModal .deadline-calc-result').first().innerText()).includes('已經超過最晚申請日'));
+  await dateInput.fill('');
+  assert.ok(await page3.locator('#deadlineModal .deadline-ics').first().isDisabled() && (await page3.locator('#deadlineModal .deadline-google').first().isHidden()), '清空後回到不可按');
+  assert.deepStrictEqual(page3.errors, []);
+  assert.deepStrictEqual(page.errors, []);
+});
+
 test('自動填表：已有資料時走完整個流程，所有可填表單都直接下載、不跳窗', async (b, base) => {
   const page = await newPage(b, base);
   await page.context().addInitScript(([k, v]) => { if (!localStorage.getItem('__fillseeded')) { localStorage.setItem(k, v); localStorage.setItem('__fillseeded', '1'); } }, [FILL_KEY, JSON.stringify(PROFILE)]);
@@ -499,7 +564,7 @@ async function runSuite(root, { stub = false, only = null } = {}) {
   for (const t of tests) {
     if (only && !only.test(t.name)) continue;
     try { await t.fn(browser, base); results.push({ name: t.name, ok: true }); }
-    catch (e) { results.push({ name: t.name, ok: false, msg: String(e.message).split('\n')[0].slice(0, 300) }); }
+    catch (e) { results.push({ name: t.name, ok: false, msg: String(e.message).split('\n').slice(0, process.env.E2E_VERBOSE ? 14 : 1).join(' | ').slice(0, process.env.E2E_VERBOSE ? 1500 : 300) }); }
     // 每個測試結束就關掉它開的分頁：留著會一直吃 CPU，拖慢後面的測試（倒數計時走不動而逾時）
     for (const c of browser.contexts()) await c.close().catch(() => {});
   }
