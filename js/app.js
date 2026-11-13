@@ -448,7 +448,10 @@
       const card = cardShell(number, step.type === "submission" ? "" : step.title, "", locked);
       card.element.dataset.stepId = step.id;
       if (locked) {
-        card.content.append(instruction("尚未開啟", lockedStepMessage(step)));
+        // 3.1：鎖住的步驟只留標籤與標題一列，加小鎖；不再放「尚未開啟」說明框
+        card.element.setAttribute("aria-disabled", "true");
+        const heading = card.content.querySelector("h3");
+        (heading || card.content).append(lockIcon());
       } else if (step.type === "declaration") {
         renderDeclaration(card.content, step, locked);
       } else if (step.type === "documents") {
@@ -471,9 +474,19 @@
       stepsList.append(card.element);
     }
 
-    function lockedStepMessage(step) {
-      if (step.type === "submission") return "請先完成上一步。";
-      return "請先完成上一步。";
+    function lockIcon() {
+      const ns = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(ns, "svg");
+      svg.setAttribute("class", "lock-icon");
+      svg.setAttribute("viewBox", "0 0 16 16");
+      svg.setAttribute("aria-label", "尚未開放");
+      svg.setAttribute("role", "img");
+      const body = document.createElementNS(ns, "rect");
+      [["x", "3"], ["y", "7"], ["width", "10"], ["height", "7"], ["rx", "1.6"]].forEach(([k, v]) => body.setAttribute(k, v));
+      const shackle = document.createElementNS(ns, "path");
+      shackle.setAttribute("d", "M5.2 7V5.2a2.8 2.8 0 0 1 5.6 0V7");
+      svg.append(body, shackle);
+      return svg;
     }
 
     function renderDeclaration(container, step, locked) {

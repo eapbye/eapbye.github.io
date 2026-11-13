@@ -493,6 +493,32 @@ test('防嵌入：被放進別人網頁的框架時內容隱藏；正常開啟�
   assert.deepStrictEqual(ok.errors, []);
 });
 
+test('3.1 步驟：鎖住的步驟收成一列（無內容、有小鎖），解鎖後展開；重設進度先確認', async (b, base) => {
+  const page = await newPage(b, base);
+  await openHome(page); await dismissModals(page);
+  await page.click('.mode-card[data-mode="proposal"]'); await dismissModals(page);
+  const locked = page.locator('#stepsList .step-card.is-locked');
+  assert.strictEqual(await locked.count(), 4, '一開始後面 4 步應鎖住');
+  assert.strictEqual(await locked.locator('.lock-icon').count(), 4, '每個鎖住的步驟都有小鎖');
+  assert.strictEqual(await locked.locator('.instruction, .document-item, a, button').count(), 0, '鎖住的步驟不應有任何內容');
+  assert.ok(!(await page.locator('#stepsList').innerText()).includes('尚未開啟'), '不再出現「尚未開啟」');
+  await page.locator('text=我已修業滿 18 學分').click(); await dismissModals(page);
+  // 有進度後按重設：取消則保留
+  const before = await page.locator('#progressText, .progress-meter span').first().innerText();
+  page.removeAllListeners('dialog');
+  let asked = '';
+  page.once('dialog', (d) => { asked = d.message(); d.dismiss(); });
+  await page.click('#resetProgress');
+  await page.waitForTimeout(200);
+  if (before.trim().startsWith('0')) assert.strictEqual(asked, '', '沒有進度時不需確認');
+  else {
+    assert.ok(asked.includes('重設'), '有進度時重設應先確認');
+    assert.strictEqual(await page.locator('#progressText, .progress-meter span').first().innerText(), before, '取消後進度不變');
+  }
+  page.on('dialog', (d) => d.accept());
+  assert.deepStrictEqual(page.errors, []);
+});
+
 test('續辦首頁：有進度的流程卡片顯示完成數；沒進度不顯示；改選另一個流程前先確認', async (b, base) => {
   const blank = await newPage(b, base);
   await openHome(blank); await dismissModals(blank);

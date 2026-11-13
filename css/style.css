@@ -5119,3 +5119,93 @@
       box-shadow: var(--shadow-sm);
     }
     .ack-button.graduation-grade-card.is-closed strong { color: var(--blue-dark); }
+
+    /* 3.1：鎖住的步驟收成一列 */
+    .step-card.is-locked {
+      align-items: center;
+      padding-block: 12px;
+    }
+    .step-card.is-locked .step-number {
+      min-height: 40px;
+      padding-block: 8px;
+    }
+    .step-card.is-locked .step-content { align-self: center; }
+    .step-card.is-locked h3 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+    }
+    .lock-icon {
+      flex: 0 0 auto;
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: #7f93a8;
+      stroke-width: 1.6;
+      stroke-linejoin: round;
+    }
+    .step-card.is-locked .step-content > .lock-icon { margin-top: 2px; }
+
+    /* 3.1：時間軸取代左側粗色條。線從標籤底下拉到下一張卡的標籤，標籤就是節點 */
+    .step-card,
+    .step-card.is-locked,
+    .step-card.is-done,
+    .step-card.is-current:not(.is-locked),
+    .step-card.is-next-focus,
+    .check-card {
+      border-left-width: 1px;
+      border-left-style: solid;
+      border-left-color: var(--line-soft);
+    }
+    .step-card.is-done { border-left-color: rgba(27, 115, 89, 0.22); }
+    .step-card.is-current:not(.is-locked) { border-left-color: rgba(36, 112, 173, 0.36); }
+    .steps > .step-card {
+      --rail-pad: clamp(18px, 2vw, 22px);
+      position: relative;
+    }
+    .steps > .step-card.is-locked { --rail-pad: 12px; }
+    .steps > .step-card:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      z-index: 1;
+      left: calc(clamp(18px, 2vw, 22px) + 74px - 1px);
+      width: 2px;
+      top: calc(var(--rail-pad) + 50px);
+      bottom: calc(-14px - 22px);
+      border-radius: 2px;
+      background: repeating-linear-gradient(180deg, #b6c5d4 0 5px, transparent 5px 10px);
+      pointer-events: none;
+    }
+    .steps > .step-card.is-locked:not(:last-child)::after {
+      top: calc(var(--rail-pad) + 42px);
+      bottom: calc(-14px - 12px);
+    }
+    .steps > .step-card.is-done:not(:last-child)::after {
+      background: var(--done);
+    }
+    .steps > .step-card.is-current:not(.is-locked):not(:last-child)::after {
+      background: linear-gradient(180deg, var(--blue), #b6c5d4);
+    }
+    .steps > .step-card:has(+ .step-card.is-locked):not(:last-child)::after {
+      bottom: calc(-14px - 12px);
+    }
+    .step-card.is-done .step-number { position: relative; }
+    .step-card.is-done .step-number::before {
+      content: "✓";
+      position: absolute;
+      top: -7px;
+      left: -7px;
+      display: grid;
+      place-items: center;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      background: var(--done);
+      color: #ffffff;
+      font-size: 0.72rem;
+      font-weight: 900;
+      line-height: 1;
+      box-shadow: var(--shadow-xs);
+    }
