@@ -86,7 +86,11 @@
     var p = load();
     if (!hasAny(p)) { chip.hidden = true; return; }
     var label = [clean(p.name), clean(p.sid)].filter(Boolean).join("・");
-    $("#fillChipText").textContent = "已填入：" + label;
+    var text = $("#fillChipText");
+    text.replaceChildren();
+    var k = document.createElement("span"); k.className = "fill-chip-label"; k.textContent = "表單自動帶入";
+    var v = document.createElement("span"); v.className = "fill-chip-value"; v.textContent = label;
+    text.append(k, document.createTextNode("　"), v);
     chip.hidden = false;
   }
 
