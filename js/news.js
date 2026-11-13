@@ -88,6 +88,8 @@
   }
 
   window.EapNews = { activeNews: activeNews };
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", build);
-  else build();
+  // 本檔放在 index.html 底部、緊接 guard.js 之後，執行時消息列已在頁面上，直接建立，
+  // 不等 DOMContentLoaded（那要等 jszip、app.js 等所有腳本跑完，消息會晚 1～2 秒才出現）
+  if (document.getElementById("newsStrip") || document.readyState !== "loading") build();
+  else document.addEventListener("DOMContentLoaded", build);
 })();

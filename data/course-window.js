@@ -25,4 +25,8 @@
     return Number(p[1]) + "/" + Number(p[2]);
   };
   window.EAP_COURSE_WINDOW = W;
+  // 預選登記頁把本檔放在 <head>：先在 <html> 標上是否開放，CSS 據此一開始就只畫課表或只畫登記，
+  // 不會先閃出預選登記再換成課表（__EAP_FORCE_REGISTER 只給測試用）
+  var open = window.__EAP_FORCE_REGISTER || W.status() === "open";
+  document.documentElement.classList.add(open ? "reg-open" : "reg-closed");
 })();

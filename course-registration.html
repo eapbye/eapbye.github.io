@@ -862,6 +862,13 @@
     }
     /* ---- 唯讀課表（不在預選期間） ---- */
     .hidden { display: none !important; }
+    html.reg-closed .student-card,
+    html.reg-closed #courseGrid,
+    html.reg-closed .submit-panel,
+    html.reg-closed #resultCard { display: none !important; }
+    /* 課表模式：標題與說明等 js 換成課表版本再顯示，避免先閃一下「課程預選登記」 */
+    html.reg-closed body:not(.is-timetable-view) .hero h1,
+    html.reg-closed body:not(.is-timetable-view) .hero p { visibility: hidden; }
     body.is-timetable-view .student-card,
     body.is-timetable-view #courseGrid,
     body.is-timetable-view .submit-panel,
@@ -925,6 +932,7 @@
     .timetable-table td:first-child, .timetable-table td:nth-child(4), .timetable-table td:nth-child(5) { white-space: nowrap; }
     .timetable-table .tt-name { font-weight: 820; color: var(--ink); }
   </style>
+  <script src="data/course-window.js"></script>
 </head>
 <body>
   <div class="wrap">
@@ -1025,7 +1033,6 @@
   </div>
 
   <script src="js/guard.js"></script>
-  <script src="data/course-window.js"></script>
   <script src="js/course-registration.js"></script>
 </body>
 </html>

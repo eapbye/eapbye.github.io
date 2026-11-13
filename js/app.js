@@ -269,11 +269,6 @@
         }
       }
     });
-    const qaHelperAvatar = $("#qaHelperAvatar");
-    const reminderAvatar = document.querySelector(".deadline-card .avatar-image");
-    if (qaHelperAvatar && reminderAvatar) {
-      qaHelperAvatar.src = reminderAvatar.src;
-    }
     renderHomeProgress();
     afterLayout(() => {
       if (!document.body.classList.contains("workflow-open")) maybeShowDeadline();
