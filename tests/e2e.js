@@ -479,21 +479,22 @@ test('預約教室：訊息即時更新、帶入已填的姓名學號、有選�
     const d = box.querySelector('input[type=date]'); d.value = '2027-03-10'; d.dispatchEvent(new Event('input', { bubbles: true }));
     const sel = box.querySelectorAll('.booking-grid select'); sel[0].value = '14:00'; sel[0].dispatchEvent(new Event('change', { bubbles: true }));
     const filled = area.value;
-    // 指導教授：下拉選（含共同指導與「其他」）
+    // 指導教授：下拉選（含「其他」；R 11/14 決定不要共同指導）
     const adv = box.querySelectorAll('.booking-people select');
     const names = [...adv[0].options].map((o) => o.textContent);
     adv[0].value = '郭昭佑'; adv[0].dispatchEvent(new Event('change', { bubbles: true }));
     const one = area.value;
-    adv[1].value = adv[1].options[adv[1].options.length - 1].value; adv[1].dispatchEvent(new Event('change', { bubbles: true }));
-    const other = box.querySelectorAll('.booking-other')[1]; const otherShown = !other.hidden;
+    adv[0].value = adv[0].options[adv[0].options.length - 1].value; adv[0].dispatchEvent(new Event('change', { bubbles: true }));
+    const other = box.querySelector('.booking-other'); const otherShown = !other.hidden;
     other.value = '王大明'; other.dispatchEvent(new Event('input', { bubbles: true }));
-    const two = area.value;
-    const r = { blank, filled, end: sel[1].value, names, one, two, otherShown, share: !!box.querySelector('.booking-share') }; box.remove(); return r;
+    const typed = area.value;
+    const r = { blank, filled, end: sel[1].value, names, one, typed, otherShown, advCount: adv.length, share: !!box.querySelector('.booking-share') }; box.remove(); return r;
   });
   assert.deepStrictEqual(out.names, ['選擇', '吳政達', '郭昭佑', '秦夢群', '湯志民', '陳榮政', '侯永琪', '顏敏仁', '湯家偉', '莊俊儒', '其他（自己填）'], '指導教授名單與順序（R 指定）');
   assert.ok(out.blank.includes('指導教授是○○○老師'), '沒選指導教授以 ○ 佔位');
   assert.ok(out.one.includes('指導教授是郭昭佑老師。'), '選了指導教授寫進訊息');
-  assert.ok(out.otherShown && out.two.includes('指導教授是郭昭佑老師、王大明老師。'), '共同指導選「其他」可自己打，兩位以頓號連接');
+  assert.ok(out.otherShown && out.typed.includes('指導教授是王大明老師。'), '選「其他」可自己打老師姓名');
+  assert.strictEqual(out.advCount, 1, '只有一個指導教授欄（不要共同指導）');
   assert.ok(!out.share, '電腦版（非手機獨立視窗）不顯示分享鈕');
   assert.ok(out.blank.includes('○○月○○日（星期○）') && out.blank.includes('00:00–00:00'), '沒選日期以 ○、時間以 00:00 佔位');
   assert.ok(out.filled.includes('郭哲宇') && out.filled.includes('113171009') && out.filled.includes('教政所113級'), '應帶入已填的姓名、學號與級數');
@@ -539,7 +540,7 @@ test('手機：首頁不被撐寬；被擋視窗有「只寫預約訊息」入�
   assert.ok(await page.locator('#mobileOnlyNoticeModal').evaluate((el) => el.classList.contains('hidden')), '開預約視窗時關掉被擋提醒');
   const box = page.locator('#mobileBookingBody .booking');
   assert.strictEqual(await box.locator('input').first().inputValue(), '郭哲宇', '姓名帶入自動填表資料');
-  await box.locator('.booking-people select').first().selectOption('湯家偉');
+  await box.locator('.booking-grid select').first().selectOption('湯家偉');
   const text = await box.locator('textarea').inputValue();
   assert.ok(text.includes('學位論文考試') && text.includes('指導教授是湯家偉老師') && text.includes('113171009'), '依點的主卡決定流程，帶入姓名學號與指導教授');
   const fonts = await box.evaluate((el) => [...el.querySelectorAll('input:not([hidden]), select, textarea')].map((x) => parseFloat(getComputedStyle(x).fontSize)));
