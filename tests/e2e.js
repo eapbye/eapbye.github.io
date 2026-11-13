@@ -519,6 +519,36 @@ test('3.1 步驟：鎖住的步驟收成一列（無內容、有小鎖），解�
   assert.deepStrictEqual(page.errors, []);
 });
 
+test('最新消息：依日期顯示、每 5 秒往上換一則、滑鼠移上去暫停、全部過期就隱藏', async (b, base) => {
+  const fake = (iso) => async (ctx) => ctx.addInitScript((t) => {
+    const start = new Date(t).getTime(), D = Date, t0 = D.now(), now = () => start + (D.now() - t0);
+    Date = class extends D { constructor(...a) { if (a.length) super(...a); else super(now()); } static now() { return now(); } };
+  }, iso);
+  // 12/11：12/10 那兩則已過期
+  let page = await newPage(b, base);
+  await fake('2026-12-11T10:00:00+08:00')(page.context());
+  await openHome(page); await dismissModals(page);
+  const items = page.locator('#newsStrip .news-item');
+  assert.ok(await page.locator('#newsStrip').isVisible(), '有消息時應顯示');
+  assert.strictEqual(await items.count(), 5, '12/11 時應剩 5 則');
+  assert.ok(!(await items.allTextContents()).some((t) => t.startsWith('12/10')), '過期的不顯示');
+  const first = await page.locator('#newsStrip .news-item.is-active').innerText();
+  await page.waitForTimeout(5600);
+  const second = await page.locator('#newsStrip .news-item.is-active').innerText();
+  assert.notStrictEqual(first, second, '5 秒後應換下一則');
+  await page.hover('#newsStrip');
+  await page.waitForTimeout(5600);
+  assert.strictEqual(await page.locator('#newsStrip .news-item.is-active').innerText(), second, '滑鼠移上去應暫停');
+  assert.deepStrictEqual(page.errors, []);
+  await page.context().close();
+  // 全部過期
+  page = await newPage(b, base);
+  await fake('2027-03-01T10:00:00+08:00')(page.context());
+  await openHome(page); await dismissModals(page);
+  assert.ok(!(await page.locator('#newsStrip').isVisible()), '全部過期應隱藏');
+  assert.deepStrictEqual(page.errors, []);
+});
+
 test('續辦首頁：有進度的流程卡片顯示完成數；沒進度不顯示；改選另一個流程前先確認', async (b, base) => {
   const blank = await newPage(b, base);
   await openHome(blank); await dismissModals(blank);
