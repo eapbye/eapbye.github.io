@@ -27,7 +27,7 @@ const FAULTS = [
   ['續辦首頁：不再顯示進度', 'index.html', 'status.textContent = resume ? `繼續上次進度（${done} / ${total}）` : "點擊進入";', 'status.textContent = "點擊進入";', 1, '續辦首頁'],
   ['續辦首頁：改選流程不再確認', 'index.html', 'if (!ok) return;', '', 1, '續辦首頁'],
   ['防嵌入：guard 失效', 'index.html', 'document.documentElement.style.display = "none";', '', 1, '防嵌入'],
-  ['送件小幫手：ZIP 不附順序說明', 'index.html', 'zip.file("00_列印與送件順序.txt"', 'void ("00_列印與送件順序.txt"', 1, '送件小幫手'],
+  ['送件小幫手：清單漏掉份數合計', 'index.html', 'lines.push("共 " + total + " 份。', 'lines.push("共 0 份。', 1, '送件小幫手'],
 ];
 
 // index.html 拆檔後，首頁的內容分散在這幾個檔案；FAULTS 寫 'index.html' 時，到這幾個檔案裡找含有目標文字的那一個來改

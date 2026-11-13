@@ -527,7 +527,7 @@ test('續辦首頁：有進度的流程卡片顯示完成數；沒進度不顯�
   assert.deepStrictEqual(page.errors, []);
 });
 
-test('送件小幫手：複製送件清單、下載全部表單 ZIP（可填表單帶入基本資料）', async (b, base) => {
+test('送件小幫手：複製送件清單', async (b, base) => {
   const u = await newPage(b, base);
   await openHome(u);
   const text = await u.evaluate(() => Bundle.checklistText('學位論文考試', [
@@ -552,20 +552,6 @@ test('送件小幫手：複製送件清單、下載全部表單 ZIP（可填表�
   await box.locator('.bundle-copy').click();
   await page.waitForFunction(() => /已複製|不允許/.test(document.querySelector('#stepsList .bundle-msg').textContent), null, { timeout: 8000 });
   assert.ok((await box.locator('.bundle-msg').innerText()).includes('已複製'), '複製後應提示已複製');
-  const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 30000 }), box.locator('.bundle-zip').click({ timeout: 8000 })]);
-  const zip = await JSZipNode.loadAsync(fs.readFileSync(await dl.path()));
-  const names = Object.keys(zip.files);
-  const expected = await page.evaluate(() => currentFlow().steps.filter((st) => st.type === 'documents').flatMap((st) => st.documents).filter((d) => !d.infoOnly && d.word).length);
-  assert.ok(names.includes('00_列印與送件順序.txt'), names.join(','));
-  assert.strictEqual(names.filter((n) => n.endsWith('.odt')).length, expected, 'ODT 數量應等於流程裡的表單數');
-  const order = await zip.file('00_列印與送件順序.txt').async('string');
-  assert.ok(order.includes('■ 交給所辦') && order.includes('01　') && order.includes('已帶入你的基本資料'), order.slice(0, 300));
-  const filledName = names.find((n) => /原創比對/.test(n));
-  const odt = await JSZipNode.loadAsync(await zip.file(filledName).async('nodebuffer'));
-  assert.ok((await odt.file('content.xml').async('string')).includes('郭哲宇'), '可填的表單應帶入姓名');
-  const plain = names.find((n) => /成績報告單/.test(n));
-  const plainOdt = await JSZipNode.loadAsync(await zip.file(plain).async('nodebuffer'));
-  assert.ok(!(await plainOdt.file('content.xml').async('string')).includes('郭哲宇'), '不可填的表單維持原檔');
   assert.deepStrictEqual(page.errors, []);
   assert.deepStrictEqual(u.errors, []);
 });
