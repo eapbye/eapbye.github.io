@@ -477,9 +477,24 @@ test('預約教室：訊息即時更新、帶入已填的姓名學號、有選�
     const box = RoomBooking.build('學位論文計畫口試'); document.body.append(box); box.open = true; box.dispatchEvent(new Event('toggle'));
     const area = box.querySelector('textarea'); const blank = area.value;
     const d = box.querySelector('input[type=date]'); d.value = '2027-03-10'; d.dispatchEvent(new Event('input', { bubbles: true }));
-    const sel = box.querySelectorAll('select'); sel[0].value = '14:00'; sel[0].dispatchEvent(new Event('change', { bubbles: true }));
-    const r = { blank, filled: area.value, end: sel[1].value }; box.remove(); return r;
+    const sel = box.querySelectorAll('.booking-grid select'); sel[0].value = '14:00'; sel[0].dispatchEvent(new Event('change', { bubbles: true }));
+    const filled = area.value;
+    // 指導教授：下拉選（含共同指導與「其他」）
+    const adv = box.querySelectorAll('.booking-people select');
+    const names = [...adv[0].options].map((o) => o.textContent);
+    adv[0].value = '郭昭佑'; adv[0].dispatchEvent(new Event('change', { bubbles: true }));
+    const one = area.value;
+    adv[1].value = adv[1].options[adv[1].options.length - 1].value; adv[1].dispatchEvent(new Event('change', { bubbles: true }));
+    const other = box.querySelectorAll('.booking-other')[1]; const otherShown = !other.hidden;
+    other.value = '王大明'; other.dispatchEvent(new Event('input', { bubbles: true }));
+    const two = area.value;
+    const r = { blank, filled, end: sel[1].value, names, one, two, otherShown, share: !!box.querySelector('.booking-share') }; box.remove(); return r;
   });
+  assert.deepStrictEqual(out.names, ['選擇', '吳政達', '郭昭佑', '秦夢群', '湯志民', '陳榮政', '侯永琪', '顏敏仁', '湯家偉', '莊俊儒', '其他（自己填）'], '指導教授名單與順序（R 指定）');
+  assert.ok(out.blank.includes('指導教授是○○○老師'), '沒選指導教授以 ○ 佔位');
+  assert.ok(out.one.includes('指導教授是郭昭佑老師。'), '選了指導教授寫進訊息');
+  assert.ok(out.otherShown && out.two.includes('指導教授是郭昭佑老師、王大明老師。'), '共同指導選「其他」可自己打，兩位以頓號連接');
+  assert.ok(!out.share, '電腦版（非手機獨立視窗）不顯示分享鈕');
   assert.ok(out.blank.includes('○○月○○日（星期○）') && out.blank.includes('00:00–00:00'), '沒選日期以 ○、時間以 00:00 佔位');
   assert.ok(out.filled.includes('郭哲宇') && out.filled.includes('113171009') && out.filled.includes('教政所113級'), '應帶入已填的姓名、學號與級數');
   assert.ok(out.filled.includes('2027年3月10日（星期三）') && out.filled.includes('14:00–16:00') && out.filled.includes('學位論文計畫口試'), '日期、時段與流程名稱');
@@ -502,6 +517,62 @@ test('預約教室：訊息即時更新、帶入已填的姓名學號、有選�
   assert.ok((await pg.locator('#stepsList .booking').count()) >= 1, '學位論文考試的申請步驟應有預約教室工具');
   assert.deepStrictEqual(pg.errors, []);
   assert.deepStrictEqual(page.errors, []);
+});
+
+test('手機：首頁不被撐寬；被擋視窗有「只寫預約訊息」入口（畢業專區沒有）；預約視窗可帶入、分享、Esc 關閉', async (b, base) => {
+  const page = await newPage(b, base, { viewport: { width: 360, height: 668 }, mobile: true });
+  await page.addInitScript(() => { navigator.share = (d) => { window.__shared = d.text; return Promise.resolve(); }; });
+  await openHome(page); await dismissModals(page);
+  assert.strictEqual(await page.evaluate(() => document.documentElement.scrollWidth), 360, '手機首頁不可比螢幕寬');
+  await page.evaluate(() => localStorage.setItem(FillForm._KEY, JSON.stringify({ name: '郭哲宇', sid: '113171009' })));
+  await page.click('#openGraduation');
+  await page.waitForSelector('#mobileOnlyNoticeModal:not(.hidden)');
+  assert.ok(await page.locator('#openMobileBooking').isHidden(), '畢業專區不顯示預約入口');
+  await page.click('#closeMobileOnlyNotice');
+  await page.click('.mode-card[data-mode="defense"]');
+  await page.waitForSelector('#openMobileBooking:visible');
+  await page.click('#openMobileBooking');
+  await page.waitForSelector('#mobileBookingModal:not(.hidden)');
+  assert.ok(await page.locator('#mobileOnlyNoticeModal').evaluate((el) => el.classList.contains('hidden')), '開預約視窗時關掉被擋提醒');
+  const box = page.locator('#mobileBookingBody .booking');
+  assert.strictEqual(await box.locator('input').first().inputValue(), '郭哲宇', '姓名帶入自動填表資料');
+  await box.locator('.booking-people select').first().selectOption('湯家偉');
+  const text = await box.locator('textarea').inputValue();
+  assert.ok(text.includes('學位論文考試') && text.includes('指導教授是湯家偉老師') && text.includes('113171009'), '依點的主卡決定流程，帶入姓名學號與指導教授');
+  const fonts = await box.evaluate((el) => [...el.querySelectorAll('input:not([hidden]), select, textarea')].map((x) => parseFloat(getComputedStyle(x).fontSize)));
+  assert.ok(fonts.every((f) => f >= 16), '手機輸入欄至少 16px（iPhone 才不會放大）：' + fonts.join(','));
+  const fits = await page.evaluate(() => { const r = document.querySelector('.mobile-booking-card').getBoundingClientRect(); return r.right <= innerWidth && document.documentElement.scrollWidth === innerWidth; });
+  assert.ok(fits, '預約視窗不可超出手機螢幕');
+  await box.locator('.booking-share').click();
+  assert.strictEqual(await page.evaluate(() => window.__shared), text, '分享的是訊息全文');
+  await page.keyboard.press('Escape');
+  assert.ok(await page.locator('#mobileBookingModal').evaluate((el) => el.classList.contains('hidden')), 'Esc 關閉預約視窗');
+  assert.deepStrictEqual(page.errors, []);
+});
+
+test('手機課程表：依星期分組的清單（沒課的星期不列），格線課表與科目表收起；電腦不受影響', async (b, base) => {
+  const page = await newPage(b, base, { viewport: { width: 360, height: 668 }, mobile: true });
+  await page.goto(base + '/course-registration.html'); await page.waitForSelector('.day-course');
+  const m = await page.evaluate(() => ({
+    days: [...document.querySelectorAll('.day-group h3')].map((h) => h.firstChild.textContent),
+    n: document.querySelectorAll('.day-course').length,
+    total: courses.length,
+    grid: getComputedStyle(document.querySelector('#timetableView .schedule-wrap')).display,
+    table: getComputedStyle(document.querySelector('.timetable-table-wrap')).display,
+    sw: document.documentElement.scrollWidth,
+    code: document.querySelector('.day-course').textContent.includes(courses.filter((c) => c.day === Math.min(...courses.map((x) => x.day))).sort((a, b) => a.start - b.start)[0].code)
+  }));
+  const expectDays = [...new Set((await page.evaluate(() => courses.map((c) => c.day))))].sort().map((d) => '星期' + '一二三四五'[d - 1]);
+  assert.deepStrictEqual(m.days, expectDays, '只列有課的星期');
+  assert.strictEqual(m.n, m.total, '每門課都有一張卡');
+  assert.ok(m.grid === 'none' && m.table === 'none', '手機收起格線課表與科目表');
+  assert.strictEqual(m.sw, 360, '手機課程表頁不可比螢幕寬');
+  assert.ok(m.code, '卡片含課號');
+  const desk = await newPage(b, base);
+  await desk.goto(base + '/course-registration.html'); await desk.waitForSelector('.tt-block');
+  assert.strictEqual(await desk.evaluate(() => getComputedStyle(document.querySelector('#timetableDayList')).display), 'none', '電腦不顯示清單');
+  assert.deepStrictEqual(page.errors, []);
+  assert.deepStrictEqual(desk.errors, []);
 });
 
 test('防嵌入：被放進別人網頁的框架時內容隱藏；正常開啟不受影響', async (b, base) => {

@@ -419,7 +419,42 @@
         });
         body.append(tr);
       });
+      renderDayList();
       document.querySelector("#timetableView").classList.remove("hidden");
+    }
+
+    // 手機課程表：依星期分組，一門一張卡（時間、課名、類別學分、老師、教室・課號、備註）；沒課的星期不列
+    function renderDayList() {
+      const list = document.querySelector("#timetableDayList");
+      if (!list) return;
+      list.replaceChildren();
+      const text = (tag, cls, value) => { const e = document.createElement(tag); if (cls) e.className = cls; e.textContent = value; return e; };
+      [1, 2, 3, 4, 5].forEach((day) => {
+        const items = courses.filter((c) => c.day === day).sort((a, b) => a.start - b.start);
+        if (!items.length) return;
+        const group = document.createElement("section");
+        group.className = "day-group";
+        const head = text("h3", "", `星期${"一二三四五"[day - 1]}`);
+        head.append(text("small", "", `${items.length} 門`));
+        group.append(head);
+        items.forEach((course) => {
+          const card = document.createElement("article");
+          card.className = `day-course ${isRequired(course) ? "is-required" : "is-elective"}`;
+          const range = (String(course.time).split(" ")[1] || "").split("-");
+          const time = text("div", "day-time", range[0] || "");
+          time.append(text("span", "", "｜"), document.createTextNode(range[1] || ""));
+          const body = document.createElement("div");
+          const meta = document.createElement("p");
+          meta.className = "day-meta";
+          meta.append(text("span", "day-chip", `${course.type}・${course.credits} 學分`), document.createTextNode(course.teacher));
+          meta.append(document.createElement("br"), document.createTextNode([course.room, course.code].filter(Boolean).join("・")));
+          body.append(text("p", "day-name", course.name), meta);
+          if (course.notes && course.notes.length) body.append(text("p", "day-note", course.notes.join("、")));
+          card.append(time, body);
+          group.append(card);
+        });
+        list.append(group);
+      });
     }
 
     const pageMode = registrationMode();

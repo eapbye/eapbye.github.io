@@ -109,14 +109,30 @@
       return window.matchMedia(MOBILE_OPERATION_QUERY).matches;
     }
 
-    function showMobileOnlyNotice() {
+    // 手機被擋時：點的是第 1、2 張主卡，就多給一顆「只寫預約訊息」入口（畢業專區不用約教室，不顯示）
+    let mobileBookingMode = null;
+    function showMobileOnlyNotice(mode) {
+      mobileBookingMode = mode && flowModes[mode] && window.RoomBooking ? mode : null;
+      $("#openMobileBooking").hidden = !mobileBookingMode;
       $("#mobileOnlyNoticeModal").classList.remove("hidden");
     }
+    $("#openMobileBooking").addEventListener("click", () => {
+      if (!mobileBookingMode) return;
+      const label = flowModes[mobileBookingMode].label;
+      $("#mobileOnlyNoticeModal").classList.add("hidden");
+      $("#mobileBookingKind").textContent = `${label}・寫好後傳給莊姐`;
+      $("#mobileBookingBody").replaceChildren(RoomBooking.build(label, { standalone: true }));
+      $("#mobileBookingModal").classList.remove("hidden");
+    });
+    $("#closeMobileBooking").addEventListener("click", () => {
+      $("#mobileBookingModal").classList.add("hidden");
+      $("#mobileBookingBody").replaceChildren();
+    });
 
     document.querySelectorAll("[data-mode]").forEach((button) => {
       button.addEventListener("click", () => {
         if (isMobileOperation()) {
-          showMobileOnlyNotice();
+          showMobileOnlyNotice(button.dataset.mode || "proposal");
           return;
         }
         const nextMode = button.dataset.mode || "proposal";
@@ -252,6 +268,7 @@
       ["fillModal", "fillCancel"],
       ["submissionNoticeModal", "closeSubmissionNotice"],
       ["guideModal", "closeGuide"],
+      ["mobileBookingModal", "closeMobileBooking"],
       ["mobileOnlyNoticeModal", "closeMobileOnlyNotice"],
       ["deadlineModal", "closeDeadline"],
       ["celebrationModal", "closeCelebration"],

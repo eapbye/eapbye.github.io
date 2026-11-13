@@ -35,3 +35,30 @@
 @media (max-width: 640px) { .booking-grid { grid-template-columns: 1fr 1fr; } }
 /* 在文件卡裡：收合時照原位置（右側）；展開後占滿整列，不擠壓左邊的說明文字 */
 .document-item .booking[open] { grid-column: 1 / -1; justify-self: stretch; }
+/* 指導教授／共同指導（2026-11-14）：與日期欄同寬；選「其他」時下方出現文字欄 */
+.booking-people { display: grid; grid-template-columns: 190px 190px; justify-content: start; align-items: start; gap: 12px; }
+.booking-other { margin-top: 6px; }
+.booking-other[hidden] { display: none; }
+.booking-actions { gap: 10px; }
+.booking-share {
+  min-height: 46px; padding: 8px 18px; border: 1px solid var(--blue); border-radius: 999px;
+  background: var(--blue); color: #ffffff; font: inherit; font-weight: 800; cursor: pointer;
+}
+.booking-share:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+/* 手機獨立視窗：一開始就展開，不顯示收合鈕 */
+.booking.is-standalone, .booking.is-standalone[open] { margin: 0; border: 0; background: none; }
+.booking.is-standalone .booking-summary { display: none; }
+.booking.is-standalone .booking-body { padding: 0; }
+.booking.is-standalone .booking-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
+.booking.is-standalone .booking-copy, .booking.is-standalone .booking-share { min-height: 48px; }
+@media (max-width: 640px) {
+  .booking-people { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .booking-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .booking-grid .booking-field:first-child { grid-column: 1 / -1; }
+  .booking-field input, .booking-field select { width: 100%; min-width: 0; box-sizing: border-box; }
+}
+/* 手機輸入欄 16px：iPhone 點下去才不會整頁放大 */
+@media (max-width: 820px) {
+  .booking-field input, .booking-field select, .booking-text { font-size: 16px; }
+  .booking-field input, .booking-field select { min-height: 44px; }
+}

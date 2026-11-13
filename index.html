@@ -220,6 +220,16 @@
       <h2 id="mobileOnlyNoticeTitle">請改用電腦操作</h2>
       <p>此系統不適合使用手機操作，請改用電腦開啟後再繼續。</p>
       <button class="ack-button full-action" id="closeMobileOnlyNotice" type="button">我知道了</button>
+      <button class="mobile-booking-entry" id="openMobileBooking" type="button" hidden>只是要約教室？幫我寫預約訊息</button>
+    </div>
+  </div>
+
+  <div class="info-modal hidden" id="mobileBookingModal" role="dialog" aria-modal="true" aria-labelledby="mobileBookingTitle">
+    <div class="info-card mobile-booking-card">
+      <h2 id="mobileBookingTitle">預約口試教室</h2>
+      <p class="mobile-booking-sub" id="mobileBookingKind"></p>
+      <div id="mobileBookingBody"></div>
+      <button class="text-button mobile-booking-close" id="closeMobileBooking" type="button">關閉</button>
     </div>
   </div>
 

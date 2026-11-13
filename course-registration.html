@@ -931,6 +931,57 @@
     .timetable-table tbody tr:nth-child(even) { background: #f5f9fd; }
     .timetable-table td:first-child, .timetable-table td:nth-child(4), .timetable-table td:nth-child(5) { white-space: nowrap; }
     .timetable-table .tt-name { font-weight: 820; color: var(--ink); }
+
+    /* 手機（≤ 760px）課程表：改成依星期分組的清單，一門一張卡；電腦維持格線課表與科目表（2026-11-14） */
+    .day-list { display: none; }
+    .day-group h3 {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin: 0 0 8px;
+      color: var(--blue-dark, #174a7c);
+      font-size: 1.08rem;
+    }
+    .day-group h3 small { color: var(--muted, #5c6f86); font-size: 0.86rem; font-weight: 700; }
+    .day-course {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 8px;
+      padding: 12px 14px;
+      border: 1px solid rgba(31, 122, 90, 0.35);
+      border-left: 5px solid #1f7a5a;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #ffffff, #eef8f3);
+    }
+    .day-course.is-required {
+      border-color: rgba(43, 120, 182, 0.45);
+      border-left-color: var(--blue, #2b78b6);
+      background: linear-gradient(135deg, #ffffff, #e8f4fd);
+    }
+    .day-time { color: var(--blue-dark, #174a7c); font-size: 0.95rem; font-weight: 800; line-height: 1.3; text-align: center; }
+    .day-time span { display: block; color: var(--muted, #5c6f86); font-size: 0.8rem; }
+    .day-name { margin: 0 0 4px; color: var(--ink, #163450); font-size: 1.05rem; font-weight: 800; line-height: 1.35; }
+    .day-meta { margin: 0; color: #4a5d73; font-size: 0.9rem; font-weight: 600; line-height: 1.55; }
+    .day-chip {
+      display: inline-block;
+      margin-right: 6px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: #d9efe5;
+      color: #1f6b50;
+      font-size: 0.84rem;
+      font-weight: 800;
+    }
+    .day-course.is-required .day-chip { background: #d6e8f7; color: #1f5f99; }
+    .day-note { margin: 4px 0 0; color: var(--muted, #5c6f86); font-size: 0.86rem; font-weight: 700; }
+    @media (max-width: 760px) {
+      .day-list { display: grid; gap: 18px; }
+      #timetableView .timetable-legend,
+      #timetableView .schedule-wrap,
+      #timetableView .timetable-table-wrap { display: none; }
+    }
   </style>
   <script src="data/course-window.js"></script>
 </head>
@@ -1021,6 +1072,7 @@
       <div class="schedule-wrap">
         <div class="schedule-grid timetable-grid" id="timetableGrid"></div>
       </div>
+      <div class="day-list" id="timetableDayList" aria-label="依星期排列的課程"></div>
       <div class="timetable-table-wrap">
         <table class="timetable-table">
           <thead>

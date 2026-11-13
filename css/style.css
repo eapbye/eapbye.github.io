@@ -5198,3 +5198,57 @@
     @media (min-width: 2634px) and (min-height: 1514px) { html { --z: 1.95; } }
     @media (min-width: 2700px) and (min-height: 1552px) { html { --z: 2.0; } }
     @media (min-width: 821px) { body { zoom: var(--z, 1); } }
+
+    /* ===== 手機版修正（2026-11-14）=====
+       1. 首頁外框改成單欄 minmax(0, 1fr)：最新消息不換行時，不會再把整頁撐成約 900px 寬（手機會整頁縮小）。
+       2. 手機：常用連結與課程表卡恢復左右 1:1（桌機規則指定的 grid-column 在手機歸零）。
+       3. 手機：最新消息標籤放上方，每則最多兩行，不再被截成「12/10（四…」。 */
+    .intro { grid-template-columns: minmax(0, 1fr); }
+    @media (max-width: 820px) {
+      .home-support-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .home-support-strip > .quick-links-panel,
+      .home-support-strip > .floating-prereg { grid-column: auto; }
+      .floating-prereg,
+      body:not(.workflow-open) .floating-prereg { padding: 18px 16px; }
+      .news-strip { flex-direction: column; align-items: stretch; gap: 8px; padding: 12px 14px; }
+      .news-label { align-self: flex-start; }
+      .news-viewport { --news-row: 3.4rem; }
+      .news-text {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        white-space: normal;
+        line-height: 1.45;
+      }
+      .news-days { min-width: 0; font-size: 0.86rem; }
+      .site-credit { font-size: 0.86rem; }
+    }
+
+    /* 手機「只寫預約訊息」入口與視窗（2026-11-14）：入口在「請改用電腦操作」視窗裡，是次要按鈕 */
+    .mobile-booking-entry {
+      display: block;
+      width: 100%;
+      min-height: 48px;
+      margin-top: 10px;
+      padding: 8px 14px;
+      border: 1.5px solid var(--action-border);
+      border-radius: 999px;
+      background: var(--action-bg);
+      color: var(--action-text);
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .mobile-booking-entry[hidden] { display: none; }
+    #mobileBookingModal { padding: 12px; }
+    .mobile-booking-card {
+      width: min(460px, 100%);
+      max-height: calc(100vh - 24px);
+      max-height: calc(100dvh - 24px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 22px 20px 12px;
+    }
+    .mobile-booking-card h2 { margin: 0 0 4px; }
+    .mobile-booking-sub { margin: 0 0 14px; color: var(--muted); font-size: 0.92rem; font-weight: 700; }
+    .mobile-booking-close { display: block; width: 100%; min-height: 44px; margin-top: 10px; }
