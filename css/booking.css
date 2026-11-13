@@ -5,7 +5,7 @@
 .booking-summary {
   display: inline-flex; align-items: center; gap: 8px; width: fit-content; min-height: 40px;
   padding: 8px 14px 8px 12px; border: 1.5px solid var(--action-border); border-radius: 999px;
-  background: var(--surface); color: var(--action-text); font-weight: 800; line-height: 1.4;
+  background: var(--action-bg); color: var(--action-text); font-weight: 800; line-height: 1.4;
   cursor: pointer; list-style: none; box-shadow: var(--shadow-xs);
   transition: background 180ms var(--ease), box-shadow 180ms var(--ease);
 }
@@ -16,7 +16,7 @@
 }
 .booking-summary::after { content: "›"; font-size: 1.2rem; line-height: 1; transition: transform 180ms var(--ease); }
 .booking[open] .booking-summary::after { transform: rotate(90deg); }
-.booking-summary:hover { background: var(--action-bg); box-shadow: var(--shadow-sm); }
+.booking-summary:hover { background: var(--blue); border-color: var(--blue); color: #ffffff; box-shadow: var(--shadow-sm); }
 .booking[open] .booking-summary { margin: 10px 0 0 12px; }
 .booking-summary:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
 .booking-body { padding: 12px 14px 14px; display: grid; gap: 12px; }
@@ -33,3 +33,5 @@
 }
 .booking-actions { display: flex; }
 @media (max-width: 640px) { .booking-grid { grid-template-columns: 1fr 1fr; } }
+/* 在文件卡裡：收合時照原位置（右側）；展開後占滿整列，不擠壓左邊的說明文字 */
+.document-item .booking[open] { grid-column: 1 / -1; justify-self: stretch; }
