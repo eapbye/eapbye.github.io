@@ -553,6 +553,7 @@ test('最新消息：依日期顯示、一次三則每 5 秒往上捲一則、�
   let page = await newPage(b, base);
   await fake('2026-12-11T10:00:00+08:00')(page.context());
   await openHome(page); await dismissModals(page);
+  await page.mouse.move(2, 2); // 關掉期限視窗後滑鼠可能剛好停在消息列上（會暫停捲動），先移開
   const items = page.locator('#newsStrip .news-item:not(.is-clone)');
   assert.ok(await page.locator('#newsStrip').isVisible(), '有消息時應顯示');
   assert.strictEqual(await items.count(), 5, '12/11 時應剩 5 則');
