@@ -5128,15 +5128,9 @@
       .intro { row-gap: 10px; }
       .mode-grid { row-gap: 10px; }
       .mode-card,
-      .graduation-panel {
-        grid-template-rows: auto minmax(44px, 1fr) auto;
-        row-gap: 4px;
-        min-height: 140px;
-        padding-top: 22px;
-        padding-bottom: 44px;
-      }
+      .graduation-panel { min-height: 170px; padding-top: 26px; padding-bottom: 58px; }
       .quick-links-panel,
-      .floating-prereg { min-height: 96px; padding-top: 10px; padding-bottom: 10px; }
+      .floating-prereg { min-height: 104px; padding-top: 12px; padding-bottom: 12px; }
       .news-strip { margin-top: 0; }
       .home-bottom-row { margin-top: 6px; }
     }
