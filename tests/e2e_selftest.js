@@ -23,13 +23,11 @@ const FAULTS = [
   ['自動填表：按取消也算已下載', 'index.html', '$("#fillCancel").addEventListener("click", closeModal);', '$("#fillCancel").addEventListener("click", function () { var j = pending; closeModal(); if (j && j.onDone) j.onDone(); });', 1, '不填，下載空白表'],
   ['自動填表：「不填」仍帶入資料', 'index.html', 'skippedThisVisit = true;\n      closeModal();\n      if (job) run(job.href, job.name, null, job.onDone);', 'skippedThisVisit = true;\n      closeModal();\n      if (job) run(job.href, job.name, { name: "X" }, job.onDone);', 1, '不填，下載空白表'],
   ['自動填表：留空欄位不標紅色 ○', 'index.html', '    if (!val) { p.appendChild(redCircle(doc)); return; }', '    if (!val) { return; }', 1, '標紅色'],
-  ['改版公告：按了「知道了」仍每次出現', 'index.html', 'try { localStorage.setItem(KEY, "1"); }', 'try { /* 不記錄 */ }', 1, '改版公告'],
-  ['改版公告：內容少了 AIGC 檢測報告書', 'index.html', '與「學位論文AIGC檢測報告書」', '', 1, '改版公告'],
   ['預選登記：沒排課時不顯示說明', 'course-registration.html', '目前沒有排入會修或考慮中的課程。', '', 1, '沒有排入'],
 ];
 
 // index.html 拆檔後，首頁的內容分散在這幾個檔案；FAULTS 寫 'index.html' 時，到這幾個檔案裡找含有目標文字的那一個來改
-const SITE_FILES = ['index.html', 'css/tokens.css', 'css/style.css', 'data/flow.js', 'js/app.js', 'js/odtfill.js', 'js/fillform.js', 'js/notice.js'];
+const SITE_FILES = ['index.html', 'css/tokens.css', 'css/style.css', 'data/flow.js', 'js/app.js', 'js/odtfill.js', 'js/fillform.js'];
 
 function nth(s, sub, n) { let i = -1; for (let k = 0; k < n; k++) { i = s.indexOf(sub, i + 1); if (i < 0) return -1; } return i; }
 
