@@ -150,7 +150,7 @@ test('首頁：載入無錯誤、三個入口、提醒彈窗只出現一次', as
   assert.ok(await page.locator('#openGraduation').isVisible(), '缺畢業專區入口');
   assert.ok(await page.locator('#deadlineModal:not(.hidden)').count(), '第一次進站應出現期限提醒彈窗');
   const foot = await page.locator('footer, body').first().innerText();
-  assert.ok(/（最後更新日：\d{4}-\d{2}-\d{2}）/.test(foot), '首頁看不到全形括號的最後更新日');
+  assert.ok(/政大教政所 維護｜\d+\.\d+\.\d+ 版｜\d{4}-\d{2}-\d{2} 更新/.test(foot), '首頁頁尾看不到版本號與更新日');
   await dismissModals(page);
   await page.reload(); await page.waitForTimeout(1500);
   assert.ok(!(await page.locator('#deadlineModal:not(.hidden)').count()), '30 天內再進站不應再跳期限提醒');
@@ -676,6 +676,34 @@ test('Esc 關彈窗；上一頁（滑鼠側鍵）從流程與畢業專區退回�
   await page.click('.mode-card[data-mode="proposal"]'); await dismissModals(page);
   await page.click('#backToModes'); await page.waitForTimeout(200);
   assert.strictEqual(await page.evaluate(() => history.state && history.state.view), 'home', '按回首頁後瀏覽紀錄應停在首頁');
+  assert.deepStrictEqual(page.errors, []);
+  await page.context().close();
+});
+
+test('歷屆論文：首頁入口開名單、每位老師連到論文系統（限教政所、指導教授欄位，新分頁）、Esc 與關閉鈕可關；跨年消息自動加民國年', async (b, base) => {
+  const page = await newPage(b, base);
+  await openHome(page);
+  await dismissModals(page);
+  await page.click('#openTheses');
+  assert.ok(await page.locator('#thesesModal:not(.hidden)').count(), '應打開歷屆論文視窗');
+  const links = await page.$$eval('#thesesModal .thesis-advisor', (as) => as.map((a) => ({ name: a.firstChild.textContent.trim(), href: a.href, target: a.target, rel: a.rel })));
+  assert.deepStrictEqual(links.map((l) => l.name), ['吳政達', '郭昭佑', '秦夢群', '湯志民', '侯永琪', '湯家偉', '莊俊儒', '陳榮政']);
+  for (const l of links) {
+    const u = new URL(l.href);
+    assert.strictEqual(u.origin + u.pathname, 'https://thesis.lib.nccu.edu.tw/search/', l.name + ' 應連到論文系統搜尋');
+    assert.deepStrictEqual(u.searchParams.getAll('query_term'), ['教育行政', l.name], l.name + ' 應搜教政所＋老師名字');
+    assert.deepStrictEqual(u.searchParams.getAll('query_field'), ['dept', 'cadvisor'], l.name + ' 應限系所、且只搜指導教授欄位');
+    assert.strictEqual(l.target, '_blank'); assert.ok(l.rel.includes('noopener'));
+  }
+  await page.keyboard.press('Escape');
+  assert.ok(await page.locator('#thesesModal.hidden').count(), 'Esc 應關閉歷屆論文視窗');
+  await page.click('#openTheses'); await page.click('#closeTheses');
+  assert.ok(await page.locator('#thesesModal.hidden').count(), '關閉鈕應關閉視窗');
+  // 跨年消息：until 年份比今年大才加民國年，今年的不加
+  const texts = await page.$$eval('#newsStrip .news-item:not(.is-clone) .news-text', (els) => els.map((e) => e.textContent));
+  const year = Number(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Taipei', year: 'numeric' }).format(new Date()));
+  assert.ok(texts.every((t) => !/^\d{3}\//.test(t) || Number(t.slice(0, 3)) + 1911 > year), '只有隔年以後的消息才加民國年：' + texts.join(' | '));
+  assert.ok(texts.every((t) => !t.includes('校訂日')), '消息不應再寫校訂日');
   assert.deepStrictEqual(page.errors, []);
   await page.context().close();
 });

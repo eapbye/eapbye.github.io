@@ -185,6 +185,18 @@
     });
 
     $("#openDeadline").addEventListener("click", showDeadline);
+    // 歷屆論文：開視窗選指導教授，名字是連到政大博碩士論文系統的連結
+    $("#openTheses").addEventListener("click", () => {
+      $("#thesesModal").classList.remove("hidden");
+      $("#closeTheses").focus();
+    });
+    $("#closeTheses").addEventListener("click", () => {
+      $("#thesesModal").classList.add("hidden");
+      $("#openTheses").focus();
+    });
+    $("#thesesModal").addEventListener("click", (event) => {
+      if (event.target === event.currentTarget) $("#closeTheses").click();
+    });
     $("#closeDeadline").addEventListener("click", () => {
       $("#deadlineModal").classList.add("hidden");
       document.body.classList.remove("deadline-open");
@@ -271,6 +283,7 @@
       ["mobileBookingModal", "closeMobileBooking"],
       ["mobileOnlyNoticeModal", "closeMobileOnlyNotice"],
       ["deadlineModal", "closeDeadline"],
+      ["thesesModal", "closeTheses"],
       ["celebrationModal", "closeCelebration"],
       ["graduationModal", "closeGraduation"]
     ];

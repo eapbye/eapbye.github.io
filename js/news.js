@@ -1,15 +1,16 @@
 // 首頁「最新消息」輪播。更新消息只改 NEWS：until 是最後顯示日（台灣時間當天結束後自動消失）。
 // 沒有有效消息時整條隱藏；一次顯示三則，超過三則時每 5 秒往上捲一則（像車站看板），滑鼠移上去暫停。
+// 跨年的消息不用自己寫年份：until 的年份比今年大時，日期前會自動加上民國年（例如 116/1/25）。
 (function () {
   "use strict";
   var NEWS = [
-    { text: "12/10（四）學位論文考試提報截止（校訂日 12/18）", until: "2026-12-10" },
-    { text: "12/10（四）休學截止（校訂日 12/18）", until: "2026-12-10" },
+    { text: "12/10（四）學位論文考試提報截止", until: "2026-12-10" },
+    { text: "12/10（四）休學截止", until: "2026-12-10" },
     { text: "12/17（四）學位論文計畫口試提報截止", until: "2026-12-17" },
     { text: "12/24（四）學位論文考試最晚舉行日；經同意可展期至 1/8（五），但仍須在 12/10 前提報", until: "2026-12-24" },
     { text: "12/31（四）學位論文計畫口試最晚舉行日", until: "2026-12-31" },
-    { text: "1/25（一）繳交學位考試成績報告單（校訂日 1/29），須附論文修正後的比對與檢測文件及通過簽名頁", until: "2027-01-25" },
-    { text: "2/23（二）辦理離校手續（校訂日 2/26）", until: "2027-02-23" }
+    { text: "1/25（一）繳交學位考試成績報告單，須附比對報告與簽名頁", until: "2027-01-25" },
+    { text: "2/23（二）辦理離校手續", until: "2027-02-23" }
   ];
   var INTERVAL_MS = 5000;
 
@@ -36,14 +37,16 @@
     li.className = "news-item";
     var text = document.createElement("span");
     text.className = "news-text";
-    text.title = n.text;
+    // 跨年的消息自動在日期前加民國年（例如 116/1/25），年份取自 until
+    var y = Number(n.until.slice(0, 4)), label = y > Number(taipeiToday().slice(0, 4)) ? (y - 1911) + "/" + n.text : n.text;
+    text.title = label;
     // 拆成日期與內容兩段：電腦照舊排成一行；手機日期與倒數放第一行、內容另起一行（見 style.css 手機版修正）
-    var m = /^(\d{1,2}\/\d{1,2}（.）)\s*(.*)$/.exec(n.text);
+    var m = /^((?:\d{3}\/)?\d{1,2}\/\d{1,2}（.）)\s*(.*)$/.exec(label);
     if (m) {
       var date = document.createElement("span"); date.className = "news-date"; date.textContent = m[1];
       var rest = document.createElement("span"); rest.className = "news-rest"; rest.textContent = m[2];
       text.append(date, rest);
-    } else text.textContent = n.text;
+    } else text.textContent = label;
     var d = daysLeft(n.until);
     var chip = document.createElement("span");
     chip.className = "news-days" + (d <= 7 ? " is-soon" : "");

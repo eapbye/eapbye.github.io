@@ -303,11 +303,14 @@ def check(root):
         if "check_consistency.py" not in ci:
             add("WARN", "pages.yml 沒有在部署前執行 tests/check_consistency.py")
 
-    # ---- 最後更新日 ----
-    ups = re.findall(r"（最後更新日：(\d{4}-\d{2}-\d{2})）", idx)
-    if len(ups) != 1 or idx.count("最後更新日") != 1:
-        add("FAIL", f"首頁「（最後更新日：YYYY-MM-DD）」應恰好出現 1 次（需全形括號、西元日期）；"
-                     f"符合格式 {len(ups)} 次，「最後更新日」字樣共 {idx.count('最後更新日')} 次")
+    # ---- 頁尾版本號與更新日（格式：政大教政所 維護｜3.0.4 版｜2026-11-14 更新）----
+    # 版本規則：大改版升第一碼（標題旁的 3.0 跟著改），每次上線升最後一碼
+    foot = re.findall(r"政大教政所 維護｜(\d+)\.(\d+)\.(\d+) 版｜(\d{4}-\d{2}-\d{2}) 更新", idx)
+    ups = [f[3] for f in foot]
+    if len(foot) != 1 or idx.count(" 更新</span>") != 1:
+        add("FAIL", f"首頁頁尾「政大教政所 維護｜X.Y.Z 版｜YYYY-MM-DD 更新」應恰好出現 1 次（全形｜、西元日期）；符合格式 {len(foot)} 次")
+    elif not re.search(r'class="version-mark"[^>]*>' + foot[0][0] + r"\." + foot[0][1] + "<", idx):
+        add("FAIL", f"頁尾版本 {'.'.join(foot[0][:3])} 的前兩碼與標題旁的版本號不一致")
     else:
         stamped = datetime.date.fromisoformat(ups[0])
         newest = None
