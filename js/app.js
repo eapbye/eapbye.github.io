@@ -89,9 +89,9 @@
       {
         year: "114級",
         folder: "114",
-        pendingTitle: "114級，還不能畢業",
-        pendingCryFace: true,
-        pendingMessage: "先去修課和寫論文吧！我們一年後見。",
+        message: "恭喜你即將完成碩士學位。\n接下來，讓我們一起完成最後的畢業程序。",
+        coverPlaceholder: "還沒有拍畢業照",
+        coverCryFace: true,
         startDate: "2025-09-01"
       },
       {
@@ -155,6 +155,7 @@
     });
 
     $("#resetProgress").addEventListener("click", () => {
+      if (progressCounts().done > 0 && !window.confirm("重設會清除這個流程的所有進度，確定要重設嗎？")) return;
       const mode = activeMode();
       const savedGraduationTasks = state.graduationTasks;
       const savedGraduationCompletion = state.graduationCompletion;
@@ -1278,7 +1279,19 @@
           `;
           watchImageFallback(button.querySelector("img"), () => {}, `graduation/${item.folder}/cover.jpg`);
         } else {
-          button.innerHTML = `<strong>${item.year}</strong>`;
+          // 沒有照片的級數（尚未拍畢業照／還不能畢業）：照片位置放哭臉，高度與有照片的卡片一致
+          button.classList.add("has-placeholder");
+          const cover = document.createElement("span");
+          cover.className = "graduation-grade-cover is-placeholder";
+          cover.setAttribute("aria-hidden", "true");
+          const tip = document.createElement("span");
+          tip.className = "grade-placeholder-text";
+          tip.textContent = isClosed ? "還不能畢業" : (item.coverPlaceholder || "");
+          cover.innerHTML = graduationCryFace();
+          cover.append(tip);
+          const label = document.createElement("strong");
+          label.textContent = item.year;
+          button.replaceChildren(cover, label);
         }
         button.addEventListener("mouseenter", () => preloadGraduationImage(item, "medium"));
         button.addEventListener("focus", () => preloadGraduationImage(item, "medium"));
@@ -1319,11 +1332,14 @@
           ${item.startDate ? renderStudyDays(item.startDate) : ""}
         </div>
         <div class="graduation-cover">
-          <img class="${item.detailImageClass || ""}" src="${graduationImagePath(item, "medium")}" alt="${item.year}畢業專區封面照片" loading="eager" decoding="async">
+          <img class="${item.detailImageClass || ""}" ${item.coverPlaceholder ? "" : `src="${graduationImagePath(item, "medium")}"`} alt="${item.year}畢業專區封面照片" loading="eager" decoding="async">
         </div>
       `;
 
-      watchImageFallback(
+      if (item.coverPlaceholder) {
+        // 還沒有照片：直接放佔位，不去要不存在的圖檔
+        renderGraduationCoverPlaceholder(hero.querySelector(".graduation-cover img"), item.coverPlaceholder, Boolean(item.coverCryFace));
+      } else watchImageFallback(
         hero.querySelector(".graduation-cover img"),
         (img) => renderGraduationCoverPlaceholder(img, item.coverPlaceholder || `${item.year}畢業專區封面照片`, Boolean(item.coverCryFace)),
         `graduation/${item.folder}/cover.jpg`

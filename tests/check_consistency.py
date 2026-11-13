@@ -136,7 +136,7 @@ def check(root):
         for obj in re.finditer(r"\{([^{}]*?)\}", m.group(1), re.S):
             body = obj.group(1)
             folder = re.search(r'folder:\s*"(\d+)"', body)
-            if not folder or "pendingTitle" in body:
+            if not folder or "pendingTitle" in body or "coverPlaceholder" in body:  # 還不能畢業／還沒拍畢業照：不需要圖
                 continue
             card = re.search(r'cardImage:\s*"([^"]+)"', body)
             for name in (card.group(1) if card else "cover-card.jpg", "cover-detail.jpg", "cover.jpg"):

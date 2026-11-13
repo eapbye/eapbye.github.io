@@ -163,8 +163,16 @@ test('畢業專區：級數、勾滿 13 項才出彩蛋、取消任一項即消�
   await page.click('#openGraduation');
   await page.waitForSelector('.graduation-grade-card');
   assert.strictEqual(await page.locator('.graduation-grade-card').count(), 5);
-  assert.strictEqual(await page.locator('.graduation-grade-card.is-open').count(), 3, '111、112、113 應開放');
-  assert.strictEqual(await page.locator('.graduation-grade-card.is-closed').count(), 2, '114、115 應為尚未開放');
+  assert.strictEqual(await page.locator('.graduation-grade-card.is-open').count(), 4, '111～114 應開放');
+  assert.strictEqual(await page.locator('.graduation-grade-card.is-closed').count(), 1, '115 應為尚未開放');
+  // 114 級：開放流程，但還沒拍畢業照，卡片與封面都是哭臉
+  assert.ok(await page.locator('.graduation-grade-card.has-placeholder', { hasText: '114級' }).locator('.cry-face').count(), '114 卡片應顯示哭臉');
+  await page.locator('.graduation-grade-card', { hasText: '114級' }).click();
+  assert.strictEqual(await page.locator('.graduation-task input').count(), 13, '114 應可勾畢業流程');
+  await page.waitForSelector('.graduation-cover-placeholder .cry-face', { timeout: 3000 });
+  assert.ok((await page.locator('.graduation-cover-placeholder').innerText()).includes('還沒有拍畢業照'), '114 封面應寫還沒有拍畢業照');
+  await page.click('#closeGraduation'); await page.click('#openGraduation');
+  await page.waitForSelector('.graduation-grade-card');
   await page.locator('.graduation-grade-card', { hasText: '113級' }).click();
   const boxes = page.locator('.graduation-task input');
   assert.strictEqual(await boxes.count(), 13, '畢業流程應有 13 個勾選項（index 1 已停用）');
@@ -196,12 +204,12 @@ test('畢業專區：舊使用者的勾選依 index 對應（12、13 沒有位�
   assert.deepStrictEqual(page.errors, []);
 });
 
-test('畢業專區：114、115 級都顯示還不能畢業', async (b, base) => {
+test('畢業專區：115 級顯示還不能畢業（114 級已開放）', async (b, base) => {
   const page = await newPage(b, base);
   await openHome(page); await dismissModals(page);
   await page.click('#openGraduation');
   await page.locator('.graduation-grade-card', { hasText: '114級' }).click();
-  assert.ok(await page.locator('.graduation-note', { hasText: '還不能畢業' }).count());
+  assert.ok(!(await page.locator('.graduation-note', { hasText: '還不能畢業' }).count()), '114 已開放，不該再顯示還不能畢業');
   await page.click('#closeGraduation'); await page.click('#openGraduation');
   await page.locator('.graduation-grade-card', { hasText: '115級' }).click();
   assert.ok(await page.locator('.graduation-note', { hasText: '還不能畢業' }).count());
