@@ -120,7 +120,6 @@
       if (!mobileBookingMode) return;
       const label = flowModes[mobileBookingMode].label;
       $("#mobileOnlyNoticeModal").classList.add("hidden");
-      $("#mobileBookingKind").textContent = `${label}・寫好後傳給莊姐`;
       $("#mobileBookingBody").replaceChildren(RoomBooking.build(label, { standalone: true }));
       $("#mobileBookingModal").classList.remove("hidden");
     });

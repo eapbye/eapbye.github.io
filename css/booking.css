@@ -35,7 +35,7 @@
 @media (max-width: 640px) { .booking-grid { grid-template-columns: 1fr 1fr; } }
 /* 在文件卡裡：收合時照原位置（右側）；展開後占滿整列，不擠壓左邊的說明文字 */
 .document-item .booking[open] { grid-column: 1 / -1; justify-self: stretch; }
-/* 指導教授／共同指導（2026-11-14）：與日期欄同寬；選「其他」時下方出現文字欄 */
+/* 指導教授（2026-11-14）：與日期欄同寬；選「其他」時下方出現文字欄 */
 .booking-people { display: grid; grid-template-columns: 190px 190px; justify-content: start; align-items: start; gap: 12px; }
 .booking-other { margin-top: 6px; }
 .booking-other[hidden] { display: none; }
@@ -45,12 +45,6 @@
   background: var(--blue); color: #ffffff; font: inherit; font-weight: 800; cursor: pointer;
 }
 .booking-share:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
-/* 手機獨立視窗：一開始就展開，不顯示收合鈕 */
-.booking.is-standalone, .booking.is-standalone[open] { margin: 0; border: 0; background: none; }
-.booking.is-standalone .booking-summary { display: none; }
-.booking.is-standalone .booking-body { padding: 0; }
-.booking.is-standalone .booking-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
-.booking.is-standalone .booking-copy, .booking.is-standalone .booking-share { min-height: 48px; }
 @media (max-width: 640px) {
   .booking-people { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .booking-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
@@ -62,3 +56,20 @@
   .booking-field input, .booking-field select, .booking-text { font-size: 16px; }
   .booking-field input, .booking-field select { min-height: 44px; }
 }
+/* 手機獨立視窗（放在最後，蓋過上面的手機通用規則）：一開始就展開、不顯示收合鈕；
+   兩欄排列（姓名｜學號、指導教授｜日期、開始｜結束），分享／複製黏在視窗底部 */
+.booking.is-standalone, .booking.is-standalone[open] { margin: 0; border: 0; background: none; }
+.booking.is-standalone .booking-summary { display: none; }
+.booking.is-standalone .booking-body { padding: 0; gap: 14px; }
+.booking.is-standalone .booking-people,
+.booking.is-standalone .booking-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px 10px; }
+.booking.is-standalone .booking-grid .booking-field:first-child { grid-column: auto; }
+.booking.is-standalone .booking-field { gap: 6px; color: var(--muted); font-size: 0.86rem; }
+.booking.is-standalone .booking-field input,
+.booking.is-standalone .booking-field select { width: 100%; min-width: 0; min-height: 46px; padding: 8px 10px; color: var(--ink); font-size: 16px; font-weight: 600; }
+.booking.is-standalone .booking-text { padding: 12px; font-size: 16px; line-height: 1.65; }
+.booking.is-standalone .booking-actions {
+  position: sticky; bottom: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 10px;
+  margin: 0 -18px; padding: 12px 18px 16px; border-top: 1px solid var(--line-soft); background: var(--surface);
+}
+.booking.is-standalone .booking-copy, .booking.is-standalone .booking-share { min-height: 48px; margin: 0; }

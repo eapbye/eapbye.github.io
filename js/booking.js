@@ -1,7 +1,7 @@
 /* 預約口試教室：不寄信，只幫學生產生一段可以直接複製、貼到 LINE 或 e-mail 的預約訊息。
    選日期與時間，訊息會即時更新；沒選的日期以 ○、時間以 00:00 佔位，貼出去前再補。
    姓名、學號若已在「自動填表」填過，會自動帶入，級數取學號前三碼；沒填過，姓名與級數以 ○、學號以 0 佔位。不儲存任何資料、不傳送任何資料。
-   指導教授用下拉選單選（名單在下方 ADVISORS，依 R 指定順序；換老師時改這裡），另可選共同指導；選「其他」可自己打。
+   指導教授用下拉選單選（名單在下方 ADVISORS，依 R 指定順序；換老師時改這裡）；選「其他」可自己打（R 11/14：不要共同指導）。
    手機版（standalone）：被擋的「請改用電腦操作」視窗可另開一個只寫預約訊息的視窗，多姓名、學號兩欄與「分享到 LINE」（navigator.share）。
    依賴：js/fillform.js（選用，只讀姓名與學號）。 */
 (function (global) {
@@ -115,9 +115,7 @@
       who.append(field("姓名", nameIn, nameIn.id), field("學號", sidIn, sidIn.id));
     }
     var adv1 = advisorPicker("指導教授", "選擇", uid + "a");
-    var adv2 = advisorPicker("共同指導（沒有免選）", "沒有", uid + "b");
     var people = el("div", "booking-people");
-    people.append(adv1.wrap, adv2.wrap);
 
     var date = el("input"); date.type = "date"; date.id = uid + "d";
     var d0 = new Date(); date.min = d0.getFullYear() + "-" + pad(d0.getMonth() + 1) + "-" + pad(d0.getDate());
@@ -140,8 +138,11 @@
       share = el("button", "booking-share", "分享到 LINE"); share.type = "button";
       actions.prepend(share);
     }
+    // 電腦：指導教授自成一列；手機獨立視窗：指導教授與日期同一列、開始與結束同一列，比較緊湊
+    if (opts.standalone) grid.prepend(adv1.wrap); else people.append(adv1.wrap);
     if (who) body.append(who);
-    body.append(people, grid, area, actions);
+    if (!opts.standalone) body.append(people);
+    body.append(grid, area, actions);
     box.append(body);
     if (opts.standalone) box.open = true;
 
@@ -156,11 +157,11 @@
     function refresh() {
       var p = profile();
       var name = nameIn ? nameIn.value : p.name, sid = sidIn ? sidIn.value : p.sid;
-      area.value = draft(kind, { name: name, sid: sid, advisors: [adv1.value(), adv2.value()], date: date.value, start: start.value, end: end.value });
+      area.value = draft(kind, { name: name, sid: sid, advisors: [adv1.value()], date: date.value, start: start.value, end: end.value });
       fit();
     }
     start.addEventListener("change", function () { if (start.value && !end.value) end.value = plusMinutes(start.value, 120); refresh(); });
-    [date, end, adv1.sel, adv1.input, adv2.sel, adv2.input].concat(nameIn ? [nameIn, sidIn] : []).forEach(function (c) { c.addEventListener("input", refresh); c.addEventListener("change", refresh); });
+    [date, end, adv1.sel, adv1.input].concat(nameIn ? [nameIn, sidIn] : []).forEach(function (c) { c.addEventListener("input", refresh); c.addEventListener("change", refresh); });
     box.addEventListener("toggle", function () { if (box.open) refresh(); });
     var timer = null;
     copy.addEventListener("click", function () {
