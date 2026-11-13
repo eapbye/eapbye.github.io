@@ -6,7 +6,7 @@
       timetableTitle: "115 學年度第 2 學期課程表",
       timetableNote: "實際開課資料以教務處 115 學年度第 2 學期初公告為準。",
       courses: [
-        { id: "philosophy", name: "教育哲學", type: "選修", credits: 2, day: 2, start: 3, span: 2, time: "週二 10:10-12:00", teacher: "（待確認）", code: "109-002-01-1", room: "井塘 113", notes: ["與師培合開"] },
+        { id: "philosophy", name: "教育哲學", type: "選修", credits: 2, day: 2, start: 3, span: 2, time: "週二 10:10-12:00", teacher: "許翰笙教授", code: "109-002-01-1", room: "井塘 113", notes: ["與師培合開"] },
         { id: "policy-seminar-1", name: "教育政策專題（一）", type: "選修", credits: 2, day: 2, start: 6, span: 2, time: "週二 13:10-15:00", teacher: "吳政達教授", code: "171-950-00-1", room: "井塘 112", notes: [] },
         { id: "admin-seminar-2", name: "教育行政專題（二）", type: "選修", credits: 2, day: 2, start: 8, span: 2, time: "週二 15:10-17:00", teacher: "湯家偉教授", code: "171-914-00-1", room: "井塘 112", notes: ["英語授課"] },
         { id: "education-reform", name: "教育改革研究", type: "選修", credits: 3, day: 3, start: 2, span: 3, time: "週三 09:10-12:00", teacher: "湯家偉教授", code: "171-938-00-1", room: "井塘 112", notes: [] },
