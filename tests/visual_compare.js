@@ -68,7 +68,6 @@ async function shoot(browser, root, dir) {
       }
       await page.evaluate(() => showGraduation()); await snap('graduation');
       await page.evaluate(() => { const b = document.querySelector('#closeGraduation'); if (b) b.click(); });
-      await page.evaluate(() => showQa('defense')); await snap('qa-defense');
       await page.evaluate(() => showDeadline()); await snap('deadline');
       // 填表視窗（第一次點可填表單時跳出）
       await page.evaluate(() => { document.querySelector('#closeDeadline')?.click(); });

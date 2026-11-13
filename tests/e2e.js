@@ -544,7 +544,7 @@ test('3.1 步驟：鎖住的步驟收成一列（無內容、有小鎖），解�
   assert.deepStrictEqual(page.errors, []);
 });
 
-test('最新消息：依日期顯示、一次兩則每 5 秒往上捲一則、滑鼠移上去暫停、全部過期就隱藏', async (b, base) => {
+test('最新消息：依日期顯示、一次三則每 5 秒往上捲一則、滑鼠移上去暫停、全部過期就隱藏', async (b, base) => {
   const fake = (iso) => async (ctx) => ctx.addInitScript((t) => {
     const start = new Date(t).getTime(), D = Date, t0 = D.now(), now = () => start + (D.now() - t0);
     Date = class extends D { constructor(...a) { if (a.length) super(...a); else super(now()); } static now() { return now(); } };
@@ -558,6 +558,7 @@ test('最新消息：依日期顯示、一次兩則每 5 秒往上捲一則、�
   assert.strictEqual(await items.count(), 5, '12/11 時應剩 5 則');
   assert.ok(!(await items.allTextContents()).some((t) => t.startsWith('12/10')), '過期的不顯示');
   assert.ok((await items.first().innerText()).includes('還有'), '每則應有倒數天數');
+  assert.strictEqual(await page.evaluate(() => getComputedStyle(document.querySelector('#newsStrip .news-viewport')).getPropertyValue('--news-rows').trim()), '3', '一次應顯示三則');
   const first = await page.locator('#newsStrip .news-item.is-active').innerText();
   await page.waitForTimeout(5600);
   const second = await page.locator('#newsStrip .news-item.is-active').innerText();
@@ -573,6 +574,35 @@ test('最新消息：依日期顯示、一次兩則每 5 秒往上捲一則、�
   await openHome(page); await dismissModals(page);
   assert.ok(!(await page.locator('#newsStrip').isVisible()), '全部過期應隱藏');
   assert.deepStrictEqual(page.errors, []);
+});
+
+test('Esc 關彈窗；上一頁（滑鼠側鍵）從流程與畢業專區退回上一層', async (b, base) => {
+  const page = await newPage(b, base);
+  await openHome(page);
+  // 首次進站的提報期限視窗：按 Esc 關閉
+  if (await page.locator('#deadlineModal:not(.hidden)').count()) {
+    await page.keyboard.press('Escape');
+    assert.strictEqual(await page.locator('#deadlineModal:not(.hidden)').count(), 0, 'Esc 應關閉提報期限視窗');
+  }
+  await dismissModals(page);
+  // 畢業專區：進某一級 → 上一頁回級數選單 → Esc 關閉
+  await page.click('#openGraduation'); await page.waitForSelector('.graduation-grade-card');
+  await page.locator('.graduation-grade-card').first().click();
+  assert.ok(await page.locator('.graduation-card.is-detail').count(), '應進到該級內頁');
+  await page.goBack(); await page.waitForTimeout(200);
+  assert.ok(await page.locator('.graduation-card.is-grade-picker').count(), '上一頁應回級數選單');
+  await page.keyboard.press('Escape');
+  assert.ok(await page.locator('#graduationModal.hidden').count(), 'Esc 應關閉畢業專區');
+  // 流程：進流程 → 上一頁回首頁；用「回首頁」鈕離開後，再按上一頁不應又跳回流程
+  await page.click('.mode-card[data-mode="proposal"]'); await dismissModals(page);
+  assert.ok(await page.evaluate(() => document.body.classList.contains('workflow-open')), '應進入流程');
+  await page.goBack(); await page.waitForTimeout(200);
+  assert.ok(!(await page.evaluate(() => document.body.classList.contains('workflow-open'))), '上一頁應回首頁');
+  await page.click('.mode-card[data-mode="proposal"]'); await dismissModals(page);
+  await page.click('#backToModes'); await page.waitForTimeout(200);
+  assert.strictEqual(await page.evaluate(() => history.state && history.state.view), 'home', '按回首頁後瀏覽紀錄應停在首頁');
+  assert.deepStrictEqual(page.errors, []);
+  await page.context().close();
 });
 
 test('續辦首頁：有進度的流程卡片顯示完成數；沒進度不顯示；改選另一個流程前先確認', async (b, base) => {

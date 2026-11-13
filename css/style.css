@@ -1915,79 +1915,6 @@
       height: clamp(8px, 0.44vw, 10px);
     }
 
-    .qa-card {
-      width: min(760px, 100%);
-      background:
-        radial-gradient(circle at 92% 8%, rgba(31, 111, 178, 0.08), transparent 24%),
-        linear-gradient(135deg, #ffffff, #f7fbff);
-    }
-
-    .qa-choice-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-      margin: 12px 0 18px;
-    }
-
-    .qa-choice-card:last-child:nth-child(odd) {
-      grid-column: 1 / -1;
-    }
-
-    .qa-choice-card {
-      display: grid;
-      place-items: center;
-      align-items: center;
-      min-height: 96px;
-      padding: 18px;
-      border: 1.8px solid var(--line);
-      border-radius: var(--radius);
-      background: linear-gradient(135deg, #f8fbff, #edf5ff);
-      color: var(--blue-dark);
-      font-size: 1rem;
-      font-weight: 900;
-      cursor: pointer;
-      text-align: left;
-      box-shadow: none;
-      transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
-    }
-
-    .qa-choice-card strong {
-      font-size: 1.1rem;
-      line-height: 1.28;
-    }
-
-    .qa-choice-card[data-qa-choice="proposal"] {
-      border-color: rgba(43, 120, 182, 0.36);
-      background: linear-gradient(135deg, #f4faff, #e2f1ff);
-      color: var(--blue-dark);
-    }
-
-    .qa-choice-card[data-qa-choice="defense"] {
-      border-color: rgba(125, 82, 190, 0.36);
-      background: linear-gradient(135deg, #fbf7ff, #eadfff);
-      color: #4d357f;
-    }
-
-    .qa-choice-card[data-qa-choice="graduation"] {
-      border-color: rgba(35, 132, 132, 0.36);
-      background: linear-gradient(135deg, #f5fffc, #dff5ee);
-      color: #0f5f67;
-    }
-
-    .qa-choice-card[data-qa-choice="site"] {
-      border-color: rgba(114, 137, 161, 0.34);
-      background: linear-gradient(135deg, #f9fcff, #e7eef5);
-      color: #38546e;
-    }
-
-    .qa-choice-card:hover,
-    .qa-choice-card:focus-visible {
-      transform: translateY(-2px);
-      border-color: rgba(31, 111, 178, 0.3);
-      box-shadow: 0 10px 18px rgba(31, 111, 178, 0.08);
-      outline: none;
-    }
-
     #qaTitle {
       text-align: center;
     }
@@ -4297,131 +4224,6 @@
       to { width: 86%; }
     }
 
-    .qa-list {
-      display: grid;
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-
-    .qa-topic-tag {
-      justify-self: start;
-      width: fit-content;
-      padding: 5px 10px;
-      border: 1px solid rgba(31, 111, 178, 0.16);
-      border-radius: 999px;
-      background: #edf6ff;
-      color: var(--blue-dark);
-      font-size: 0.8rem;
-      font-weight: 900;
-      line-height: 1.2;
-    }
-
-    .qa-topic-defense {
-      border-color: rgba(125, 82, 190, 0.16);
-      background: #f1ecff;
-      color: #4d357f;
-    }
-
-    .qa-topic-graduation {
-      border-color: rgba(35, 132, 132, 0.16);
-      background: #edf9f5;
-      color: #0f5f67;
-    }
-
-    .qa-topic-site {
-      border-color: rgba(114, 137, 161, 0.16);
-      background: #f0f5f9;
-      color: #38546e;
-    }
-
-    .qa-item {
-      padding: 0;
-      border: 1.5px solid var(--line);
-      border-radius: var(--radius);
-      background: #ffffff;
-      overflow: hidden;
-      box-shadow: 0 10px 20px rgba(31, 111, 178, 0.06);
-    }
-
-    .qa-item summary {
-      position: relative;
-      display: block;
-      padding: 16px 18px 16px 24px;
-      cursor: pointer;
-      color: var(--blue-dark);
-      font-weight: 900;
-      line-height: 1.45;
-      list-style: none;
-    }
-
-    .qa-item summary::-webkit-details-marker {
-      display: none;
-    }
-
-    .qa-item summary::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 6px;
-      background: var(--qa-accent, var(--blue));
-    }
-
-    .qa-item summary::after {
-      content: "＋";
-      float: right;
-      margin-left: 14px;
-      color: var(--qa-accent, var(--blue));
-      font-weight: 950;
-    }
-
-    .qa-item[open] summary::after {
-      content: "－";
-    }
-
-    .qa-item-proposal { --qa-accent: var(--blue); }
-
-    .qa-item-defense { --qa-accent: #7d52be; }
-
-    .qa-item-graduation { --qa-accent: #238484; }
-
-    .qa-item-site { --qa-accent: #7289a1; }
-
-    .qa-item[open] summary {
-      background: #f8fbff;
-    }
-
-    .qa-item strong {
-      display: block;
-      margin-bottom: 5px;
-      color: var(--blue-dark);
-      font-size: 1rem;
-      line-height: 1.45;
-    }
-
-    .qa-item span {
-      display: block;
-      margin: 0;
-      padding: 0 18px 18px 24px;
-      color: var(--ink);
-      font-size: 0.95rem;
-      line-height: 1.65;
-    }
-
-    .qa-back-action {
-      border: 1px solid rgba(31, 111, 178, 0.22);
-      background: #ffffff;
-      color: var(--blue-dark);
-      box-shadow: none;
-    }
-
-    .qa-back-action:hover,
-    .qa-back-action:focus-visible {
-      border-color: rgba(31, 111, 178, 0.38);
-      box-shadow: 0 8px 16px rgba(31, 111, 178, 0.08);
-    }
-
     #qaModal .full-action + .full-action {
       margin-top: 8px;
     }
@@ -4908,9 +4710,7 @@
         bottom: 13px;
         width: 9px;
         height: 9px;
-      }
-      .qa-choice-grid { grid-template-columns: 1fr; }
-      .floating-prereg {
+      }      .floating-prereg {
         position: static;
         width: 100%;
         min-height: 54px;
@@ -5318,3 +5118,506 @@
       body:not(.workflow-open) > .wrap { padding-bottom: 0; }
       .home-bottom-row { margin-top: 14px; }
     }
+
+    /* ===== 3.2 質感改版（2026-11-13）：放在檔尾，同權重的規則以這裡為準 =====
+       原則：字重降低、字距拉開、細框細影、統一 24px 間距；三個流程各保留藍／紫／綠，只用在細線、編號與膠囊。
+       改版前的樣式備份在 GitHub 分支 backup/3.0-style-20261113。 */
+    @font-face {
+      font-family: "EAP Title Serif";
+      src: url("fonts/title-serif-tc-bold.woff2") format("woff2");
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    :root {
+      --ink: #1a2638;
+      --muted: #5f6b7a;
+      --hair: rgba(26, 38, 56, 0.10);
+      --hair-2: rgba(26, 38, 56, 0.16);
+      --c-proposal: #2468a2;
+      --c-defense: #5a4a96;
+      --c-graduation: #22735a;
+      --c-links: #b5567f;
+      --serif-title: "EAP Title Serif", "Noto Serif TC", "Noto Serif CJK TC", "Source Han Serif TC", "PMingLiU", serif;
+      --sans: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", Arial, sans-serif;
+      --card-shadow: 0 1px 2px rgba(26, 38, 56, 0.04), 0 12px 32px -14px rgba(26, 38, 56, 0.14);
+      --card-shadow-hover: 0 1px 2px rgba(26, 38, 56, 0.05), 0 18px 40px -14px rgba(26, 38, 56, 0.22);
+    }
+    body {
+      font-family: var(--sans);
+      color: var(--ink);
+      letter-spacing: 0.02em;
+      background: linear-gradient(180deg, #d9e7f3 0, #e6eff7 420px, #edf3f8 900px) no-repeat, #edf3f8;
+    }
+    body::before { height: 3px; background: var(--ink); }
+    .wrap { max-width: 1200px; padding: 56px 32px 40px; }
+
+    /* 標頭：小字所名＋明體大標題 */
+    header { margin-bottom: 40px; }
+    .brand-lockup { gap: 0; }
+    .home-mark {
+      display: block;
+      width: auto;
+      min-width: 0;
+      min-height: 0;
+      margin: 0 0 10px;
+      padding: 0;
+      border: 0;
+      background: none;
+      box-shadow: none;
+      color: var(--muted);
+      font-family: var(--sans);
+      font-size: 0.82rem;
+      font-style: normal;
+      font-weight: 500;
+      letter-spacing: 0.32em;
+    }
+    .home-mark::before { display: none; }
+    .home-mark::after { content: "　·　教育行政與政策研究所"; letter-spacing: 0.2em; }
+    header h1 {
+      background: none;
+      -webkit-text-fill-color: var(--ink);
+      color: var(--ink);
+      filter: none;
+      font-family: var(--serif-title);
+      font-size: clamp(2.6rem, 4vw, 3.5rem);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: 0.08em;
+    }
+    .version-mark {
+      margin-left: 0.3em;
+      -webkit-text-fill-color: var(--c-proposal);
+      color: var(--c-proposal);
+      font-family: var(--serif-title);
+      font-size: 0.36em;
+      font-style: italic;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    /* 首頁三張主卡：左上小圓點編號＋標籤，標題置中，右下膠囊 */
+    .intro { padding-top: 0; }
+    .mode-grid { gap: 24px; }
+    .mode-card[data-mode="proposal"] { --c: var(--c-proposal); --tint: #f1f6fb; }
+    .mode-card[data-mode="defense"] { --c: var(--c-defense); --tint: #f5f2fb; }
+    .graduation-panel { --c: var(--c-graduation); --tint: #f0f7f3; }
+    .mode-card,
+    .mode-card[data-mode="proposal"],
+    .mode-card[data-mode="defense"],
+    .graduation-panel {
+      min-height: 196px;
+      padding: 30px;
+      overflow: hidden;
+      border: 1px solid var(--hair);
+      border-radius: 12px;
+      background: linear-gradient(180deg, #ffffff 55%, var(--tint));
+      box-shadow: inset 0 2px 0 var(--c), var(--card-shadow);
+    }
+    .mode-card:hover, .mode-card:focus-visible,
+    .mode-card[data-mode="proposal"]:hover, .mode-card[data-mode="proposal"]:focus-visible,
+    .mode-card[data-mode="defense"]:hover, .mode-card[data-mode="defense"]:focus-visible,
+    .graduation-panel:hover, .graduation-panel:focus-visible {
+      transform: translateY(-2px);
+      border-color: var(--hair-2);
+      box-shadow: inset 0 2px 0 var(--c), var(--card-shadow-hover);
+    }
+    .mode-card::after, .graduation-panel::after { display: none; }
+    .home-sequence,
+    .mode-card[data-mode="defense"] .home-sequence,
+    .graduation-panel .home-sequence {
+      left: 30px;
+      top: 30px;
+      transform: none;
+      width: 28px;
+      height: 28px;
+      border: 0;
+      background: var(--c);
+      color: #ffffff;
+      font-size: 0.86rem;
+      font-weight: 700;
+      letter-spacing: 0;
+      box-shadow: none;
+    }
+    .mode-action,
+    .mode-card[data-mode="proposal"] .mode-action,
+    .mode-card[data-mode="defense"] .mode-action,
+    .graduation-panel .mode-action {
+      transform: none;
+      margin: 1px 0 0 38px;
+      padding: 4px 12px;
+      background: color-mix(in srgb, var(--c) 9%, #ffffff);
+      color: var(--c);
+      font-size: 0.84rem;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+    }
+    .mode-card strong,
+    .mode-card[data-mode="proposal"] strong,
+    .mode-card[data-mode="defense"] strong,
+    .graduation-panel h3 {
+      top: 54%;
+      color: var(--c);
+      font-size: clamp(1.38rem, 1.7vw, 1.6rem);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      line-height: 1.4;
+    }
+    .mode-card[data-mode="proposal"] strong {
+      font-size: clamp(1.22rem, 1.5vw, 1.42rem);
+      letter-spacing: 0.03em;
+    }
+    .mode-status,
+    .mode-card:not(.is-disabled) .mode-status,
+    .mode-card[data-mode="proposal"]:not(.is-disabled) .mode-status,
+    .mode-card[data-mode="defense"]:not(.is-disabled) .mode-status,
+    .graduation-status {
+      right: 28px;
+      bottom: 26px;
+      padding: 6px 16px;
+      background: color-mix(in srgb, var(--c) 10%, #ffffff);
+      color: var(--c);
+      font-size: 0.88rem;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+    }
+    .mode-status::after, .graduation-status::after { content: " →"; }
+    .mode-card[data-mode="proposal"]:not(.is-disabled):focus-visible .mode-status,
+    .mode-card[data-mode="defense"]:not(.is-disabled):focus-visible .mode-status,
+    .graduation-panel:focus-visible .graduation-status,
+    .mode-card[data-mode="proposal"].has-progress .mode-status,
+    .mode-card[data-mode="defense"].has-progress .mode-status {
+      background: var(--c);
+      color: #ffffff;
+    }
+    @media (hover: hover) {
+      .mode-card[data-mode="proposal"]:not(.is-disabled):hover .mode-status,
+      .mode-card[data-mode="defense"]:not(.is-disabled):hover .mode-status,
+      .graduation-panel:hover .graduation-status {
+        background: var(--c);
+        color: #ffffff;
+        transform: none;
+      }
+    }
+
+    /* 第二排：常用連結（粉紅）與課程表卡，同一種格式：左上小標、頂端細色線 */
+    .home-support-strip { gap: 24px; margin-top: 24px; }
+    .quick-links-panel {
+      gap: 14px;
+      padding: 22px 24px;
+      border: 1px solid var(--hair);
+      border-radius: 12px;
+      background: linear-gradient(180deg, #ffffff 55%, #fcf3f7);
+      box-shadow: inset 0 2px 0 var(--c-links), 0 1px 2px rgba(26, 38, 56, 0.04);
+    }
+    .quick-links-panel h3 {
+      color: #9a3f66;
+      font-size: 0.88rem;
+      font-weight: 500;
+      letter-spacing: 0.24em;
+      text-align: left;
+    }
+    .quick-links-grid { gap: 12px; }
+    .quick-link {
+      min-height: 50px;
+      border: 1px solid rgba(154, 63, 102, 0.18);
+      border-radius: 8px;
+      box-shadow: none;
+      color: #8a3459;
+    }
+    .quick-link strong { font-weight: 500; letter-spacing: 0.04em; }
+    @media (min-width: 1180px) { .quick-link strong { white-space: nowrap; } }
+    .quick-link:hover, .quick-link:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(154, 63, 102, 0.45);
+      box-shadow: none;
+    }
+    .floating-prereg {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 0;
+      padding: 22px 24px;
+      border: 1px solid var(--hair);
+      border-radius: 12px;
+      background: linear-gradient(180deg, #ffffff 55%, #f1f6fb);
+      box-shadow: inset 0 2px 0 var(--c-proposal), 0 1px 2px rgba(26, 38, 56, 0.04);
+      color: var(--ink);
+      text-align: left;
+    }
+    .floating-prereg .course-entry-term {
+      color: var(--c-proposal);
+      font-size: 0.88rem;
+      font-weight: 500;
+      letter-spacing: 0.24em;
+    }
+    .floating-prereg strong {
+      margin-top: 14px;
+      color: var(--ink);
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 0.24em;
+    }
+    .floating-prereg .entry-action {
+      position: absolute;
+      right: 24px;
+      bottom: 22px;
+      min-width: 0;
+      padding: 6px 16px;
+      background: #e8f0f8;
+      color: var(--c-proposal);
+      font-size: 0.88rem;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+    }
+    .floating-prereg .entry-action::after { content: " →"; }
+    .floating-prereg:hover, .floating-prereg:focus-visible {
+      transform: translateY(-2px);
+      border-color: var(--hair-2);
+      box-shadow: inset 0 2px 0 var(--c-proposal), var(--card-shadow-hover);
+    }
+    .floating-prereg:focus-visible .entry-action { background: var(--c-proposal); color: #ffffff; }
+    @media (hover: hover) {
+      .floating-prereg:hover .entry-action { background: var(--c-proposal); color: #ffffff; }
+    }
+
+    /* 最新消息：一次三則（js/news.js），標籤改細字加分隔線 */
+    .news-strip {
+      gap: 20px;
+      margin-top: 24px;
+      padding: 14px 24px;
+      border: 1px solid var(--hair);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow: none;
+    }
+    .news-label {
+      padding: 0 20px 0 0;
+      border-right: 1px solid var(--hair-2);
+      border-radius: 0;
+      background: none;
+      color: var(--ink);
+      font-size: 0.88rem;
+      font-weight: 500;
+      letter-spacing: 0.24em;
+    }
+    .news-viewport { color: var(--ink); font-weight: 400; }
+    .news-days {
+      border: 1px solid var(--hair-2);
+      background: none;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .news-days.is-soon { border-color: rgba(178, 53, 43, 0.35); background: var(--danger-soft); color: var(--danger); }
+
+    /* 底部：莊姐與雲保留，雲換成白底細框 */
+    .qa-cloud {
+      border: 1px solid var(--hair-2);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 1px 2px rgba(26, 38, 56, 0.04), 0 10px 24px -10px rgba(26, 38, 56, 0.18);
+      color: var(--ink);
+      font-size: 0.92rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+    }
+    .qa-cloud::before, .qa-cloud::after {
+      border: 1px solid var(--hair-2);
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: none;
+    }
+    .site-credit { font-size: 0.82rem; letter-spacing: 0.06em; }
+
+    /* ===== 流程頁 ===== */
+    body[data-flow="proposal"] { --flow: var(--c-proposal); }
+    body[data-flow="defense"] { --flow: var(--c-defense); }
+    body.workflow-open .wrap { padding-top: 40px; }
+    body.workflow-open header { margin-bottom: 28px; align-items: center; }
+    body.workflow-open header h1 { font-size: 2.2rem; }
+    .back-button.header-back-button {
+      color: var(--ink);
+      font-size: 0.92rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+    }
+    .progress-panel {
+      padding: 26px 30px;
+      border: 1px solid var(--hair);
+      border-radius: 12px;
+      background: #ffffff;
+      box-shadow: inset 0 2px 0 var(--flow, var(--c-proposal)), var(--card-shadow);
+    }
+    .progress-flow-label { color: var(--ink); font-size: 1.7rem; font-weight: 700; letter-spacing: 0.1em; }
+    .progress-meter { gap: 16px; padding: 0; border: 0; background: none; }
+    .progress-meter span { color: var(--muted); font-size: 1rem; font-weight: 500; letter-spacing: 0.06em; }
+    .progress-track { height: 4px; background: rgba(26, 38, 56, 0.08); box-shadow: none; }
+    .progress-bar { background: var(--flow, var(--c-proposal)); }
+    .progress-meter .reset-button { font-weight: 500; letter-spacing: 0.08em; }
+    .steps { gap: 12px; margin-top: 20px; }
+    .step-card,
+    .step-card.is-done,
+    .step-card.is-locked,
+    .step-card.is-current:not(.is-locked),
+    .step-card.is-next-focus,
+    .check-card {
+      border: 1px solid var(--hair);
+      border-left-width: 1px;
+      border-left-style: solid;
+      border-left-color: var(--hair);
+      border-radius: 12px;
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(26, 38, 56, 0.04);
+    }
+    .step-card.is-current:not(.is-locked),
+    .step-card.is-next-focus {
+      border-left-color: var(--hair);
+      box-shadow: inset 3px 0 0 var(--blue), 0 1px 2px rgba(26, 38, 56, 0.04), 0 16px 36px -16px rgba(26, 38, 56, 0.2);
+    }
+    .step-card.is-done { border-left-color: var(--hair); }
+    .step-card.is-locked {
+      opacity: 1;
+      filter: none;
+      background: rgba(255, 255, 255, 0.5);
+      box-shadow: none;
+    }
+    .step-card.is-locked h3 { color: #8a96a5; font-weight: 500; letter-spacing: 0.06em; }
+    .step-number,
+    .step-card.is-locked .step-number {
+      border: 1px solid var(--hair-2);
+      border-radius: 999px;
+      background: #ffffff;
+      box-shadow: none;
+      color: #8a96a5;
+      font-size: 0.86rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+    }
+    .step-card.is-current:not(.is-locked) .step-number,
+    .step-card.is-next-focus .step-number {
+      border-color: var(--blue);
+      background: var(--blue);
+      box-shadow: none;
+      color: #ffffff;
+    }
+    .step-card.is-done .step-number {
+      border-color: rgba(27, 115, 89, 0.45);
+      background: #ffffff;
+      box-shadow: none;
+      color: var(--done);
+    }
+    .step-content h3 { color: var(--ink); font-weight: 700; letter-spacing: 0.06em; }
+    .steps > .step-card:not(:last-child)::after {
+      width: 1px;
+      background: repeating-linear-gradient(180deg, rgba(26, 38, 56, 0.2) 0 4px, transparent 4px 8px);
+    }
+    .steps > .step-card.is-current:not(.is-locked):not(:last-child)::after {
+      background: linear-gradient(180deg, var(--blue), rgba(26, 38, 56, 0.15));
+    }
+    .steps > .step-card.is-done:not(:last-child)::after { background: var(--done); }
+
+    /* ===== 彈窗 ===== */
+    .info-modal, .celebration-modal { background: rgba(26, 38, 56, 0.38); }
+    .info-card, .celebration-card {
+      border: 1px solid var(--hair);
+      border-radius: 14px;
+      box-shadow: 0 30px 80px -20px rgba(26, 38, 56, 0.38);
+    }
+    .info-card h2, .celebration-card h2 { color: var(--ink); font-weight: 700; letter-spacing: 0.1em; }
+    #graduationTitle { font-family: var(--serif-title); letter-spacing: 0.14em; }
+    .graduation-modal-head { border-bottom-color: var(--hair); }
+    .ack-button { font-weight: 500; letter-spacing: 0.12em; }
+    .graduation-grade-card,
+    .ack-button.graduation-grade-card {
+      border: 1px solid var(--hair);
+      border-radius: 10px;
+      box-shadow: none;
+      background: #ffffff;
+    }
+    .graduation-grade-card strong,
+    .ack-button.graduation-grade-card.is-closed strong {
+      color: var(--ink);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+    }
+    .graduation-grade-cover.is-placeholder { background: #f4f7fa; }
+    .grade-placeholder-text { font-weight: 500; letter-spacing: 0.12em; }
+    .ack-button.graduation-grade-card.is-closed { border: 1px dashed var(--hair-2); background: #fafbfc; box-shadow: none; }
+    /* 哭臉含組合符號，字距與思源黑體都會讓它變方框，固定用不加字距的西文字型 */
+    .cry-face { font-family: Arial, "Segoe UI", sans-serif; letter-spacing: 0; }
+
+    /* 流程頁內的元件：按鈕、選項、清單一律細框、字重 500～700 */
+    .text-button, .link-button, .ack-button { font-weight: 500; letter-spacing: 0.06em; }
+    .link-button {
+      border: 1px solid rgba(36, 104, 162, 0.35);
+      background: #ffffff;
+      box-shadow: none;
+      color: var(--ink);
+    }
+    .link-button:hover, .link-button:focus-visible { border-color: var(--blue); background: #f5f9fc; box-shadow: none; }
+    .link-button:not(.is-unavailable)::after { font-weight: 500; letter-spacing: 0.08em; }
+    .option {
+      border: 1px solid var(--hair-2);
+      border-radius: 10px;
+      background: #ffffff;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+    }
+    .option:has(input:checked) { border-color: var(--blue); background: #f3f7fb; }
+    .result { border-color: var(--hair); border-radius: 10px; background: #f8fafc; box-shadow: none; }
+    .result strong, .result h4 { color: var(--ink); font-weight: 700; letter-spacing: 0.08em; }
+    .result li { color: #3c4858; line-height: 1.9; }
+    .precheck-choice {
+      border: 1px solid var(--hair-2);
+      background: #ffffff;
+      box-shadow: none;
+      font-weight: 500;
+    }
+    .precheck-choice span { font-weight: 500; letter-spacing: 0.04em; }
+    .precheck-choice input { width: 24px; height: 24px; }
+    .precheck-choice:hover, .precheck-choice:focus-within { border-color: var(--blue); box-shadow: none; transform: none; }
+    .precheck-choice.is-checked { border-color: rgba(27, 115, 89, 0.45); background: #f4faf7; box-shadow: none; color: #125c49; }
+    /* 「尚有 N 份待確認」維持原本的紅色提醒（R 決定待完成的紅色不改），只調字重與陰影 */
+    .step-done-action, .ack-button.step-done-action { box-shadow: none; font-weight: 500; letter-spacing: 0.14em; }
+    .step-done-action.is-complete, .ack-button.step-done-action.is-complete {
+      border-color: rgba(27, 115, 89, 0.4);
+      background: #f4faf7;
+      color: var(--done);
+    }
+    .question-box.important-reminder { box-shadow: none; }
+    .question-box.important-reminder .option { font-weight: 500; }
+    /* 最後確認：送件清單 */
+    .submission-inventory { border-color: var(--hair); border-radius: 12px; background: #fafbfc; box-shadow: none; }
+    .inventory-header strong, .inventory-title-wrap strong { color: var(--ink); font-weight: 700; letter-spacing: 0.06em; }
+    .inventory-title-note { font-weight: 500; }
+    .inventory-count { border: 1px solid var(--hair-2); background: #ffffff; color: var(--muted); font-weight: 500; }
+    .inventory-group { border-width: 1px; box-shadow: none; }
+    .inventory-group h4, .inventory-group > strong, .inventory-subgroup h5, .inventory-subgroup > strong { font-weight: 500; letter-spacing: 0.14em; }
+    .inventory-chip { border: 1px solid var(--hair-2); box-shadow: none; font-weight: 500; }
+    .inventory-label { font-weight: 500; letter-spacing: 0.02em; }
+    /* 畢業專區內頁 */
+    .graduation-card .graduation-grade-card strong,
+    .graduation-card .ack-button.graduation-grade-card strong { color: var(--ink); }
+    .graduation-card .ack-button.graduation-grade-card:hover,
+    .graduation-card .ack-button.graduation-grade-card:focus-visible { border-color: var(--hair-2); box-shadow: var(--card-shadow); transform: translateY(-2px); }
+    .graduation-card #closeGraduation.ack-button {
+      border: 1px solid var(--hair-2);
+      background: #ffffff;
+      box-shadow: none;
+      color: var(--ink);
+    }
+    .graduation-card #closeGraduation.ack-button:hover,
+    .graduation-card #closeGraduation.ack-button:focus-visible { border-color: var(--ink); background: #f6f8fb; }
+    .graduation-hero, .graduation-section, .graduation-flow-card {
+      border-color: var(--hair);
+      box-shadow: none;
+    }
+    .graduation-title-block h3, .graduation-title-block h2 { color: var(--c-graduation); font-weight: 700; letter-spacing: 0.08em; }
+    .study-days { border-color: var(--hair-2); background: #f6faf8; box-shadow: none; font-weight: 500; }
+    .study-days strong { font-weight: 700; }
+    .graduation-section h3, .graduation-section > h4 { color: var(--ink); font-weight: 700; letter-spacing: 0.08em; }
+    .graduation-flow-number { border: 1px solid rgba(34, 115, 90, 0.4); background: #ffffff; color: var(--c-graduation); font-weight: 500; box-shadow: none; }
+    .graduation-flow-body h4, .graduation-flow-body strong { color: var(--ink); font-weight: 700; letter-spacing: 0.06em; }
+    .graduation-task { border-color: var(--hair-2); box-shadow: none; font-weight: 500; }
+    .graduation-task span { font-weight: 500; }
+    .graduation-date { font-weight: 700; }

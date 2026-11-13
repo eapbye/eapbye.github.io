@@ -924,6 +924,72 @@
     .timetable-table tbody tr:nth-child(even) { background: #f5f9fd; }
     .timetable-table td:first-child, .timetable-table td:nth-child(4), .timetable-table td:nth-child(5) { white-space: nowrap; }
     .timetable-table .tt-name { font-weight: 820; color: var(--ink); }
+    /* ===== 3.2 質感改版（2026-11-13）：與首頁一致的字體、細框與字重；改版前樣式備份在分支 backup/3.0-style-20261113 ===== */
+    @font-face {
+      font-family: "EAP Title Serif";
+      src: url("css/fonts/title-serif-tc-bold.woff2") format("woff2");
+      font-weight: 700;
+      font-display: swap;
+    }
+    :root { --hair: rgba(26, 38, 56, 0.10); --hair-2: rgba(26, 38, 56, 0.16); --ink-2: #1a2638; }
+    body {
+      background: linear-gradient(180deg, #d9e7f3 0, #e6eff7 420px, #edf3f8 900px) no-repeat, #edf3f8;
+      color: var(--ink-2);
+      letter-spacing: 0.02em;
+    }
+    body::before { height: 3px; background: var(--ink-2); }
+    .wrap { max-width: 1200px; }
+    .home-link {
+      min-height: 0;
+      padding: 8px 4px;
+      border: 0;
+      background: none;
+      box-shadow: none;
+      color: var(--ink-2);
+      font-size: 0.92rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+    }
+    .home-link::before { content: "← "; }
+    .home-link:hover, .home-link:focus-visible { background: none; box-shadow: none; transform: none; text-decoration: underline; text-underline-offset: 4px; }
+    .hero, .student-card, .course-card, .submit-panel, .result-card, .timetable-view, .compact-schedule-panel {
+      border: 1px solid var(--hair);
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(26, 38, 56, 0.04), 0 12px 32px -14px rgba(26, 38, 56, 0.14);
+    }
+    .hero {
+      padding: 34px 40px;
+      background: #ffffff;
+      box-shadow: inset 0 2px 0 #2468a2, 0 1px 2px rgba(26, 38, 56, 0.04);
+    }
+    .hero h1 {
+      color: var(--ink-2);
+      font-family: "EAP Title Serif", "Noto Serif TC", "Noto Serif CJK TC", "PMingLiU", serif;
+      font-size: clamp(2rem, 3.4vw, 2.5rem);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+    }
+    .hero p { font-size: 1rem; font-weight: 400; letter-spacing: 0.06em; }
+    .timetable-legend { font-weight: 500; letter-spacing: 0.08em; }
+    .timetable-grid { border-color: var(--hair-2); }
+    .timetable-grid .day-head { background: #f6f8fb; font-weight: 500; letter-spacing: 0.2em; }
+    .timetable-grid .period-cell { background: #fafbfc; }
+    .tt-block { border-radius: 6px; }
+    .tt-block.is-required { background: #f1f6fb; border-color: rgba(36, 104, 162, 0.28); box-shadow: inset 2px 0 0 #2468a2; }
+    .tt-block.is-elective { background: #f2f8f5; border-color: rgba(34, 115, 90, 0.25); box-shadow: inset 2px 0 0 #22735a; }
+    .tt-block strong { font-weight: 700; letter-spacing: 0.04em; }
+    .tt-meta, .tt-room { font-weight: 400; }
+    .tt-teacher { font-weight: 500; }
+    .field label { font-weight: 500; letter-spacing: 0.08em; }
+    .course-name { font-weight: 700; letter-spacing: 0.04em; }
+    .course-meta, .course-type { font-weight: 500; }
+    .submit-button { font-weight: 500; letter-spacing: 0.14em; box-shadow: none; }
+    .course-card.is-required, .course-card.is-elective { border-color: var(--hair); background: #ffffff; }
+    .course-card.is-required { box-shadow: inset 2px 0 0 #2468a2, 0 1px 2px rgba(26, 38, 56, 0.04); }
+    .course-card.is-elective { box-shadow: inset 2px 0 0 #22735a, 0 1px 2px rgba(26, 38, 56, 0.04); }
+    .choice-button { border-color: var(--hair-2); box-shadow: none; font-weight: 500; letter-spacing: 0.12em; }
+    .summary-pills span { font-weight: 500; }
+    .field input { font-weight: 400; }
   </style>
 </head>
 <body>

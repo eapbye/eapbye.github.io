@@ -351,6 +351,25 @@ def check(root):
         if (tm.group(1), tm.group(2), tm.group(3)) != want:
             add("FAIL", f"課程「{name}」time 與 day／start／span 不一致：寫 週{tm.group(1)} {tm.group(2)}-{tm.group(3)}，"
                          f"換算應為 週{want[0]} {want[1]}-{want[2]}")
+    # ---- 標題用明體子集：標題用字都要在子集裡（缺字會退回別的字型，看起來會不一致）----
+    font_dir = os.path.join(root, "css", "fonts")
+    chars_path = os.path.join(font_dir, "title-serif-tc-bold.chars.txt")
+    if os.path.isfile(os.path.join(font_dir, "title-serif-tc-bold.woff2")) and os.path.isfile(chars_path):
+        have = set(read(chars_path))
+        need = {"首頁標題": "政大教政一點通", "畢業專區標題": "選擇你的級數畢業專區"}
+        for key in ("title", "timetableTitle"):
+            m = re.search(key + r':\s*"([^"]+)"', reg)
+            if m:
+                need["課程表頁標題（" + key + "）"] = m.group(1)
+        for y in re.findall(r'year:\s*"(\d+級)"', idx):
+            need["畢業專區 " + y] = y
+        for label, text in need.items():
+            miss = sorted(set(text) - have - {" "})
+            if miss:
+                add("FAIL", f"{label}「{text}」有字不在標題明體子集裡：{''.join(miss)}（見 css/fonts/README.md 重做子集）")
+    else:
+        add("WARN", "找不到 css/fonts/title-serif-tc-bold.woff2 或 chars.txt，標題會退回系統字型")
+
     terms = set(re.findall(r"(\d+) 學年度第 (\d) 學期", reg))
     if len(terms) > 1:
         add("FAIL", f"預選登記頁出現不同學期：{sorted(terms)}")

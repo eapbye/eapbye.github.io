@@ -1,5 +1,5 @@
 // 首頁「最新消息」輪播。更新消息只改 NEWS：until 是最後顯示日（台灣時間當天結束後自動消失）。
-// 沒有有效消息時整條隱藏；一次顯示兩則，超過兩則時每 5 秒往上捲一則（像車站看板），滑鼠移上去暫停。
+// 沒有有效消息時整條隱藏；一次顯示三則，超過三則時每 5 秒往上捲一則（像車站看板），滑鼠移上去暫停。
 (function () {
   "use strict";
   var NEWS = [
@@ -24,7 +24,7 @@
     return NEWS.filter(function (n) { return n.until >= today; });
   }
 
-  var VISIBLE = 2; // 同時顯示幾則
+  var VISIBLE = 3; // 同時顯示幾則
 
   function daysLeft(until) {
     var t = taipeiToday().split("-").map(Number), u = until.split("-").map(Number);

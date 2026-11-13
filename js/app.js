@@ -103,18 +103,6 @@
         startDate: "2026-09-01"
       }
     ];
-    const qaContent = {
-      proposal: [
-        ["什麼時候要提出計畫口試申請？", "請於口試前14天提出申請，並預留資料檢核與寄送口試本及邀請函的時間。"],
-        ["表單可以手寫嗎？", "各項表單均請以打字方式填寫，請勿手寫。"]
-      ],
-      defense: [
-        ["學位論文考試和學位論文計畫口試要距離多久？", "三個月。"]
-      ],
-      graduation: [
-        ["建置中", "建置中。"]
-      ]
-    };
     const MOBILE_OPERATION_QUERY = "(max-width: 760px), (pointer: coarse)";
 
     function isMobileOperation() {
@@ -186,12 +174,6 @@
       document.body.classList.remove("deadline-open");
       showHome();
     });
-    const qaHelper = $("#openQaHelper");
-    if (qaHelper && !qaHelper.classList.contains("is-static")) {
-      qaHelper.addEventListener("click", () => showQa());
-    }
-    $("#closeQa").addEventListener("click", () => $("#qaModal").classList.add("hidden"));
-    $("#backToQaChoices").addEventListener("click", () => renderQa());
     // 首頁預選／課表按鈕：依 data/course-window.js 的預選時段換字，直接連到同一頁（該頁自己切換登記或課表）
     (function () {
       const w = window.EAP_COURSE_WINDOW;
@@ -211,8 +193,81 @@
       showGraduation();
     });
     $("#closeGraduation").addEventListener("click", () => {
+      closeGraduationModal();
+      leaveView("graduation");
+    });
+
+    // 上一頁（瀏覽器按鈕、滑鼠側鍵）：進流程、開畢業專區、看某一級時各記一筆瀏覽紀錄，按上一頁就退回上一層。
+    // 用網站上的按鈕關閉時，也把那筆紀錄退掉，避免要多按一次上一頁才離開網站。
+    let handlingPop = false;
+    let ignorePops = 0;
+    function pushView(view) {
+      if (handlingPop) return;
+      const current = history.state && history.state.view;
+      if (current !== view) history.pushState({ view }, "");
+    }
+    function leaveView(kind) {
+      if (handlingPop) return;
+      const current = (history.state && history.state.view) || "home";
+      let steps = 0;
+      if (kind === "workflow" && current === "workflow") steps = 1;
+      if (kind === "graduation" && current === "graduation") steps = 1;
+      if (kind === "graduation" && current === "graduation-detail") steps = 2;
+      if (steps) {
+        ignorePops += 1;
+        history.go(-steps);
+      }
+    }
+    function closeGraduationModal() {
       hideGraduationCelebration();
       $("#graduationModal").classList.add("hidden");
+    }
+    history.replaceState({ view: "home" }, "");
+    window.addEventListener("popstate", (event) => {
+      if (ignorePops > 0) {
+        ignorePops -= 1;
+        return;
+      }
+      const view = (event.state && event.state.view) || "home";
+      const graduationOpen = !$("#graduationModal").classList.contains("hidden");
+      handlingPop = true;
+      try {
+        if (view === "home") {
+          if (graduationOpen) closeGraduationModal();
+          if (document.body.classList.contains("workflow-open")) showHome();
+        } else if (view === "graduation" || view === "graduation-detail") {
+          if (graduationOpen) renderGraduationYears();
+          else showGraduation();
+        } else if (view === "workflow") {
+          if (graduationOpen) closeGraduationModal();
+          if (state.started && !document.body.classList.contains("workflow-open")) showWorkflow();
+        }
+      } finally {
+        handlingPop = false;
+      }
+    });
+
+    // Esc：關掉最上層的彈窗，效果等同按該視窗的關閉／取消鈕
+    const ESC_CLOSERS = [
+      ["fillModal", "fillCancel"],
+      ["submissionNoticeModal", "closeSubmissionNotice"],
+      ["guideModal", "closeGuide"],
+      ["mobileOnlyNoticeModal", "closeMobileOnlyNotice"],
+      ["deadlineModal", "closeDeadline"],
+      ["celebrationModal", "closeCelebration"],
+      ["graduationModal", "closeGraduation"]
+    ];
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      for (const [modalId, buttonId] of ESC_CLOSERS) {
+        const modal = document.getElementById(modalId);
+        const button = document.getElementById(buttonId);
+        if (modal && button && !modal.classList.contains("hidden")) {
+          event.preventDefault();
+          button.click();
+          return;
+        }
+      }
     });
     const qaHelperAvatar = $("#qaHelperAvatar");
     const reminderAvatar = document.querySelector(".deadline-card .avatar-image");
@@ -227,12 +282,14 @@
     function showWorkflow() {
       const flow = currentFlow();
       document.body.classList.add("workflow-open");
+      document.body.dataset.flow = activeMode();
       $("#modePicker").classList.add("hidden");
       $("#workflow").classList.remove("hidden");
       $("#backToModes").hidden = false;
       $("#progressFlowLabel").textContent = flow.label;
       $("#workflowTitle").textContent = "你現在的進度";
       render();
+      pushView("workflow");
     }
 
     function showHome() {
@@ -241,6 +298,7 @@
       $("#workflow").classList.add("hidden");
       $("#modePicker").classList.remove("hidden");
       $("#backToModes").hidden = true;
+      leaveView("workflow");
     }
 
     function render() {
@@ -1234,15 +1292,11 @@
       localStorage.setItem(key, String(Date.now()));
     }
 
-    function showQa(type) {
-      renderQa(type);
-      $("#qaModal").classList.remove("hidden");
-    }
-
     function showGraduation() {
       preloadGraduationThumbs();
       renderGraduationYears();
       $("#graduationModal").classList.remove("hidden");
+      pushView("graduation");
     }
 
     function graduationImagePath(item, size) {
@@ -1309,7 +1363,10 @@
         }
         button.addEventListener("mouseenter", () => preloadGraduationImage(item, "medium"));
         button.addEventListener("focus", () => preloadGraduationImage(item, "medium"));
-        button.addEventListener("click", () => renderGraduationDetail(item));
+        button.addEventListener("click", () => {
+          renderGraduationDetail(item);
+          pushView("graduation-detail");
+        });
         grid.append(button);
       });
       content.append(grid);
@@ -1728,43 +1785,6 @@
         placeholder.append(face.firstElementChild);
       }
       image.replaceWith(placeholder);
-    }
-
-    function renderQa(type) {
-      const list = $("#qaList");
-      const backButton = $("#backToQaChoices");
-      const qaLabels = {
-        proposal: "學位論文計畫口試",
-        defense: "學位論文考試",
-        graduation: "畢業離校",
-        site: "網站操作"
-      };
-      list.replaceChildren();
-      backButton.classList.toggle("hidden", !type);
-      if (!type) {
-        const choices = document.createElement("div");
-        choices.className = "qa-choice-grid";
-        choices.innerHTML = `
-          <button class="qa-choice-card" type="button" data-qa-choice="proposal"><strong>學位論文計畫口試 QA</strong></button>
-          <button class="qa-choice-card" type="button" data-qa-choice="defense"><strong>學位論文考試 QA</strong></button>
-          <button class="qa-choice-card" type="button" data-qa-choice="graduation"><strong>畢業離校 QA</strong></button>
-        `;
-        list.append(choices);
-        choices.querySelectorAll("[data-qa-choice]").forEach((button) => {
-          button.addEventListener("click", () => renderQa(button.dataset.qaChoice));
-        });
-        return;
-      }
-      const topic = document.createElement("div");
-      topic.className = `qa-topic-tag qa-topic-${type}`;
-      topic.textContent = qaLabels[type] || "問答";
-      list.append(topic);
-      qaContent[type].forEach(([question, answer]) => {
-        const item = document.createElement("details");
-        item.className = `qa-item qa-item-${type}`;
-        item.innerHTML = `<summary>${question}</summary><span>${answer}</span>`;
-        list.append(item);
-      });
     }
 
     function scrollToNextStep(id) {
