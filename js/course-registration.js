@@ -6,16 +6,16 @@
       timetableTitle: "115 學年度第 2 學期課程表",
       timetableNote: "實際開課資料以教務處 115 學年度第 2 學期初公告為準。",
       courses: [
-        { id: "philosophy", name: "教育哲學", type: "選修", credits: 2, day: 2, start: 3, span: 2, time: "週二 10:10-12:00", teacher: "許翰笙教授", code: "109-002-01-1", room: "井塘113", notes: ["與師培合開"] },
+        { id: "philosophy", name: "教育哲學", type: "選修", credits: 2, day: 2, start: 3, span: 2, time: "週二 10:10-12:00", teacher: "許翰笙教授", code: "171-909-00-1", room: "井塘113", notes: ["與師培合開"] },
         { id: "policy-seminar-1", name: "教育政策專題（一）", type: "選修", credits: 2, day: 2, start: 6, span: 2, time: "週二 13:10-15:00", teacher: "吳政達教授", code: "171-950-00-1", room: "井塘112", notes: [] },
         { id: "admin-seminar-2", name: "教育行政專題（二）", type: "選修", credits: 2, day: 2, start: 8, span: 2, time: "週二 15:10-17:00", teacher: "湯家偉教授", code: "171-914-00-1", room: "井塘112", notes: ["英語授課"] },
         { id: "education-reform", name: "教育改革研究", type: "選修", credits: 3, day: 3, start: 2, span: 3, time: "週三 09:10-12:00", teacher: "湯家偉教授", code: "171-938-00-1", room: "井塘112", notes: [] },
-        { id: "policy-globalization", name: "教育政策與全球化", type: "選修", credits: 3, day: 3, start: 6, span: 3, time: "週三 13:10-16:00", teacher: "侯永琪教授", code: "171-913-00-1", room: "井塘111", notes: ["英語授課", "學碩合開", "待確認"] },
+        { id: "policy-globalization", name: "教育政策與全球化", type: "選修", credits: 3, day: 3, start: 6, span: 3, time: "週三 13:10-16:00", teacher: "侯永琪教授", code: "171-913-00-1", room: "井塘111", notes: ["英語授課", "學碩合開"] },
         { id: "supervision", name: "教學視導與專業發展研究", type: "選修", credits: 3, day: 4, start: 2, span: 3, time: "週四 09:10-12:00", teacher: "郭昭佑教授", code: "171-915-00-1", room: "井塘112", notes: ["與幼教所合開"] },
         { id: "school-admin", name: "學校行政研究", type: "必修", credits: 3, day: 4, start: 6, span: 3, time: "週四 13:10-16:00", teacher: "吳政達教授、莊俊儒教授", code: "171-003-00-1", room: "井塘112", notes: ["吳政達教授 0.5、莊俊儒教授 2.5"] },
         { id: "research-colloquium-2", name: "教育研究專題討論（二）", type: "院必修", credits: 0, day: 4, start: 12, span: 2, time: "週四 19:10-21:00", teacher: "陳榮政教授", code: "900-004-00-1", room: "井塘313", notes: ["一學期 4 次演講", "碩一＋博一"] },
         { id: "principal-development", name: "校長培育與專業發展研究", type: "選修", credits: 3, day: 5, start: 2, span: 3, time: "週五 09:10-12:00", teacher: "陳木金教授", code: "171-934-00-1", room: "井塘112", notes: [] },
-        { id: "higher-ed-statistics", name: "高等教育統計", type: "選修", credits: 3, day: 5, start: 6, span: 3, time: "週五 13:10-16:00", teacher: "吳政達教授", code: "171-950-00-1", room: "井塘樓院會", notes: ["碩博合開"] }
+        { id: "higher-ed-statistics", name: "高等教育統計", type: "選修", credits: 3, day: 5, start: 6, span: 3, time: "週五 13:10-16:00", teacher: "吳政達教授", code: "171-950-00-1", room: "井塘樓院電", notes: ["碩博合開"] }
       ]
     };
 
