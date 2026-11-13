@@ -132,6 +132,10 @@
           return;
         }
         const nextMode = button.dataset.mode || "proposal";
+        if (state.mode !== nextMode && state.started && flowModes[state.mode] && progressCounts().done > 0) {
+          const ok = window.confirm(`目前「${flowModes[state.mode].label}」已有進度。\n改選其他流程會清除這份進度，確定要切換嗎？`);
+          if (!ok) return;
+        }
         if (state.mode !== nextMode) {
           const savedGraduationTasks = state.graduationTasks;
           const savedGraduationCompletion = state.graduationCompletion;
@@ -213,6 +217,7 @@
     if (qaHelperAvatar && reminderAvatar) {
       qaHelperAvatar.src = reminderAvatar.src;
     }
+    renderHomeProgress();
     afterLayout(() => {
       if (!document.body.classList.contains("workflow-open")) maybeShowDeadline();
     });
@@ -230,6 +235,7 @@
     }
 
     function showHome() {
+      renderHomeProgress();
       document.body.classList.remove("workflow-open");
       $("#workflow").classList.add("hidden");
       $("#modePicker").classList.remove("hidden");
@@ -1922,7 +1928,7 @@
       if (changed) saveState();
     }
 
-    function updateProgress() {
+    function progressCounts() {
       const flow = currentFlow();
       const stepProgressIds = flow.steps.flatMap((step) => {
         if (step.type !== "documents") return [step.id];
@@ -1937,8 +1943,27 @@
         else if (id === "qualificationAck" && state.qualificationAck) done += 1;
         else if (isDone(id)) done += 1;
       });
+      return { done, total };
+    }
+
+    function updateProgress() {
+      const { done, total } = progressCounts();
       $("#progressText").textContent = `${done} / ${total}`;
       $("#progressBar").style.width = `${(done / total) * 100}%`;
+      renderHomeProgress();
+    }
+
+    // 首頁的流程卡片：有存檔進度的那張，直接顯示「繼續上次進度（完成數 / 總數）」
+    function renderHomeProgress() {
+      const saved = state.started && flowModes[state.mode] ? state.mode : null;
+      const { done, total } = saved ? progressCounts() : { done: 0, total: 0 };
+      document.querySelectorAll(".mode-card[data-mode]").forEach((card) => {
+        const status = card.querySelector(".mode-status");
+        if (!status) return;
+        const resume = saved === card.dataset.mode && done > 0;
+        status.textContent = resume ? `繼續上次進度（${done} / ${total}）` : "點擊進入";
+        card.classList.toggle("has-progress", resume);
+      });
     }
 
     function saveState() {

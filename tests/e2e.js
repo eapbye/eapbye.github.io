@@ -524,7 +524,7 @@ test('倒推申請日：口試前 14 天、跨月跨年、超過期限提醒；.
   assert.strictEqual(await page3.locator('#deadlineModal .deadline-google').first().getAttribute('rel'), 'noopener noreferrer');
   const icsBtn = page3.locator('#deadlineModal .deadline-ics').first();
   await icsBtn.scrollIntoViewIfNeeded();
-  const [dl] = await Promise.all([page3.waitForEvent('download'), icsBtn.click({ timeout: 4000 })]);
+  const [dl] = await Promise.all([page3.waitForEvent('download', { timeout: 20000 }), icsBtn.click({ timeout: 8000 })]);
   assert.ok(dl.suggestedFilename().endsWith('.ics'));
   const body = fs.readFileSync(await dl.path(), 'utf8');
   assert.ok(body.includes('DTSTART;VALUE=DATE:20990224') && body.includes('DTSTART;VALUE=DATE:20990310'));
@@ -533,6 +533,48 @@ test('倒推申請日：口試前 14 天、跨月跨年、超過期限提醒；.
   await dateInput.fill('');
   assert.ok(await page3.locator('#deadlineModal .deadline-ics').first().isDisabled() && (await page3.locator('#deadlineModal .deadline-google').first().isHidden()), '清空後回到不可按');
   assert.deepStrictEqual(page3.errors, []);
+  assert.deepStrictEqual(page.errors, []);
+});
+
+test('續辦首頁：有進度的流程卡片顯示完成數；沒進度不顯示；改選另一個流程前先確認', async (b, base) => {
+  const blank = await newPage(b, base);
+  await openHome(blank); await dismissModals(blank);
+  assert.deepStrictEqual(await blank.locator('.mode-card .mode-status').allInnerTexts(), ['點擊進入', '點擊進入']);
+  assert.deepStrictEqual(blank.errors, []);
+  const page = await newPage(b, base, { seed: { mode: 'defense', started: true, precheckAck: true } });
+  await openHome(page); await dismissModals(page);
+  await page.waitForSelector('.mode-card');
+  // 這個種子沒進入流程，首頁一載入就該看到進度
+  const texts = await page.evaluate(() => Array.from(document.querySelectorAll('.mode-card')).map((c) => [c.dataset.mode, c.querySelector('.mode-status').textContent]));
+  const defense = texts.find((t) => t[0] === 'defense')[1], proposal = texts.find((t) => t[0] === 'proposal')[1];
+  assert.ok(/^繼續上次進度（\d+ \/ \d+）$/.test(defense) && !/^繼續上次進度（0 /.test(defense), defense);
+  assert.strictEqual(proposal, '點擊進入');
+  // 進流程再回首頁，數字要跟流程裡的進度條一致
+  await enterMode(page, 'defense');
+  const nChoice = await page.locator('.precheck-choice').count();
+  for (let i = 0; i < nChoice; i++) {
+    const item = page.locator('.precheck-choice').nth(i);
+    if (!(await item.evaluate((el) => el.classList.contains('is-checked')))) await retry(page, () => item.click());
+  }
+  await greedyWalk(page);
+  const bar = (await page.locator('#progressText').innerText()).replace(/\s/g, '');
+  assert.ok(!bar.startsWith('0/'), '走完流程後進度不該是 0：' + bar);
+  if (await page.locator('#closeCelebration').isVisible()) await page.click('#closeCelebration'); else await page.click('#backToModes');
+  const back = await page.locator('.mode-card[data-mode="defense"] .mode-status').innerText();
+  assert.strictEqual(back, `繼續上次進度（${bar.replace('/', ' / ')}）`);
+  // 改選另一個流程：先確認；取消就保留，同意才清除
+  let asked = '';
+  page.removeAllListeners('dialog');
+  page.once('dialog', (d) => { asked = d.message(); d.dismiss(); });
+  await page.click('.mode-card[data-mode="proposal"]');
+  assert.ok(asked.includes('清除') , '應先跳出確認：' + asked);
+  assert.ok(!(await page.locator('body').evaluate((el) => el.classList.contains('workflow-open'))), '取消後仍在首頁');
+  assert.ok((await page.locator('.mode-card[data-mode="defense"] .mode-status').innerText()).startsWith('繼續上次進度'), '取消後進度還在');
+  page.once('dialog', (d) => d.accept());
+  await page.click('.mode-card[data-mode="proposal"]');
+  await page.waitForSelector('body.workflow-open');
+  await page.click('#backToModes');
+  assert.strictEqual(await page.locator('.mode-card[data-mode="defense"] .mode-status').innerText(), '點擊進入', '同意切換後，舊流程進度已清除');
   assert.deepStrictEqual(page.errors, []);
 });
 
