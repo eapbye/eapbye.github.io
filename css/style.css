@@ -5235,27 +5235,27 @@
     .thesis-entry:hover::after, .thesis-entry:focus-visible::after { transform: translate(5px, -54%); }
 
     /* 指導教授名單視窗 */
-    .theses-card { width: min(620px, calc(100vw / var(--z, 1) - 56px)); text-align: left; }
+    .theses-card { width: min(680px, calc(100vw / var(--z, 1) - 56px)); padding: 26px 30px 30px; text-align: left; }
     .theses-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
-    .theses-head h2 { margin: 0; color: #c25e0c; }
+    .theses-head h2 { margin: 0; color: #c25e0c; font-size: 1.5rem; }
     .theses-head .ack-button { width: auto; min-width: 96px; margin: 0; padding: 8px 18px; }
-    .theses-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .theses-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
     .thesis-advisor {
       position: relative;
       display: grid;
       place-items: center;
-      min-height: 56px;
-      padding: 8px;
+      min-height: 76px;
+      padding: 10px;
       border: 1px solid rgba(242, 140, 40, 0.35);
       border-radius: 12px;
       background: #fff8f0;
       color: #8f4a0c;
-      font-size: 1.05rem;
+      font-size: 1.3rem;
       font-weight: 800;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.1em;
       text-decoration: none;
     }
-    .thesis-advisor-out { position: absolute; top: 4px; right: 8px; color: #e08a3c; font-size: 0.78rem; letter-spacing: 0; }
+    .thesis-advisor-out { position: absolute; top: 6px; right: 10px; color: #e08a3c; font-size: 0.78rem; letter-spacing: 0; }
     .thesis-advisor:hover, .thesis-advisor:focus-visible { border-color: #f28c28; background: #ffe6cc; }
     @media (max-width: 820px) {
       .home-support-strip.home-news-row { grid-template-columns: minmax(0, 1fr); }
