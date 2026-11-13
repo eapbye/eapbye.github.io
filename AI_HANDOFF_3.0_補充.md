@@ -9,11 +9,10 @@
 - 分工：Claude 負責測試與把關，視覺（Opus）改 `css/tokens.css`、`css/style.css` 與各功能的 css。
 
 ## 檔案結構（已拆檔）
-- `index.html`：骨架。`css/tokens.css` 配色；`css/style.css` 主樣式；`css/fill.css`、`booking.css`、`bundle.css` 各功能樣式。
+- `index.html`：骨架。`css/tokens.css` 配色；`css/style.css` 主樣式；`css/fill.css`、`booking.css` 各功能樣式。
 - `data/flow.js`：流程與文件資料。`js/app.js`：主程式。
 - `js/odtfill.js`、`js/fillform.js`：自動填表（姓名、學號、電話、e-mail、論文題目；8 份 ODT 可填）。
 - `js/booking.js`：預約教室訊息草稿（不含 e-mail，純文字可貼 LINE）。
-- `js/bundle.js`：最後確認步驟的「複製送件清單」（依所辦／教授／委員分組的文字）。
 - `js/guard.js`：被嵌進別人網頁時隱藏內容。`js/course-registration.js`：預選登記頁（換學期改這支）。
 - `vendor/jszip.min.js`：3.10.1，雜湊寫在 `tests/check_consistency.py` 的 `JSZIP_SHA256`。
 - `animation-preview.html`：沒有連結的預覽頁，已不部署。

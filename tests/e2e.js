@@ -617,35 +617,6 @@ test('續辦首頁：有進度的流程卡片顯示完成數；沒進度不顯�
   assert.deepStrictEqual(page.errors, []);
 });
 
-test('送件小幫手：複製送件清單', async (b, base) => {
-  const u = await newPage(b, base);
-  await openHome(u);
-  const text = await u.evaluate(() => Bundle.checklistText('學位論文考試', [
-    { recipient: 'office', label: '歷年成績單', detail: '所辦' },
-    { recipient: 'office', label: '學位論文考試評分表（3 份）', detail: '所辦', quantity: 3 },
-    { recipient: 'committee', label: '學位論文考試本', detail: 'A 口試委員' }], '2027-01-01'));
-  assert.ok(text.includes('■ 交給所辦') && text.includes('☐ 歷年成績單') && text.includes('☐ 學位論文考試評分表 × 3 份') && text.includes('☐ 學位論文考試本（A 口試委員）'), text);
-  assert.ok(text.includes('共 5 份') && !text.includes('■ 交給指導教授'), '份數合計；沒有項目的對象不列');
-  const page = await newPage(b, base);
-  await openHome(page); await dismissModals(page);
-  await page.evaluate(() => localStorage.setItem(FillForm._KEY, JSON.stringify({ name: '郭哲宇', sid: '113171009' })));
-  await enterMode(page, 'defense');
-  const nChoice = await page.locator('.precheck-choice').count();
-  for (let i = 0; i < nChoice; i++) {
-    const item = page.locator('.precheck-choice').nth(i);
-    if (!(await item.evaluate((el) => el.classList.contains('is-checked')))) await retry(page, () => item.click());
-  }
-  await greedyWalk(page);
-  if (await page.locator('#closeCelebration').isVisible()) { await page.click('#closeCelebration'); await enterMode(page, 'defense'); }
-  const box = page.locator('#stepsList .bundle').first();
-  await box.scrollIntoViewIfNeeded();
-  await box.locator('.bundle-copy').click();
-  await page.waitForFunction(() => /已複製|不允許/.test(document.querySelector('#stepsList .bundle-msg').textContent), null, { timeout: 8000 });
-  assert.ok((await box.locator('.bundle-msg').innerText()).includes('已複製'), '複製後應提示已複製');
-  assert.deepStrictEqual(page.errors, []);
-  assert.deepStrictEqual(u.errors, []);
-});
-
 test('自動填表：已有資料時走完整個流程，所有可填表單都直接下載、不跳窗', async (b, base) => {
   const page = await newPage(b, base);
   await page.context().addInitScript(([k, v]) => { if (!localStorage.getItem('__fillseeded')) { localStorage.setItem(k, v); localStorage.setItem('__fillseeded', '1'); } }, [FILL_KEY, JSON.stringify(PROFILE)]);

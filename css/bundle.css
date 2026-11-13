@@ -1,5 +1,0 @@
-/* 送件小幫手：最後確認步驟裡的「複製送件清單」。只用 tokens.css 的顏色變數。 */
-.bundle { display: grid; gap: 8px; margin: 14px 0; }
-.bundle .bundle-copy { justify-self: start; }
-.bundle-msg { margin: 0; font-weight: 700; color: var(--done); line-height: 1.6; }
-.bundle-msg:empty { display: none; }

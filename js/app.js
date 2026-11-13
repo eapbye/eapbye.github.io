@@ -699,7 +699,6 @@
         saveState();
       }
       renderSubmissionInventory(container, items, checkedCount, totalCount, locked);
-      if (window.Bundle && !locked) container.append(Bundle.build({ label: currentFlow().label, items }));
       const button = actionButton(
         allChecked ? (isDone(step.id) ? "已完成確認" : "完成最後確認") : `尚有 ${totalCount - checkedCount} 份待確認`,
         () => toggleDone(step.id),
