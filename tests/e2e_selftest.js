@@ -24,7 +24,6 @@ const FAULTS = [
   ['自動填表：「不填」仍帶入資料', 'index.html', 'skippedThisVisit = true;\n      closeModal();\n      if (job) run(job.href, job.name, null, job.onDone);', 'skippedThisVisit = true;\n      closeModal();\n      if (job) run(job.href, job.name, { name: "X" }, job.onDone);', 1, '不填，下載空白表'],
   ['自動填表：留空欄位不標紅色 ○', 'index.html', '    if (!val) { p.appendChild(redCircle(doc, key)); return; }', '    if (!val) { return; }', 1, '標紅色'],
   ['預選登記：沒排課時不顯示說明', 'js/course-registration.js', '目前沒有排入會修或考慮中的課程。', '', 1, '沒有排入'],
-  ['倒推申請日：改成口試前 13 天', 'index.html', 'var LEAD_DAYS = 14;', 'var LEAD_DAYS = 13;', 1, '倒推申請日'],
   ['續辦首頁：不再顯示進度', 'index.html', 'status.textContent = resume ? `繼續上次進度（${done} / ${total}）` : "點擊進入";', 'status.textContent = "點擊進入";', 1, '續辦首頁'],
   ['續辦首頁：改選流程不再確認', 'index.html', 'if (!ok) return;', '', 1, '續辦首頁'],
   ['防嵌入：guard 失效', 'index.html', 'document.documentElement.style.display = "none";', '', 1, '防嵌入'],
@@ -32,7 +31,7 @@ const FAULTS = [
 ];
 
 // index.html 拆檔後，首頁的內容分散在這幾個檔案；FAULTS 寫 'index.html' 時，到這幾個檔案裡找含有目標文字的那一個來改
-const SITE_FILES = ['index.html', 'css/tokens.css', 'css/style.css', 'data/flow.js', 'js/app.js', 'js/odtfill.js', 'js/fillform.js', 'js/booking.js', 'js/deadline.js', 'js/bundle.js', 'js/guard.js'];
+const SITE_FILES = ['index.html', 'css/tokens.css', 'css/style.css', 'data/flow.js', 'js/app.js', 'js/odtfill.js', 'js/fillform.js', 'js/booking.js', 'js/bundle.js', 'js/guard.js'];
 
 function nth(s, sub, n) { let i = -1; for (let k = 0; k < n; k++) { i = s.indexOf(sub, i + 1); if (i < 0) return -1; } return i; }
 

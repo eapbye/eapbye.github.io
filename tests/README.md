@@ -12,9 +12,9 @@
 - data/flow.js：流程步驟與文件資料（baseFlow、flowModes）。
 - js/app.js：其餘程式。
 - js/odtfill.js、js/fillform.js：自動填表（ODT 在瀏覽器內填姓名、學號等）。
-- js/booking.js：預約教室訊息草稿。js/deadline.js：倒推最晚申請日與 .ics。js/bundle.js：送件清單與全部表單 ZIP。
+- js/booking.js：預約教室訊息草稿。js/bundle.js：送件清單與全部表單 ZIP。
 - js/guard.js：防被嵌進別人網頁。js/course-registration.js：預選登記頁的程式與課程資料（換學期改這支）。
-- css/fill.css、booking.css、deadline.css、bundle.css：各功能的樣式。
+- css/fill.css、booking.css、bundle.css：各功能的樣式。
 
 index.html 依 `<link>`、`<script src>` 的順序載入（tokens.css 在 style.css 前，flow.js 在 app.js 前）。靜態檢查會把 index.html 和它引用的 css／js 串成一份全文再檢查，訊息裡的位置是「檔名＋該檔行號」。course-registration.html 的程式已搬到 js/course-registration.js（CSP 不允許行內程式）。animation-preview.html 是沒有連結的預覽頁，已不部署。
 
@@ -47,7 +47,7 @@ index.html 依 `<link>`、`<script src>` 的順序載入（tokens.css 在 style.
 測試內容：首頁與彈窗；畢業專區（13 項勾滿才出彩蛋、取消任一項即消失、舊使用者的勾選依 index 對應）；
 計畫口試三種資格類型、學位論文考試各走完整個流程到完成彈窗；學位論文考試申請須含 AIGC 與 Turnitin 全文電子檔、畢業專區不得再有 Turnitin/AIGC；
 預選登記的必填、衝堂擋會修、考慮中提醒、手機截圖版；
-自動填表、預約教室、倒推申請日與 .ics、送件小幫手 ZIP、續辦首頁、防嵌入。要看失敗的完整訊息時加環境變數 `E2E_VERBOSE=1`。
+自動填表、預約教室、送件小幫手 ZIP、續辦首頁、防嵌入。要看失敗的完整訊息時加環境變數 `E2E_VERBOSE=1`。
 
 沒有 documents／graduation 的環境（例如只複製了兩個 html）請加 `E2E_STUB=1`，缺的檔案以空檔回應；
 檔案是否真的存在由第 1 項負責。功能測試的自我測試：

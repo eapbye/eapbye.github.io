@@ -166,7 +166,6 @@
       state.started = true;
       saveState();
       render();
-      maybeShowSystemIntroGuide(mode);
     });
 
     $("#closeCelebration").addEventListener("click", () => {
@@ -231,7 +230,6 @@
       $("#progressFlowLabel").textContent = flow.label;
       $("#workflowTitle").textContent = "你現在的進度";
       render();
-      maybeShowSystemIntroGuide(activeMode());
     }
 
     function showHome() {
@@ -586,7 +584,6 @@
       }
       if (doc.tool === "roomBooking" && window.RoomBooking && !isInfoOnly) {
         box.append(RoomBooking.build(currentFlow().label));
-        if (window.Deadline) box.append(Deadline.buildDetails(currentFlow().label));
       }
       const actions = document.createElement("div");
       actions.className = "document-actions";
@@ -1201,83 +1198,6 @@
         links.splice(1, 0, { label: "系統論著目錄登錄步驟", href: "documents/proposal/publication-registration-steps.pdf" });
       }
       return links;
-    }
-
-    function maybeShowSystemIntroGuide(mode) {
-      if (!["proposal", "defense"].includes(mode)) return;
-      const key = `${GUIDE_STORAGE_PREFIX}:${mode}:intro`;
-      if (wasPromptSeenRecently(key, GUIDE_REMINDER_INTERVAL_MS)) return;
-      markPromptSeen(key);
-      setTimeout(() => {
-        showGuideModal({
-          variant: "delivery",
-          title: "小助手正在努力將文件送過來",
-          intro: "請花 5 秒閱讀此系統的顏色區分方式",
-          items: [
-            {
-              kind: "download",
-              text: "<span class=\"guide-keyword\">正式表單</span>會以<span class=\"guide-frame-word\">藍色框框</span>顯示<br>點擊後會自動下載到電腦並往下一步。"
-            },
-            {
-              kind: "sample",
-              text: "<span class=\"guide-keyword\">示範檔案</span>會以<span class=\"guide-frame-word\">紫色框框</span>顯示<br>可依需要查看，即使沒有點擊也可以繼續操作。"
-            }
-          ]
-        });
-      }, 260);
-    }
-
-    function showGuideModal({ title, intro, items, variant = "simple" }) {
-      const cardNode = document.querySelector("#guideModal .guide-card");
-      const isDeliveryGuide = variant === "delivery";
-      if (cardNode) cardNode.classList.toggle("is-delivery-guide", isDeliveryGuide);
-      $("#guideTitle").textContent = title;
-      const introNode = $("#guideIntro");
-      introNode.textContent = intro || "";
-      introNode.classList.toggle("hidden", !intro);
-      const regularGrid = $("#guideGrid");
-      const deliveryGrid = $("#deliveryGuideGrid");
-      regularGrid.replaceChildren();
-      if (deliveryGrid) deliveryGrid.replaceChildren();
-      const targetGrid = isDeliveryGuide && deliveryGrid ? deliveryGrid : regularGrid;
-      items.forEach((item) => {
-        const card = document.createElement("article");
-        card.className = `guide-tip is-${item.kind}`;
-        const heading = item.title || item.tag
-          ? `<div class="guide-tip-heading">${item.title ? `<strong>${item.title}</strong>` : ""}${item.tag ? `<span>${item.tag}</span>` : ""}</div>`
-          : "";
-        card.innerHTML = `${heading}<p>${item.text}</p>`;
-        targetGrid.append(card);
-      });
-      startGuideCountdown();
-      $("#guideModal").classList.remove("hidden");
-    }
-
-    function startGuideCountdown(seconds = 5) {
-      const button = $("#closeGuide");
-      const stage = $("#guideDeliveryStage");
-      if (!button) return;
-      if (button.dataset.timer) clearInterval(Number(button.dataset.timer));
-      let remaining = seconds;
-      button.disabled = true;
-      button.textContent = `我知道了（${remaining}）`;
-      if (stage) {
-        stage.classList.remove("is-running");
-        void stage.offsetWidth;
-        stage.classList.add("is-running");
-      }
-      const timer = window.setInterval(() => {
-        remaining -= 1;
-        if (remaining <= 0) {
-          window.clearInterval(timer);
-          button.dataset.timer = "";
-          button.disabled = false;
-          button.textContent = "我知道了";
-          return;
-        }
-        button.textContent = `我知道了（${remaining}）`;
-      }, 1000);
-      button.dataset.timer = String(timer);
     }
 
     function showDeadline() {
