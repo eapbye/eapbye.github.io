@@ -5134,3 +5134,39 @@
       .news-strip { margin-top: 0; }
       .home-bottom-row { margin-top: 6px; }
     }
+
+    /* ===== 配色整理與課程表卡格式（2026-11-14）=====
+       主色收斂成藍：標題漸層、頂端彩條、NCCU EAP、最新消息標籤、雲都用藍系；
+       紫、綠只留給第 2、3 張主卡；常用連結維持粉紅（降彩度、頂端粉紅線）。
+       課程表卡改成與常用連結同格式：左上小標、左對齊大字、右下膠囊、頂端藍線。 */
+    body::before { background: linear-gradient(90deg, #1d2d54, #2b6cab); }
+    header h1 { background: linear-gradient(92deg, #1d2d54 0%, #24548a 100%); -webkit-background-clip: text; background-clip: text; }
+    .home-mark { border-color: rgba(36, 84, 138, 0.2); background: #eaf2fa; }
+    .home-mark, .home-mark * { color: #24548a; -webkit-text-fill-color: #24548a; }
+    .version-mark { color: #24548a; -webkit-text-fill-color: #24548a; }
+    .mode-card[data-mode="proposal"] strong { color: #1f5f99; }
+    .quick-links-panel {
+      background: linear-gradient(180deg, #ffffff 60%, #fdf5f8);
+      box-shadow: inset 0 4px 0 #b8577f, var(--shadow-md);
+    }
+    .quick-links-panel h3 { color: #9b3f66; text-align: left; }
+    .quick-link { border-color: rgba(155, 63, 102, 0.2); color: #8e3a5e; }
+    .floating-prereg,
+    body:not(.workflow-open) .floating-prereg {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      padding: 18px 24px;
+      background: linear-gradient(180deg, #ffffff 60%, #f1f6fb);
+      box-shadow: inset 0 4px 0 #2b6cab, var(--shadow-md);
+      text-align: left;
+    }
+    .floating-prereg > * { width: auto; margin-left: 0; margin-right: 0; text-align: left; }
+    .floating-prereg .course-entry-term { color: #1f5f99; font-size: 1rem; font-weight: 800; }
+    .floating-prereg strong { margin-top: 10px; color: #1d2d54; font-size: 1.7rem; letter-spacing: 0.12em; }
+    .floating-prereg .entry-action { position: absolute; right: 22px; bottom: 18px; }
+    .news-label { background: #24548a; }
+    .qa-cloud { border: 1px solid rgba(36, 84, 138, 0.16); background: #ffffff; }
+    .qa-cloud::before, .qa-cloud::after { border: 1px solid rgba(36, 84, 138, 0.16); background: #ffffff; }
