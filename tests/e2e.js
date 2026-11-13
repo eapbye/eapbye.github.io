@@ -688,7 +688,7 @@ test('歷屆論文：首頁入口開名單、每位老師連到論文系統（�
   await page.click('#openTheses');
   assert.ok(await page.locator('#thesesModal:not(.hidden)').count(), '應打開歷屆論文視窗');
   const links = await page.$$eval('#thesesModal .thesis-advisor', (as) => as.map((a) => ({ name: a.firstChild.textContent.trim(), href: a.href, target: a.target, rel: a.rel })));
-  assert.deepStrictEqual(links.map((l) => l.name), ['吳政達', '郭昭佑', '秦夢群', '湯志民', '侯永琪', '湯家偉', '莊俊儒', '陳榮政']);
+  assert.deepStrictEqual(links.map((l) => l.name), ['吳政達', '秦夢群', '湯志民', '郭昭佑', '陳榮政', '侯永琪', '顏敏仁', '湯家偉', '莊俊儒']);
   for (const l of links) {
     const u = new URL(l.href);
     assert.strictEqual(u.origin + u.pathname, 'https://thesis.lib.nccu.edu.tw/search/', l.name + ' 應連到論文系統搜尋');
