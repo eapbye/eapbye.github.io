@@ -686,6 +686,14 @@
         saveState();
       }
       renderSubmissionInventory(container, items, checkedCount, totalCount, locked);
+      if (window.Bundle && !locked) {
+        const docs = currentFlow().steps
+          .filter((candidate) => candidate.type === "documents")
+          .flatMap((candidate) => candidate.documents)
+          .filter((doc) => !doc.infoOnly && doc.word && !isDownloadUnavailable(doc.word[1]))
+          .map((doc) => ({ title: doc.word[0], href: doc.word[1] }));
+        container.append(Bundle.build({ label: currentFlow().label, items, docs }));
+      }
       const button = actionButton(
         allChecked ? (isDone(step.id) ? "已完成確認" : "完成最後確認") : `尚有 ${totalCount - checkedCount} 份待確認`,
         () => toggleDone(step.id),
