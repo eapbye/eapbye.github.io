@@ -5210,17 +5210,17 @@
       box-shadow: var(--shadow-xs);
     }
 
-    /* 3.0 版本號：標題右上角的上標，沿用標題漸層（背景裁成文字，子元素自動取到漸層尾端的色），字形同 NCCU EAP */
+    /* 3.0 版本號：標題右下角（貼齊文字底線），沿用標題漸層（背景裁成文字，子元素自動取到漸層尾端的色），字形同 NCCU EAP */
     .version-mark {
       display: inline-block;
-      margin-left: 0.12em;
+      margin-left: 0.14em;
       font-family: "Trebuchet MS", "Arial Rounded MT Bold", "Noto Sans TC", sans-serif;
       font-size: 0.42em;
       font-style: italic;
       font-weight: 900;
       line-height: 1;
       letter-spacing: 0.01em;
-      vertical-align: 1.15em;
+      vertical-align: baseline;
       cursor: default;
       user-select: none;
     }
