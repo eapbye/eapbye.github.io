@@ -16,18 +16,23 @@ const FAULTS = [
   ['學位考試最後確認漏列 AIGC', 'index.html', '        inventoryItem("學位論文原創比對（Turnitin）全文電子檔", "office"),\n        inventoryItem("學位論文AIGC檢測報告書", "office"),\n', '        inventoryItem("學位論文原創比對（Turnitin）全文電子檔", "office"),\n', 1, '流程資料'],
   ['畢業專區又出現 Turnitin', 'index.html', '<strong>完成論文修訂</strong>', '<strong>完成論文修訂與 Turnitin</strong>', 1, '流程資料'],
   ['文件下載後不再標記完成', 'index.html', 'state.done[id] = true;\n      state.done["submission-check"] = false;', 'state.done[id] = false;\n      state.done["submission-check"] = false;', 1, '走完整個流程'],
-  ['預選登記：衝堂不再擋會修', 'course-registration.html', 'if (conflictCourse) {', 'if (false) {', 1, '衝堂擋會修'],
-  ['預選登記：手機不再切到截圖版', 'course-registration.html', '"compact" : "detail"', '"detail" : "detail"', 1, '手機結果頁'],
-  ['自動填表：姓名不再寫進表單', 'index.html', '    p.appendChild(node);\n  }\n\n  async function fillOdtBuffer', '    /* 不寫入 */\n  }\n\n  async function fillOdtBuffer', 1, '第一次跳窗'],
+  ['預選登記：衝堂不再擋會修', 'js/course-registration.js', 'if (conflictCourse) {', 'if (false) {', 1, '衝堂擋會修'],
+  ['預選登記：手機不再切到截圖版', 'js/course-registration.js', '"compact" : "detail"', '"detail" : "detail"', 1, '手機結果頁'],
+  ['自動填表：姓名不再寫進表單', 'index.html', '    sp.appendChild(doc.createTextNode(val));\n    p.appendChild(sp);', '    /* 不寫入 */', 1, '第一次跳窗'],
   ['自動填表：已有資料仍每次跳窗', 'index.html', '      if (hasAny(p)) { run(href, downloadName, p, onDone); return; }', '      if (false) { run(href, downloadName, p, onDone); return; }', 1, '第一次跳窗'],
   ['自動填表：按取消也算已下載', 'index.html', '$("#fillCancel").addEventListener("click", closeModal);', '$("#fillCancel").addEventListener("click", function () { var j = pending; closeModal(); if (j && j.onDone) j.onDone(); });', 1, '不填，下載空白表'],
   ['自動填表：「不填」仍帶入資料', 'index.html', 'skippedThisVisit = true;\n      closeModal();\n      if (job) run(job.href, job.name, null, job.onDone);', 'skippedThisVisit = true;\n      closeModal();\n      if (job) run(job.href, job.name, { name: "X" }, job.onDone);', 1, '不填，下載空白表'],
-  ['自動填表：留空欄位不標紅色 ○', 'index.html', '    if (!val) { p.appendChild(redCircle(doc)); return; }', '    if (!val) { return; }', 1, '標紅色'],
-  ['預選登記：沒排課時不顯示說明', 'course-registration.html', '目前沒有排入會修或考慮中的課程。', '', 1, '沒有排入'],
+  ['自動填表：留空欄位不標紅色 ○', 'index.html', '    if (!val) { p.appendChild(redCircle(doc, key)); return; }', '    if (!val) { return; }', 1, '標紅色'],
+  ['預選登記：沒排課時不顯示說明', 'js/course-registration.js', '目前沒有排入會修或考慮中的課程。', '', 1, '沒有排入'],
+  ['倒推申請日：改成口試前 13 天', 'index.html', 'var LEAD_DAYS = 14;', 'var LEAD_DAYS = 13;', 1, '倒推申請日'],
+  ['續辦首頁：不再顯示進度', 'index.html', 'status.textContent = resume ? `繼續上次進度（${done} / ${total}）` : "點擊進入";', 'status.textContent = "點擊進入";', 1, '續辦首頁'],
+  ['續辦首頁：改選流程不再確認', 'index.html', 'if (!ok) return;', '', 1, '續辦首頁'],
+  ['防嵌入：guard 失效', 'index.html', 'document.documentElement.style.display = "none";', '', 1, '防嵌入'],
+  ['送件小幫手：ZIP 不附順序說明', 'index.html', 'zip.file("00_列印與送件順序.txt"', 'void ("00_列印與送件順序.txt"', 1, '送件小幫手'],
 ];
 
 // index.html 拆檔後，首頁的內容分散在這幾個檔案；FAULTS 寫 'index.html' 時，到這幾個檔案裡找含有目標文字的那一個來改
-const SITE_FILES = ['index.html', 'css/tokens.css', 'css/style.css', 'data/flow.js', 'js/app.js', 'js/odtfill.js', 'js/fillform.js'];
+const SITE_FILES = ['index.html', 'css/tokens.css', 'css/style.css', 'data/flow.js', 'js/app.js', 'js/odtfill.js', 'js/fillform.js', 'js/booking.js', 'js/deadline.js', 'js/bundle.js', 'js/guard.js'];
 
 function nth(s, sub, n) { let i = -1; for (let k = 0; k < n; k++) { i = s.indexOf(sub, i + 1); if (i < 0) return -1; } return i; }
 
