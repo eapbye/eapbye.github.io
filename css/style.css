@@ -2,7 +2,7 @@
 
     body {
       margin: 0;
-      min-height: 100vh;
+      min-height: calc(100vh / var(--z, 1));
       font-family: "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
       background:
         linear-gradient(180deg, rgba(43, 120, 182, 0.26), rgba(43, 120, 182, 0.07) 340px),
@@ -716,8 +716,8 @@
       --grad-panel: #fbfdfb;
       --grad-line: rgba(70, 145, 135, 0.4);
       --grad-shadow: rgba(55, 126, 116, 0.115);
-      width: min(960px, calc(100vw - 56px));
-      max-height: calc(100dvh - 40px);
+      width: min(960px, calc(100vw / var(--z, 1) - 56px));
+      max-height: calc(100dvh / var(--z, 1) - 40px);
       position: relative;
       overflow-y: auto;
       overflow-x: hidden;
@@ -734,8 +734,8 @@
       top: 20px;
       left: 50%;
       z-index: 0;
-      width: min(1080px, calc(100vw - 56px));
-      height: calc(100dvh - 40px);
+      width: min(1080px, calc(100vw / var(--z, 1) - 56px));
+      height: calc(100dvh / var(--z, 1) - 40px);
       border: 2px solid rgba(238, 191, 80, 0.7);
       border-radius: 12px;
       pointer-events: none;
@@ -752,8 +752,8 @@
       top: 20px;
       left: 50%;
       z-index: 0;
-      width: min(1080px, calc(100vw - 56px));
-      height: calc(100dvh - 40px);
+      width: min(1080px, calc(100vw / var(--z, 1) - 56px));
+      height: calc(100dvh / var(--z, 1) - 40px);
       border: 2px solid rgba(255, 218, 94, 0.8);
       border-radius: 12px;
       pointer-events: none;
@@ -1394,7 +1394,7 @@
       top: 50%;
       left: 50%;
       z-index: 1200;
-      width: min(320px, calc(100vw - 42px));
+      width: min(320px, calc(100vw / var(--z, 1) - 42px));
       padding: 18px 20px 20px;
       border: 2.5px solid rgba(218, 173, 83, 0.72);
       border-radius: 20px;
@@ -1417,8 +1417,8 @@
       top: 20px;
       left: 50%;
       z-index: 21;
-      width: min(1080px, calc(100vw - 56px));
-      height: calc(100dvh - 40px);
+      width: min(1080px, calc(100vw / var(--z, 1) - 56px));
+      height: calc(100dvh / var(--z, 1) - 40px);
       transform: translateX(-50%);
       overflow: visible;
       border-radius: 12px;
@@ -3552,18 +3552,18 @@
     .info-card.graduation-card {
       position: relative;
       z-index: 1;
-      width: min(960px, calc(100vw - 56px));
+      width: min(960px, calc(100vw / var(--z, 1) - 56px));
       padding: 0 28px 28px;
       border-color: rgba(70, 145, 135, 0.38);
       background: linear-gradient(135deg, #ffffff, #fbfdfb);
     }
 
     .info-card.graduation-card.is-grade-picker {
-      width: min(880px, calc(100vw - 56px));
+      width: min(880px, calc(100vw / var(--z, 1) - 56px));
     }
 
     .info-card.graduation-card.is-detail {
-      width: min(1080px, calc(100vw - 56px));
+      width: min(1080px, calc(100vw / var(--z, 1) - 56px));
     }
 
     .deadline-card {
@@ -4581,7 +4581,7 @@
       }
       .info-card {
         width: 100%;
-        max-height: calc(100dvh - 20px);
+        max-height: calc(100dvh / var(--z, 1) - 20px);
         padding: 18px;
         overflow-y: auto;
         background: #ffffff;
@@ -4801,7 +4801,7 @@
       }
       .celebration-card {
         padding: 20px;
-        max-height: calc(100dvh - 20px);
+        max-height: calc(100dvh / var(--z, 1) - 20px);
         overflow-y: auto;
       }
     }
@@ -5170,3 +5170,31 @@
     .news-label { background: #24548a; }
     .qa-cloud { border: 1px solid rgba(36, 84, 138, 0.16); background: #ffffff; }
     .qa-cloud::before, .qa-cloud::after { border: 1px solid rgba(36, 84, 138, 0.16); background: #ffffff; }
+
+    /* ===== 大螢幕等比放大（2026-11-14）=====
+       桌機 24～32 吋螢幕的視窗又寬又高，原版內容只占左上一塊，底下大片留白。
+       以筆電（約 1383×735）的樣子為準：視窗夠寬也夠高時整頁等比放大，放大後首頁仍一頁看完
+       （首頁原始內容約高 776px、寬 1320px，每級 0.05 倍，最多 2 倍）。
+       判斷的是瀏覽器視窗大小，不是螢幕吋數；視窗縮小就自動回到原尺寸。
+       --z 是放大倍數；本檔所有 calc(100vw/100dvh …) 與 body 的 100vh 都除以 --z，放大後不會超出畫面。 */
+    @media (min-width: 1446px) and (min-height: 815px) { html { --z: 1.05; } }
+    @media (min-width: 1513px) and (min-height: 854px) { html { --z: 1.1; } }
+    @media (min-width: 1578px) and (min-height: 893px) { html { --z: 1.15; } }
+    @media (min-width: 1644px) and (min-height: 932px) { html { --z: 1.2; } }
+    @media (min-width: 1710px) and (min-height: 970px) { html { --z: 1.25; } }
+    @media (min-width: 1776px) and (min-height: 1009px) { html { --z: 1.3; } }
+    @media (min-width: 1843px) and (min-height: 1048px) { html { --z: 1.35; } }
+    @media (min-width: 1908px) and (min-height: 1087px) { html { --z: 1.4; } }
+    @media (min-width: 1974px) and (min-height: 1126px) { html { --z: 1.45; } }
+    @media (min-width: 2040px) and (min-height: 1164px) { html { --z: 1.5; } }
+    @media (min-width: 2106px) and (min-height: 1203px) { html { --z: 1.55; } }
+    @media (min-width: 2172px) and (min-height: 1242px) { html { --z: 1.6; } }
+    @media (min-width: 2238px) and (min-height: 1281px) { html { --z: 1.65; } }
+    @media (min-width: 2304px) and (min-height: 1320px) { html { --z: 1.7; } }
+    @media (min-width: 2370px) and (min-height: 1358px) { html { --z: 1.75; } }
+    @media (min-width: 2436px) and (min-height: 1397px) { html { --z: 1.8; } }
+    @media (min-width: 2502px) and (min-height: 1436px) { html { --z: 1.85; } }
+    @media (min-width: 2568px) and (min-height: 1475px) { html { --z: 1.9; } }
+    @media (min-width: 2634px) and (min-height: 1514px) { html { --z: 1.95; } }
+    @media (min-width: 2700px) and (min-height: 1552px) { html { --z: 2.0; } }
+    @media (min-width: 821px) { body { zoom: var(--z, 1); } }

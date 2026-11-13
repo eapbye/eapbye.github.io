@@ -66,7 +66,7 @@
 
     var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     var index = 0, paused = false;
-    function rowHeight() { var f = list.firstElementChild; return f ? f.getBoundingClientRect().height : 0; }
+    function rowHeight() { var f = list.firstElementChild; return f ? f.getBoundingClientRect().height / (f.currentCSSZoom || 1) : 0; } // 大螢幕放大時量到的是放大後高度，換回原尺寸
     function go(i, animate) {
       list.style.transition = animate && !reduce ? "transform 560ms cubic-bezier(0.2, 0.7, 0.2, 1)" : "none";
       list.style.transform = "translateY(" + (-i * rowHeight()) + "px)";
