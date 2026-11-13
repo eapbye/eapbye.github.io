@@ -95,6 +95,7 @@ FAULTS = [
     ("js 使用 eval", lambda t: sub(t, "js/app.js", 'function watchImageFallback', 'const bad = () => eval("1"); function watchImageFallback'), "eval"),
     ("jszip 被改動", lambda t: sub(t, "vendor/jszip.min.js", "JSZip", "JSZIp"), "jszip"),
     ("發佈流程使用 @main", lambda t: sub(t, ".github/workflows/pages.yml", "actions/checkout@v4", "actions/checkout@main"), "浮動版本"),
+    ("首頁不再載入防嵌入 guard.js", lambda t: sub(t, "index.html", '  <script src="js/guard.js"></script>\n', ""), "guard.js"),
     ("刪掉畢業封面圖", lambda t: rm(t, "graduation/113/cover-detail.jpg"), "缺圖"),
     ("刪掉首頁引用的 js", lambda t: rm(t, "js/app.js"), "連結的檔案不存在"),
     ("pages.yml 漏掉 js 資料夾", lambda t: sub(t, ".github/workflows/pages.yml", "          cp -r js _site/js\n", ""), "所在資料夾不會被部署"),

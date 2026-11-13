@@ -536,6 +536,20 @@ test('倒推申請日：口試前 14 天、跨月跨年、超過期限提醒；.
   assert.deepStrictEqual(page.errors, []);
 });
 
+test('防嵌入：被放進別人網頁的框架時內容隱藏；正常開啟不受影響', async (b, base) => {
+  const page = await newPage(b, base);
+  await page.setContent(`<iframe id="f" src="${base}/index.html" width="900" height="600"></iframe>`);
+  const frame = await (await page.waitForSelector('#f')).contentFrame();
+  await frame.waitForLoadState('load');
+  await page.waitForTimeout(500);
+  const shown = await frame.evaluate(() => getComputedStyle(document.documentElement).display).catch(() => 'navigated');
+  assert.ok(shown === 'none' || shown === 'navigated', '被嵌入時應隱藏內容：' + shown);
+  const ok = await newPage(b, base);
+  await openHome(ok);
+  assert.notStrictEqual(await ok.evaluate(() => getComputedStyle(document.documentElement).display), 'none');
+  assert.deepStrictEqual(ok.errors, []);
+});
+
 test('續辦首頁：有進度的流程卡片顯示完成數；沒進度不顯示；改選另一個流程前先確認', async (b, base) => {
   const blank = await newPage(b, base);
   await openHome(blank); await dismissModals(blank);

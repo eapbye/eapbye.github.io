@@ -273,6 +273,8 @@ def check(root):
             add("FAIL", f"{name} 載入外部 script，違反目前的內容安全政策設計")
         if re.search(r"""(?:href|src|action)=["']\s*javascript:""", text, re.I):
             add("FAIL", f"{name} 有 javascript: 連結")
+        if name != "animation-preview.html" and 'src="js/guard.js"' not in text:
+            add("FAIL", f"{name} 沒有載入 js/guard.js（防被嵌進別人網頁）")
     # js/ 資料夾裡不得產生行內事件屬性、eval
     js_dir = os.path.join(root, "js")
     if os.path.isdir(js_dir):
