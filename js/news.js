@@ -36,8 +36,14 @@
     li.className = "news-item";
     var text = document.createElement("span");
     text.className = "news-text";
-    text.textContent = n.text;
     text.title = n.text;
+    // 拆成日期與內容兩段：電腦照舊排成一行；手機日期與倒數放第一行、內容另起一行（見 style.css 手機版修正）
+    var m = /^(\d{1,2}\/\d{1,2}（.）)\s*(.*)$/.exec(n.text);
+    if (m) {
+      var date = document.createElement("span"); date.className = "news-date"; date.textContent = m[1];
+      var rest = document.createElement("span"); rest.className = "news-rest"; rest.textContent = m[2];
+      text.append(date, rest);
+    } else text.textContent = n.text;
     var d = daysLeft(n.until);
     var chip = document.createElement("span");
     chip.className = "news-days" + (d <= 7 ? " is-soon" : "");

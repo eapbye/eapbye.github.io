@@ -522,15 +522,18 @@ test('預約教室：訊息即時更新、帶入已填的姓名學號、有選�
 test('手機：首頁不被撐寬；被擋視窗有「只寫預約訊息」入口（畢業專區沒有）；預約視窗可帶入、分享、Esc 關閉', async (b, base) => {
   const page = await newPage(b, base, { viewport: { width: 360, height: 668 }, mobile: true });
   await page.addInitScript(() => { navigator.share = (d) => { window.__shared = d.text; return Promise.resolve(); }; });
-  await openHome(page); await dismissModals(page);
+  // 第一次進站期限提醒開著時，首頁卡片會先藏起來：先等提醒出現並關掉，再找卡片
+  await page.goto(base + '/index.html');
+  await page.waitForSelector('#deadlineModal:not(.hidden)', { timeout: 4000 }).catch(() => {});
+  await dismissModals(page);
+  await page.waitForSelector('.mode-card');
   assert.strictEqual(await page.evaluate(() => document.documentElement.scrollWidth), 360, '手機首頁不可比螢幕寬');
   await page.evaluate(() => localStorage.setItem(FillForm._KEY, JSON.stringify({ name: '郭哲宇', sid: '113171009' })));
-  await page.click('#openGraduation');
-  await page.waitForSelector('#mobileOnlyNoticeModal:not(.hidden)');
+  // 期限提醒偶爾晚一點才跳出、蓋住按鈕：用 retry（會先關彈窗）
+  await retry(page, async () => { if (!(await page.locator('#mobileOnlyNoticeModal:not(.hidden)').count())) await page.click('#openGraduation', { timeout: 2000 }); await page.waitForSelector('#mobileOnlyNoticeModal:not(.hidden)', { timeout: 2000 }); });
   assert.ok(await page.locator('#openMobileBooking').isHidden(), '畢業專區不顯示預約入口');
   await page.click('#closeMobileOnlyNotice');
-  await page.click('.mode-card[data-mode="defense"]');
-  await page.waitForSelector('#openMobileBooking:visible');
+  await retry(page, async () => { if (!(await page.locator('#mobileOnlyNoticeModal:not(.hidden)').count())) await page.click('.mode-card[data-mode="defense"]', { timeout: 2000 }); await page.waitForSelector('#openMobileBooking:visible', { timeout: 2000 }); });
   await page.click('#openMobileBooking');
   await page.waitForSelector('#mobileBookingModal:not(.hidden)');
   assert.ok(await page.locator('#mobileOnlyNoticeModal').evaluate((el) => el.classList.contains('hidden')), '開預約視窗時關掉被擋提醒');
