@@ -1,16 +1,21 @@
-    // 明年更新課程時，優先改這一段設定。
+    // 換學期時只改這一段：學期、預選時段、課程。
+    // 預選時段寫在 data/course-window.js（首頁按鈕也看那裡）：不在預選期間時，這一頁自動變成唯讀課表。
+    // start 是第幾節（1＝第 1 節，對照下方 periods，C、D、E、F、G 也各算一節），span 是連上幾節。
     const registrationData = {
-      title: "115 學年度第 1 學期課程預選登記",
+      title: "115 學年度第 2 學期課程預選登記",
+      timetableTitle: "115 學年度第 2 學期課程表",
+      timetableNote: "實際開課資料以教務處 115 學年度第 2 學期初公告為準。",
       courses: [
-        { id: "policy-analysis", name: "教育政策分析研究", type: "必修", credits: 3, day: 2, start: 2, span: 3, time: "週二 09:10-12:00", teacher: "湯家偉教授" },
-        { id: "research-methods", name: "教育研究法", type: "院必修", credits: 3, day: 3, start: 2, span: 3, time: "週三 09:10-12:00", teacher: "張奕華教授" },
-        { id: "testing-theory", name: "測驗理論研究", type: "選修", credits: 3, day: 3, start: 2, span: 3, time: "週三 09:10-12:00", teacher: "謝名娟教授" },
-        { id: "admin-seminar", name: "教育行政專題（一）", type: "選修", credits: 2, day: 2, start: 6, span: 2, time: "週二 13:10-15:00", teacher: "秦夢群教授" },
-        { id: "higher-ed-quality", name: "全球高教學術競爭及品質與績效評估", type: "選修", credits: 3, day: 2, start: 6, span: 3, time: "週二 13:10-16:00", teacher: "侯永琪教授" },
-        { id: "admin-research", name: "教育行政研究", type: "必修", credits: 3, day: 3, start: 6, span: 3, time: "週三 13:10-16:00", teacher: "莊俊儒教授" },
-        { id: "digital-education", name: "數位賦能教育科技管理研究", type: "選修", credits: 3, day: 4, start: 6, span: 3, time: "週四 13:10-16:00", teacher: "顏敏仁教授" },
-        { id: "comparative-admin", name: "各國教育行政研究", type: "選修", credits: 3, day: 3, start: 9, span: 3, time: "週三 16:10-19:00", teacher: "陳榮政教授" },
-        { id: "research-colloquium", name: "教育研究專題討論（一）", type: "院必修", credits: 0, day: 4, start: 12, span: 1, time: "週四 19:10-20:00", teacher: "陳榮政教授" }
+        { id: "philosophy", name: "教育哲學", type: "選修", credits: 2, day: 2, start: 3, span: 2, time: "週二 10:10-12:00", teacher: "（待確認）", code: "109-002-01-1", room: "井塘 113", notes: ["與師培合開"] },
+        { id: "policy-seminar-1", name: "教育政策專題（一）", type: "選修", credits: 2, day: 2, start: 6, span: 2, time: "週二 13:10-15:00", teacher: "吳政達教授", code: "171-950-00-1", room: "井塘 112", notes: [] },
+        { id: "admin-seminar-2", name: "教育行政專題（二）", type: "選修", credits: 2, day: 2, start: 8, span: 2, time: "週二 15:10-17:00", teacher: "湯家偉教授", code: "171-914-00-1", room: "井塘 112", notes: ["英語授課"] },
+        { id: "education-reform", name: "教育改革研究", type: "選修", credits: 3, day: 3, start: 2, span: 3, time: "週三 09:10-12:00", teacher: "湯家偉教授", code: "171-938-00-1", room: "井塘 112", notes: [] },
+        { id: "policy-globalization", name: "教育政策與全球化", type: "選修", credits: 3, day: 3, start: 6, span: 3, time: "週三 13:10-16:00", teacher: "侯永琪教授", code: "171-913-00-1", room: "井塘 111", notes: ["英語授課", "學碩合開", "待確認"] },
+        { id: "supervision", name: "教學視導與專業發展研究", type: "選修", credits: 3, day: 4, start: 2, span: 3, time: "週四 09:10-12:00", teacher: "郭昭佑教授", code: "171-915-00-1", room: "井塘 112", notes: ["與幼教所合開"] },
+        { id: "school-admin", name: "學校行政研究", type: "必修", credits: 3, day: 4, start: 6, span: 3, time: "週四 13:10-16:00", teacher: "吳政達教授、莊俊儒教授", code: "171-003-00-1", room: "井塘 112", notes: ["吳政達教授 0.5 學分、莊俊儒教授 2.5 學分"] },
+        { id: "research-colloquium-2", name: "教育研究專題討論（二）", type: "院必修", credits: 0, day: 4, start: 12, span: 2, time: "週四 19:10-21:00", teacher: "陳榮政教授", code: "900-004-00-1", room: "井塘 313", notes: ["一學期 4 次演講", "碩一＋博一"] },
+        { id: "principal-development", name: "校長培育與專業發展研究", type: "選修", credits: 3, day: 5, start: 2, span: 3, time: "週五 09:10-12:00", teacher: "陳木金教授", code: "171-934-00-1", room: "井塘 112", notes: [] },
+        { id: "higher-ed-statistics", name: "高等教育統計", type: "選修", credits: 3, day: 5, start: 6, span: 3, time: "週五 13:10-16:00", teacher: "吳政達教授", code: "171-950-00-1", room: "井塘樓院會", notes: ["碩博合開"] }
       ]
     };
 
@@ -28,7 +33,8 @@
       ["7", "16:10-17:00"],
       ["8", "17:10-18:00"],
       ["E", "18:10-19:00"],
-      ["F", "19:10-20:00"]
+      ["F", "19:10-20:00"],
+      ["G", "20:10-21:00"]
     ];
 
     const choices = {};
@@ -254,7 +260,7 @@
       }
 
       grid.style.gridTemplateColumns = `38px repeat(${visibleDays.length}, minmax(0, 1fr))`;
-      grid.style.gridTemplateRows = "30px repeat(12, 42px)";
+      grid.style.gridTemplateRows = `30px repeat(${periods.length}, 42px)`;
       grid.append(cell("compact-day-head", "節"));
       visibleDays.forEach((day) => grid.append(cell("compact-day-head", dayLabels[day])));
       periods.forEach(([label, time], index) => {
@@ -332,3 +338,89 @@
 
     renderCourses();
     updateSummary();
+
+
+    // ---- 不在預選期間：這一頁改成唯讀課表 ----
+    function registrationMode() {
+      if (window.__EAP_FORCE_REGISTER) return "open"; // 只給測試用
+      const w = window.EAP_COURSE_WINDOW;
+      return w && typeof w.status === "function" ? w.status() : "none";
+    }
+
+    function renderTimetableView(mode) {
+      document.body.classList.add("is-timetable-view");
+      document.title = registrationData.timetableTitle;
+      document.querySelector("#registrationTitle").textContent = registrationData.timetableTitle;
+      const lead = document.querySelector(".hero p");
+      const w = window.EAP_COURSE_WINDOW;
+      if (mode === "before" && w) lead.textContent = `預選登記將於 ${w.label(w.registrationStart)}～${w.label(w.registrationEnd)} 開放。`;
+      else lead.textContent = registrationData.timetableNote;
+      courses.forEach((course) => { choices[course.id] = "yes"; });
+
+      const grid = document.querySelector("#timetableGrid");
+      grid.replaceChildren();
+      grid.style.gridTemplateRows = `48px repeat(${periods.length}, minmax(54px, auto))`;
+      grid.append(cell("day-head", "節次"));
+      ["一", "二", "三", "四", "五"].forEach((day) => grid.append(cell("day-head", day)));
+      periods.forEach(([label, time], index) => {
+        const period = cell("period-cell", `<strong>${label}</strong>${time}`);
+        period.style.gridColumn = "1";
+        period.style.gridRow = `${index + 2}`;
+        grid.append(period);
+        for (let day = 1; day <= 5; day += 1) {
+          const blank = cell("cell", "");
+          blank.style.gridColumn = `${day + 1}`;
+          blank.style.gridRow = `${index + 2}`;
+          grid.append(blank);
+        }
+      });
+      scheduleLayoutItems().forEach((course) => {
+        const block = document.createElement("div");
+        block.className = `tt-block ${isRequired(course) ? "is-required" : "is-elective"}`;
+        block.style.gridColumn = `${course.day + 1}`;
+        block.style.gridRow = `${course.start + 1} / span ${course.span}`;
+        block.style.setProperty("--lane-width", `${100 / course.laneCount}%`);
+        block.style.setProperty("--lane-left", `${(100 / course.laneCount) * course.lane}%`);
+        const name = document.createElement("strong");
+        name.textContent = course.name;
+        const meta = document.createElement("span");
+        meta.className = "tt-meta";
+        meta.textContent = `${course.type}・${course.credits} 學分`;
+        const teacher = document.createElement("span");
+        teacher.className = "tt-teacher";
+        teacher.textContent = course.teacher;
+        const room = document.createElement("span");
+        room.className = "tt-room";
+        room.textContent = course.room || "";
+        block.append(name, meta, teacher, room);
+        block.title = [course.name, course.code, course.teacher, course.room, ...(course.notes || [])].filter(Boolean).join("\n");
+        grid.append(block);
+      });
+
+      const body = document.querySelector("#timetableList");
+      body.replaceChildren();
+      [...courses].sort((a, b) => a.day - b.day || a.start - b.start).forEach((course) => {
+        const tr = document.createElement("tr");
+        const periodLabels = periods.slice(course.start - 1, course.start - 1 + course.span).map((p) => p[0]).join("");
+        [
+          course.code || "",
+          course.name,
+          course.type,
+          String(course.credits),
+          `${"一二三四五"[course.day - 1]} ${periodLabels}`,
+          course.teacher,
+          course.room || "",
+          (course.notes || []).join("、")
+        ].forEach((text, i) => {
+          const td = document.createElement("td");
+          td.textContent = text;
+          if (i === 1) td.className = "tt-name";
+          tr.append(td);
+        });
+        body.append(tr);
+      });
+      document.querySelector("#timetableView").classList.remove("hidden");
+    }
+
+    const pageMode = registrationMode();
+    if (pageMode !== "open") renderTimetableView(pageMode);

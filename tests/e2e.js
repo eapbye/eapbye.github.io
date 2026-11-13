@@ -292,6 +292,22 @@ test('學位論文考試：走完整個流程到完成彈窗（含 AIGC 與全�
   assert.deepStrictEqual(page.errors, []);
 });
 
+test('課表：不在預選期間時，首頁按鈕寫「課程表」，預選頁變成唯讀課表（週課表與清單）', async (b, base) => {
+  const page = await newPage(b, base);
+  await openHome(page); await dismissModals(page);
+  assert.ok((await page.locator('#courseEntryTitle').innerText()).endsWith('課程表'), '首頁按鈕應寫課程表');
+  assert.ok(!(await page.locator('#courseUnavailableModal').count()), '不再有「登記時間已過」視窗');
+  await page.click('#openCourseRegistration');
+  await page.waitForSelector('#timetableView:not(.hidden)');
+  const n = await page.evaluate(() => courses.length);
+  assert.strictEqual(await page.locator('#timetableGrid .tt-block').count(), n, '週課表應有每一門課');
+  assert.strictEqual(await page.locator('#timetableList tr').count(), n, '清單應有每一門課');
+  assert.ok(!(await page.locator('.course-card').first().isVisible().catch(() => false)), '不應出現登記用的課程卡');
+  assert.ok(!(await page.locator('#submitButton').isVisible()), '不應出現送出鈕');
+  assert.ok((await page.locator('#registrationTitle').innerText()).includes('課程表'));
+  assert.deepStrictEqual(page.errors, []);
+});
+
 async function fillRegistration(page, picks) {
   await page.fill('#studentId', '112171000'); await page.fill('#studentName', '王小明');
   for (const [id, choice] of Object.entries(picks)) await page.click(`button[data-course="${id}"][data-choice="${choice}"]`);
@@ -299,6 +315,7 @@ async function fillRegistration(page, picks) {
 
 test('預選登記：必填、衝堂擋會修、考慮中可重疊並提醒', async (b, base) => {
   const page = await newPage(b, base);
+  await page.context().addInitScript(() => { window.__EAP_FORCE_REGISTER = true; });
   await page.goto(base + '/course-registration.html'); await page.waitForSelector('.course-card');
   assert.strictEqual(await page.locator('.course-card').count(), await page.evaluate(() => courses.length));
   await page.click('#submitButton');
@@ -306,6 +323,8 @@ test('預選登記：必填、衝堂擋會修、考慮中可重疊並提醒', as
   await page.fill('#studentId', '112171000'); await page.fill('#studentName', '王小明');
   await page.click('#submitButton');
   assert.ok((await page.locator('#message').innerText()).includes('每門課程'), '未選完不可送出');
+  // 這學期的課若剛好沒有衝堂，就臨時加一門與第一門同時段的測試課，確保衝堂邏輯仍被測到
+  await page.evaluate(() => { if (!courses.some((a) => courses.some((c) => a.id < c.id && coursesOverlap(a, c)))) { courses.push({ ...courses[0], id: 'zz-overlap-test', name: '測試衝堂課' }); renderCourses(); updateSummary(); } });
   const pair = await page.evaluate(() => { for (const a of courses) for (const c of courses) if (a.id < c.id && coursesOverlap(a, c)) return [a.id, c.id]; return null; });
   assert.ok(pair, '資料中應至少有一組時間重疊的課程');
   await page.click(`button[data-course="${pair[0]}"][data-choice="yes"]`);
@@ -323,6 +342,7 @@ test('預選登記：必填、衝堂擋會修、考慮中可重疊並提醒', as
 
 test('預選登記：手機結果頁只顯示截圖版，且只含有排入課程的日期', async (b, base) => {
   const page = await newPage(b, base, { viewport: { width: 390, height: 844 }, mobile: true });
+  await page.context().addInitScript(() => { window.__EAP_FORCE_REGISTER = true; });
   await page.goto(base + '/course-registration.html'); await page.waitForSelector('.course-card');
   const plan = await page.evaluate(() => {
     const yes = []; const picks = {};
@@ -333,7 +353,7 @@ test('預選登記：手機結果頁只顯示截圖版，且只含有排入課�
   await page.click('#submitButton');
   await page.waitForSelector('#resultCard:not(.hidden)');
   assert.strictEqual(await page.locator('#resultCard').getAttribute('data-schedule-view'), 'compact');
-  assert.ok(!(await page.locator('.schedule-wrap').isVisible()), '手機不應顯示詳細版週課表');
+  assert.ok(!(await page.locator('#resultCard .schedule-wrap').isVisible()), '手機不應顯示詳細版週課表');
   assert.ok(await page.locator('.compact-schedule-panel').isVisible(), '手機應顯示截圖版');
   assert.strictEqual(await page.locator('.compact-day-head').count(), 1 + plan.days, '截圖版只該有「節」加上有課的日期');
   assert.deepStrictEqual(page.errors, []);
@@ -341,6 +361,7 @@ test('預選登記：手機結果頁只顯示截圖版，且只含有排入課�
 
 test('預選登記：全部選不會修時，截圖版顯示「沒有排入」', async (b, base) => {
   const page = await newPage(b, base, { viewport: { width: 390, height: 844 }, mobile: true });
+  await page.context().addInitScript(() => { window.__EAP_FORCE_REGISTER = true; });
   await page.goto(base + '/course-registration.html'); await page.waitForSelector('.course-card');
   const picks = await page.evaluate(() => Object.fromEntries(courses.map((c) => [c.id, 'no'])));
   await fillRegistration(page, picks);

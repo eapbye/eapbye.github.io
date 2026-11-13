@@ -192,14 +192,13 @@
     }
     $("#closeQa").addEventListener("click", () => $("#qaModal").classList.add("hidden"));
     $("#backToQaChoices").addEventListener("click", () => renderQa());
-    $("#openCourseRegistration").addEventListener("click", (event) => {
-      event.preventDefault();
-      $("#courseUnavailableModal").classList.remove("hidden");
-    });
-    $("#closeCourseUnavailable").addEventListener("click", () => {
-      $("#courseUnavailableModal").classList.add("hidden");
-      window.location.href = "course-registration.html";
-    });
+    // 首頁預選／課表按鈕：依 data/course-window.js 的預選時段換字，直接連到同一頁（該頁自己切換登記或課表）
+    (function () {
+      const w = window.EAP_COURSE_WINDOW;
+      const title = $("#courseEntryTitle");
+      if (!w || !title) return;
+      title.textContent = w.status() === "open" ? "預選登記系統" : `${w.term} 課程表`;
+    })();
     $("#closeMobileOnlyNotice").addEventListener("click", () => $("#mobileOnlyNoticeModal").classList.add("hidden"));
     $("#openGraduation").addEventListener("click", () => {
       if (isMobileOperation()) {
