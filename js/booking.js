@@ -49,7 +49,7 @@
       "莊姐您好，",
       "我是教政所" + cohort(sid) + "級的" + name + "（學號：" + (sid || "000000000") + "），指導教授是" + circles(3) + "老師。",
       "我預計於 " + dateText(s.date) + timeText(s.start, s.end) + "進行" + kind + "，想請問當天 303 教室是否可以借用？",
-      "麻煩莊姐了，謝謝您～"
+      "麻煩莊姐了，謝謝！"
     ].join("\n");
   }
 
@@ -94,16 +94,25 @@
 
     var grid = el("div", "booking-grid");
     grid.append(field("日期", date, date.id), field("開始", start, start.id), field("結束", end, end.id));
-    var area = el("textarea", "booking-text"); area.rows = 5; area.setAttribute("aria-label", "預約訊息，可直接修改");
+    var area = el("textarea", "booking-text"); area.rows = 4; area.setAttribute("aria-label", "預約訊息，可直接修改");
     var actions = el("div", "booking-actions");
     var copy = el("button", "ack-button booking-copy", "複製這段訊息"); copy.type = "button";
     actions.append(copy);
     body.append(grid, area, actions);
     box.append(body);
 
+    // 文字框高度跟著內容，不留大片空白、也不切掉最後一行
+    function fit() {
+      if (!area.isConnected || !box.open) return;
+      area.style.height = "auto";
+      area.style.height = (area.scrollHeight + 2) + "px";
+    }
+    area.addEventListener("input", fit);
+    global.addEventListener("resize", fit);
     function refresh() {
       var p = profile();
       area.value = draft(kind, { name: p.name, sid: p.sid, date: date.value, start: start.value, end: end.value });
+      fit();
     }
     start.addEventListener("change", function () { if (start.value && !end.value) end.value = plusMinutes(start.value, 120); refresh(); });
     [date, end].forEach(function (c) { c.addEventListener("input", refresh); c.addEventListener("change", refresh); });
