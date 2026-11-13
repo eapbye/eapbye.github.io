@@ -5311,3 +5311,10 @@
         padding-bottom: 10px;
       }
     }
+    @media (min-width: 821px) {
+      /* 1、2、3 號碼縮小一點，整組往上收；底部雲與最新消息的間距比照常用連結與最新消息（14px） */
+      .home-sequence { width: 38px; height: 38px; border-width: 2px; font-size: 0.98rem; }
+      .intro { padding-top: 24px; }
+      body:not(.workflow-open) > .wrap { padding-bottom: 0; }
+      .home-bottom-row { margin-top: 14px; }
+    }
