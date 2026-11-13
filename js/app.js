@@ -197,7 +197,10 @@
       const w = window.EAP_COURSE_WINDOW;
       const title = $("#courseEntryTitle");
       if (!w || !title) return;
-      title.textContent = w.status() === "open" ? "預選登記系統" : `${w.term} 課程表`;
+      const [year, sem] = String(w.term).split("-");
+      const term = $("#courseEntryTerm");
+      if (term) term.textContent = `${year} 學年度第 ${sem} 學期`;
+      title.textContent = w.status() === "open" ? "預選登記" : "課程表";
     })();
     $("#closeMobileOnlyNotice").addEventListener("click", () => $("#mobileOnlyNoticeModal").classList.add("hidden"));
     $("#openGraduation").addEventListener("click", () => {

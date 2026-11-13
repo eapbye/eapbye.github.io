@@ -5063,13 +5063,19 @@
     .graduation-panel h3 { top: 51%; }
     .graduation-status { padding: 7px 14px; }
 
-    /* 常用連結與預選登記：改中性色，全頁只留主卡的藍紫綠 */
-    .quick-links-panel { background: var(--surface); }
-    .quick-links-panel h3 { color: var(--blue-dark); }
-    .quick-link { border-color: var(--line-soft); color: var(--blue-dark); }
-    .quick-link:hover, .quick-link:focus-visible { border-color: var(--action-border); background: var(--blue-panel); }
-    .floating-prereg { background: var(--surface); border-color: var(--line); color: var(--blue-dark); }
-    .floating-prereg strong { color: var(--blue-dark); }
+    /* 常用連結：維持原本的粉紅（R 指定）。課程表卡：淡藍漸層，與課表頁一致 */
+    .floating-prereg {
+      background: linear-gradient(160deg, #ffffff 40%, var(--blue-panel));
+      border-color: rgba(36, 112, 173, 0.28);
+      color: var(--blue-dark);
+    }
+    .floating-prereg .course-entry-term {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .floating-prereg strong { color: var(--blue-dark); letter-spacing: 0.06em; }
     .floating-prereg .entry-action { background: var(--blue-soft); color: var(--blue-dark); }
     .floating-prereg:hover, .floating-prereg:focus-visible { border-color: var(--action-border); }
     .floating-prereg:focus-visible .entry-action { background: var(--blue); color: #ffffff; }
@@ -5286,3 +5292,22 @@
       text-align: center;
     }
     .news-days.is-soon { background: var(--danger-soft); color: var(--danger); }
+
+    /* 底部那朵雲與頁尾：桌機不再固定貼底，改排在內容後面（螢幕夠高時仍在最下方，不夠高就往下推，不會蓋到最新消息） */
+    @media (min-width: 821px) {
+      body:not(.workflow-open) {
+        display: flex;
+        flex-direction: column;
+      }
+      body:not(.workflow-open) > .wrap {
+        flex: 1 0 auto;
+        width: 100%;
+        padding-bottom: 6px;
+      }
+      .home-bottom-row {
+        position: static;
+        flex: 0 0 auto;
+        margin: 0 22px;
+        padding-bottom: 10px;
+      }
+    }

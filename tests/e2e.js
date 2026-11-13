@@ -295,7 +295,8 @@ test('學位論文考試：走完整個流程到完成彈窗（含 AIGC 與全�
 test('課表：不在預選期間時，首頁按鈕寫「課程表」，預選頁變成唯讀課表（週課表與清單）', async (b, base) => {
   const page = await newPage(b, base);
   await openHome(page); await dismissModals(page);
-  assert.ok((await page.locator('#courseEntryTitle').innerText()).endsWith('課程表'), '首頁按鈕應寫課程表');
+  assert.strictEqual(await page.locator('#courseEntryTitle').innerText(), '課程表', '首頁按鈕應寫課程表');
+  assert.ok((await page.locator('#courseEntryTerm').innerText()).includes('第 2 學期'), '按鈕上方標學期');
   assert.ok(!(await page.locator('#courseUnavailableModal').count()), '不再有「登記時間已過」視窗');
   await page.click('#openCourseRegistration');
   await page.waitForSelector('#timetableView:not(.hidden)');
