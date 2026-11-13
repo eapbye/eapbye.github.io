@@ -430,11 +430,44 @@ test('自動填表：欄位留空標紅色 ○；不可填的表單不受影響'
   })()]);
   const r = await readDownload(dl);
   assert.ok(r.xml.includes('TfillRed') && r.xml.includes('○'), '留空欄位應標紅色 ○');
+  assert.ok(/○{3,}/.test(r.xml) && r.xml.includes('fo:background-color="#ffe14d"'), '留空欄位的 ○ 應重複多個並加黃底');
   const res = await page.evaluate(() => {
     const a = document.createElement('a');
     return { fillable: FillForm.isFillable('documents/proposal/committee-invitation.odt'), attached: FillForm.attach(a, 'documents/proposal/committee-invitation.odt', 'x.odt', () => {}) };
   });
   assert.deepStrictEqual(res, { fillable: false, attached: false });
+  assert.deepStrictEqual(page.errors, []);
+});
+
+test('預約教室：訊息即時更新、帶入已填的姓名學號、有選項才寫日期；流程裡兩處都有', async (b, base) => {
+  const page = await newPage(b, base);
+  await openHome(page); await dismissModals(page);
+  const out = await page.evaluate(() => {
+    localStorage.setItem(FillForm._KEY, JSON.stringify({ name: '郭哲宇', sid: '113171009' }));
+    const box = RoomBooking.build('學位論文計畫口試'); document.body.append(box); box.open = true; box.dispatchEvent(new Event('toggle'));
+    const area = box.querySelector('textarea'); const blank = area.value;
+    const d = box.querySelector('input[type=date]'); d.value = '2027-03-10'; d.dispatchEvent(new Event('input', { bubbles: true }));
+    const sel = box.querySelectorAll('select'); sel[0].value = '14:00'; sel[0].dispatchEvent(new Event('change', { bubbles: true }));
+    const r = { blank, filled: area.value, end: sel[1].value }; box.remove(); return r;
+  });
+  assert.ok(out.blank.includes('○○○○年') && out.blank.includes('○○:○○'), '沒選日期時間時用 ○ 佔位');
+  assert.ok(out.filled.includes('郭哲宇') && out.filled.includes('113171009'), '應帶入已填的姓名與學號');
+  assert.ok(out.filled.includes('2027年3月10日（三）') && out.filled.includes('14:00–16:00') && out.filled.includes('學位論文計畫口試'), '日期、時段與流程名稱');
+  assert.strictEqual(out.end, '16:00', '選開始後結束時間預設 2 小時後');
+  assert.ok(!/@|mailto:/.test(out.filled), '訊息不應含 e-mail 位址');
+  const tools = await page.evaluate(() => baseFlow.steps.find((st) => st.id === 'proposal-docs').documents.find((d) => d.id === 'proposal-application').tool);
+  assert.strictEqual(tools, 'roomBooking', '計畫口試申請表應掛預約教室工具');
+  const pg = await newPage(b, base);
+  await openHome(pg); await dismissModals(pg);
+  await enterMode(pg, 'defense');
+  const n = await pg.locator('.precheck-choice').count();
+  for (let i = 0; i < n; i++) {
+    const item = pg.locator('.precheck-choice').nth(i);
+    if (!(await item.evaluate((el) => el.classList.contains('is-checked')))) await retry(pg, () => item.click());
+  }
+  await greedyWalk(pg);
+  assert.ok((await pg.locator('#stepsList .booking').count()) >= 1, '學位論文考試的申請步驟應有預約教室工具');
+  assert.deepStrictEqual(pg.errors, []);
   assert.deepStrictEqual(page.errors, []);
 });
 

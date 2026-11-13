@@ -6,6 +6,7 @@
    3. 聯絡電話的格子若已印有「手機」（表21 的「(手機)(宅)(公)」、計畫口試檢核表的「手機」），
       只把手機號碼寫在「手機」後面，並把後面的空白縮短同樣的字數，版面不位移；宅、公不動。
    4. 簽名、勾選框、相似度、日期一律不碰。
+   5. 沒值的欄位標「紅字黃底的 ○」，個數依欄位一般長度（姓名 3、學號 9、電話 10、e-mail 8、題目 8）；填入的字依格寬調整字級。
    依賴：vendor/jszip.min.js（全域 JSZip）。 */
 (function (global) {
   var NS = {
@@ -37,6 +38,27 @@
     if (!m) return 0;
     return parseFloat(m[1]) / { in: 1, cm: 2.54, mm: 25.4, pt: 72 }[m[2]];
   }
+  function styleColumnWidth(doc, name) {
+    var styles = doc.getElementsByTagNameNS(NS.style, "style");
+    for (var j = 0; j < styles.length; j++) {
+      if (styles[j].getAttributeNS(NS.style, "name") === name) {
+        var pr = styles[j].getElementsByTagNameNS(NS.style, "table-column-properties")[0];
+        return pr ? toInch(pr.getAttributeNS(NS.style, "column-width")) : 0;
+      }
+    }
+    return 0;
+  }
+  // 第 i 欄（0 起算）的寬度（英吋）；查不到回傳 0
+  function widthOfColumn(doc, table, i) {
+    var cols = table.getElementsByTagNameNS(NS.table, "table-column"), at = 0;
+    for (var k = 0; k < cols.length; k++) {
+      var rep = parseInt(cols[k].getAttributeNS(NS.table, "number-columns-repeated") || "1", 10);
+      if (i < at + rep) return styleColumnWidth(doc, cols[k].getAttributeNS(NS.table, "style-name"));
+      at += rep;
+    }
+    return 0;
+  }
+  // 取得某個格子的可用寬度（英吋）：合併儲存格會把跨過的欄寬加總；查不到回傳 0
   function columnWidth(doc, cell) {
     var row = cell.parentNode, table = row.parentNode;
     while (table && !(table.localName === "table" && table.namespaceURI === NS.table)) table = table.parentNode;
@@ -45,23 +67,13 @@
     for (var n = row.firstChild; n && n !== cell; n = n.nextSibling) {
       if (n.nodeType === 1 && n.namespaceURI === NS.table && /table-cell$/.test(n.localName)) idx += parseInt(n.getAttributeNS(NS.table, "number-columns-repeated") || "1", 10);
     }
-    var cols = table.getElementsByTagNameNS(NS.table, "table-column"), at = 0;
-    for (var i = 0; i < cols.length; i++) {
-      var rep = parseInt(cols[i].getAttributeNS(NS.table, "number-columns-repeated") || "1", 10);
-      if (idx < at + rep) {
-        var name = cols[i].getAttributeNS(NS.table, "style-name");
-        var styles = doc.getElementsByTagNameNS(NS.style, "style");
-        for (var j = 0; j < styles.length; j++) {
-          if (styles[j].getAttributeNS(NS.style, "name") === name) {
-            var pr = styles[j].getElementsByTagNameNS(NS.style, "table-column-properties")[0];
-            return pr ? toInch(pr.getAttributeNS(NS.style, "column-width")) : 0;
-          }
-        }
-        return 0;
-      }
-      at += rep;
+    var span = parseInt(cell.getAttributeNS(NS.table, "number-columns-spanned") || "1", 10), total = 0;
+    for (var c = 0; c < span; c++) {
+      var w = widthOfColumn(doc, table, idx + c);
+      if (!w) return 0;
+      total += w;
     }
-    return 0;
+    return total;
   }
   // 手機號碼不能折行：格子太窄時，估算能放下的字級（最小 8pt）
   function shrinkStyle(doc, size) {
@@ -80,11 +92,22 @@
     return name;
   }
 
-  function redCircle(doc) {
+  // 沒填的欄位：依該欄一般長度重複 ○，再加黃底，印出來才一眼看得到
+  var CIRCLES = { name: 3, sid: 9, phone: 10, email: 8, title: 8 };
+  function circleCount(key) { return CIRCLES[key] || 3; }
+  function redCircle(doc, key) {
     var sp = doc.createElementNS(NS.text, "text:span");
     sp.setAttributeNS(NS.text, "text:style-name", RED);
-    sp.textContent = "○";
+    sp.textContent = new Array(circleCount(key) + 1).join("○");
     return sp;
+  }
+  // 填入的字：字級依格子寬度估算（最大 12pt、最小 8pt），避免比表單原有文字小很多、也不撐開版面
+  function fitSize(doc, cell, val) {
+    var w = columnWidth(doc, cell);
+    if (!(w > 0)) return 11;
+    var avail = (w - 0.4) * 72;
+    var size = Math.floor(Math.min(12, avail / (width(val) * 0.64)) * 2) / 2;
+    return Math.max(8, size);
   }
 
   // 只填「手機」：找到含「手機」的段落，把號碼接在那段文字後面，並縮短緊接著的連續空白（text:s）
@@ -99,8 +122,8 @@
       if (!node) continue;
       var lead = /\s$/.test(node.nodeValue) ? "" : " ";
       var ins = val ? doc.createTextNode(lead + val) : null;
-      var mark = val ? null : redCircle(doc);
-      var used = val ? width(lead + val) : 2;
+      var mark = val ? null : redCircle(doc, "phone");
+      var used = val ? width(lead + val) : 2 * circleCount("phone");
       var after = node.nextSibling;
       p.insertBefore(ins || mark, after);
       // 緊接著的 <text:s text:c="N"/> 就是留給手寫的空白：扣掉剛寫入的寬度，至少留 1 格
@@ -117,22 +140,11 @@
   function fillCell(doc, cell, val, key) {
     var p = cell.getElementsByTagNameNS(NS.text, "p")[0];
     if (!p) { p = doc.createElementNS(NS.text, "text:p"); cell.appendChild(p); }
-    if (!val) { p.appendChild(redCircle(doc)); return; }
-    var node = doc.createTextNode(val);
-    if (key === "phone") {
-      var w = columnWidth(doc, cell);               // 英吋；扣掉段落縮排與框線的空間
-      if (w > 0) {
-        var avail = (w - 0.4) * 72;                 // pt
-        // 以最寬字型（約 0.64 個字寬／半形字）保守估算
-        var size = Math.floor(Math.min(12, avail / (width(val) * 0.64)) * 2) / 2;
-        if (size < 12) {
-          var sp = doc.createElementNS(NS.text, "text:span");
-          sp.setAttributeNS(NS.text, "text:style-name", shrinkStyle(doc, Math.max(8, size)));
-          sp.appendChild(node); p.appendChild(sp); return;
-        }
-      }
-    }
-    p.appendChild(node);
+    if (!val) { p.appendChild(redCircle(doc, key)); return; }
+    var sp = doc.createElementNS(NS.text, "text:span");
+    sp.setAttributeNS(NS.text, "text:style-name", shrinkStyle(doc, fitSize(doc, cell, val)));
+    sp.appendChild(doc.createTextNode(val));
+    p.appendChild(sp);
   }
 
   async function fillOdtBuffer(buffer, data) {
@@ -147,6 +159,7 @@
     var tp = doc.createElementNS(NS.style, "style:text-properties");
     tp.setAttributeNS(NS.fo, "fo:color", "#ff0000");
     tp.setAttributeNS(NS.fo, "fo:font-weight", "bold");
+    tp.setAttributeNS(NS.fo, "fo:background-color", "#ffe14d");
     st.appendChild(tp); auto.appendChild(st);
     var filled = [];
     var rows = doc.getElementsByTagNameNS(NS.table, "table-row");

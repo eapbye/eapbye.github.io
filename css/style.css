@@ -5005,3 +5005,24 @@
         overflow-y: auto;
       }
     }
+
+    /* 3.0 版本標示：貼在標題右下角，低調小字，不搶標題 */
+    .brand-title-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+    .version-badge {
+      margin-bottom: 0.45em;
+      padding: 1px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.7);
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      line-height: 1.5;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      user-select: none;
+    }

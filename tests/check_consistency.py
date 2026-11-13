@@ -27,6 +27,9 @@ TURNITIN_FULL = "學位論文原創比對（Turnitin）證明表"
 AIGC_FULL = "學位論文AIGC檢測報告書"
 
 
+JSZIP_SHA256 = "acc7e41455a80765b5fd9c7ee1b8078a6d160bbbca455aeae854de65c947d59e"
+
+
 def read(path):
     with open(path, encoding="utf-8") as f:
         return f.read()
@@ -78,6 +81,10 @@ def check(root):
             return res
     html, idx, segs = read_site(root)
     reg = read(reg_path)
+    # 預選登記頁的程式已搬到 js/course-registration.js，課程資料從那裡讀（接在 HTML 後面，HTML 的行號不變）
+    reg_js_path = os.path.join(root, "js", "course-registration.js")
+    if os.path.isfile(reg_js_path):
+        reg += "\n" + read(reg_js_path)
 
     def loc(pos):
         rel, ln, _ = where(idx, segs, pos)
@@ -237,12 +244,62 @@ def check(root):
                 if ph in text:
                     add("FAIL", f"表單內文仍是舊流程字樣「{ph}」：{os.path.relpath(fp, root)}")
 
-    # ---- 基本安全設定：內容安全政策（CSP）與外部資源 ----
-    for name, text in (("index.html", html), ("course-registration.html", reg)):
-        if 'http-equiv="Content-Security-Policy"' not in text:
+    # ---- 基本安全設定：內容安全政策（CSP）、行內程式、外部資源 ----
+    pages = [("index.html", html), ("course-registration.html", reg)]
+    for name in ("animation-preview.html",):
+        if name in deployed_files and os.path.isfile(os.path.join(root, name)):
+            pages.append((name, read(os.path.join(root, name))))
+    for name, text in pages:
+        m = re.search(r'http-equiv="Content-Security-Policy"\s+content="([^"]*)"', text)
+        if not m:
             add("FAIL", f"{name} 缺少內容安全政策（Content-Security-Policy）meta")
+            continue
+        policy = m.group(1)
+        script_src = re.search(r"script-src([^;]*)", policy)
+        if not script_src:
+            add("FAIL", f"{name} 的 CSP 沒有 script-src")
+        elif "'unsafe-inline'" in script_src.group(1) or "'unsafe-eval'" in script_src.group(1):
+            add("FAIL", f"{name} 的 script-src 含 'unsafe-inline' 或 'unsafe-eval'，等於放行任何被注入的程式")
+        for need in ("default-src 'self'", "object-src 'none'", "base-uri 'self'", "form-action 'self'"):
+            if need not in policy:
+                add("FAIL", f"{name} 的 CSP 缺少 {need}")
+        if re.search(r"https?://", policy):
+            add("FAIL", f"{name} 的 CSP 允許外部網域：{policy}")
+        if re.search(r"<script(?![^>]*\ssrc=)[^>]*>\s*\S", text):
+            add("FAIL", f"{name} 有行內 <script>，CSP 不允許（請搬到 js/ 資料夾）")
+        if re.search(r"\son[a-z]+\s*=\s*[\"']", text):
+            add("FAIL", f"{name} 有行內事件屬性（onclick、onerror 等），CSP 不允許")
         if re.search(r"<script[^>]+src=[\"']?https?:", text):
             add("FAIL", f"{name} 載入外部 script，違反目前的內容安全政策設計")
+        if re.search(r"""(?:href|src|action)=["']\s*javascript:""", text, re.I):
+            add("FAIL", f"{name} 有 javascript: 連結")
+    # js/ 資料夾裡不得產生行內事件屬性、eval
+    js_dir = os.path.join(root, "js")
+    if os.path.isdir(js_dir):
+        for fn in sorted(os.listdir(js_dir)):
+            if not fn.endswith(".js"):
+                continue
+            src = read(os.path.join(js_dir, fn))
+            if re.search(r"""\son(?:error|load|click|mouseover|focus)\s*=\s*["'\\]""", src):
+                add("FAIL", f"js/{fn} 產生了行內事件屬性（會被 CSP 擋掉，請改用 addEventListener）")
+            if re.search(r"\beval\s*\(|new Function\s*\(", src):
+                add("FAIL", f"js/{fn} 使用 eval 或 new Function")
+    # vendor/jszip：固定版本與雜湊（官方 3.10.1 的 jszip.min.js）
+    vz = os.path.join(root, "vendor", "jszip.min.js")
+    if os.path.isfile(vz):
+        import hashlib
+        digest = hashlib.sha256(open(vz, "rb").read()).hexdigest()
+        if digest != JSZIP_SHA256:
+            add("FAIL", "vendor/jszip.min.js 內容與已核對的官方 3.10.1 不同（若是刻意升級，請改 tests/check_consistency.py 的 JSZIP_SHA256）")
+        else:
+            add("INFO", "vendor/jszip.min.js 與官方 3.10.1 相同")
+    # 發佈流程裡的 Actions 要固定在主版本以上，且不得用 @main／@master
+    if os.path.isfile(ci_path) and ci_path.endswith("pages.yml"):
+        for m in re.finditer(r"uses:\s*(\S+)@(\S+)", ci):
+            if m.group(2) in ("main", "master", "latest"):
+                add("FAIL", f"發佈流程使用浮動版本 {m.group(1)}@{m.group(2)}")
+        if "check_consistency.py" not in ci:
+            add("WARN", "pages.yml 沒有在部署前執行 tests/check_consistency.py")
 
     # ---- 最後更新日 ----
     ups = re.findall(r"（最後更新日：(\d{4}-\d{2}-\d{2})）", idx)

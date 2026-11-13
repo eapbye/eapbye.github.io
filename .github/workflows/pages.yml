@@ -1,5 +1,6 @@
 # 推送到 main 後，自動把網站發佈到 GitHub Pages。
-# 只會發佈下面 cp 列出的檔案；tests/、README.md 等不會上線。
+# 部署前先跑 tests/check_consistency.py，有 FAIL 就不會上線。
+# 只會發佈下面 cp 列出的檔案；tests/、README.md、animation-preview.html 等不會上線。
 name: Deploy to GitHub Pages
 
 on:
@@ -24,12 +25,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Consistency and security checks
+        run: python3 -B -I tests/check_consistency.py
       - name: Prepare site
         run: |
           mkdir _site
           cp index.html _site/
           cp course-registration.html _site/
-          cp animation-preview.html _site/
           cp eap_nccu_background.svg _site/
           cp eap_nccu_v8_terminal.svg _site/
           cp -r css _site/css

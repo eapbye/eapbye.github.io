@@ -100,6 +100,7 @@
             {
               id: "proposal-application",
               title: "計畫口試申請表 1 份",
+              tool: "roomBooking",
               word: ["計畫口試申請表（ODT）", "documents/proposal/02-proposal-template.odt"]
             },
             {
@@ -205,6 +206,7 @@
               {
                 id: "defense-application",
                 title: "學位考試申請書 1 份",
+                tool: "roomBooking",
                 note: "請至 iNCCU 申請（校務資訊系統 → 學生資訊系統 → 學術服務 → 學位考試申請系統 → 列印）\n小提醒：如有調整論文題目名稱，請聯絡助教修正。",
                 sample: ["學位考試申請書範例", "documents/defense/01-degree-exam-application-sample.pdf"]
               },

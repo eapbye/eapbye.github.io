@@ -578,6 +578,9 @@
       if (doc.note) {
         box.append(textNote(doc.note));
       }
+      if (doc.tool === "roomBooking" && window.RoomBooking && !isInfoOnly) {
+        box.append(RoomBooking.build(currentFlow().label));
+      }
       const actions = document.createElement("div");
       actions.className = "document-actions";
       if (doc.word) {
@@ -1341,10 +1344,11 @@
           button.classList.add("has-cover");
           button.innerHTML = `
             <span class="graduation-grade-cover" aria-hidden="true">
-              <img src="${graduationImagePath(item, "thumb")}" alt="" loading="eager" decoding="async" style="${item.cardPosition ? `object-position: ${item.cardPosition};` : ""}" onerror="this.onerror = null; this.src = 'graduation/${item.folder}/cover.jpg';">
+              <img src="${graduationImagePath(item, "thumb")}" alt="" loading="eager" decoding="async" style="${item.cardPosition ? `object-position: ${item.cardPosition};` : ""}">
             </span>
             <strong>${item.year}</strong>
           `;
+          watchImageFallback(button.querySelector("img"), () => {}, `graduation/${item.folder}/cover.jpg`);
         } else {
           button.innerHTML = `<strong>${item.year}</strong>`;
         }
@@ -1387,9 +1391,15 @@
           ${item.startDate ? renderStudyDays(item.startDate) : ""}
         </div>
         <div class="graduation-cover">
-          <img class="${item.detailImageClass || ""}" src="${graduationImagePath(item, "medium")}" alt="${item.year}畢業專區封面照片" loading="eager" decoding="async" onerror="if (!this.dataset.fallback) { this.dataset.fallback = 'true'; this.src = 'graduation/${item.folder}/cover.jpg'; } else { renderGraduationCoverPlaceholder(this, '${item.coverPlaceholder || `${item.year}畢業專區封面照片`}', ${item.coverCryFace ? "true" : "false"}); }">
+          <img class="${item.detailImageClass || ""}" src="${graduationImagePath(item, "medium")}" alt="${item.year}畢業專區封面照片" loading="eager" decoding="async">
         </div>
       `;
+
+      watchImageFallback(
+        hero.querySelector(".graduation-cover img"),
+        (img) => renderGraduationCoverPlaceholder(img, item.coverPlaceholder || `${item.year}畢業專區封面照片`, Boolean(item.coverCryFace)),
+        `graduation/${item.folder}/cover.jpg`
+      );
 
       const checklist = document.createElement("section");
       checklist.className = "graduation-section";
@@ -1735,6 +1745,17 @@
     function formatDate(dateText) {
       const [year, month, day] = dateText.split("-");
       return `${Number(year)}/${Number(month)}/${Number(day)}`;
+    }
+
+    // 圖片載入失敗時：先換成備用路徑，再失敗就呼叫 onGiveUp。
+    // 用 addEventListener 取代行內 onerror，網頁才能把 CSP 的 script-src 'unsafe-inline' 拿掉。
+    function watchImageFallback(img, onGiveUp, fallbackSrc) {
+      if (!img) return;
+      let tried = false;
+      img.addEventListener("error", () => {
+        if (!tried && fallbackSrc) { tried = true; img.src = fallbackSrc; return; }
+        onGiveUp(img);
+      });
     }
 
     function renderGraduationCoverPlaceholder(image, text, withCryFace) {

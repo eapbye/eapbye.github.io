@@ -1,0 +1,7 @@
+# 每週檢查 GitHub Actions 是否有新版（只會開 PR，不會自動合併）
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

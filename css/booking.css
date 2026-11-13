@@ -1,0 +1,21 @@
+/* 預約口試教室：文件卡裡的可收合小工具。只用 tokens.css 的顏色變數。 */
+.booking { margin-top: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--soft); }
+.booking-summary {
+  cursor: pointer; padding: 10px 14px; font-weight: 800; color: var(--blue-dark); line-height: 1.5;
+  list-style-position: inside; min-height: 44px; display: flex; align-items: center;
+}
+.booking-summary:focus-visible { outline: 3px solid var(--blue-soft); border-radius: 8px; }
+.booking-body { padding: 4px 14px 14px; display: grid; gap: 12px; }
+.booking-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 0.7fr; gap: 10px; }
+.booking-field { display: grid; gap: 4px; font-weight: 700; color: var(--ink); font-size: 0.9rem; }
+.booking-field input, .booking-field select {
+  min-height: 42px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--surface); color: var(--ink); font: inherit; font-weight: 500;
+}
+.booking-field input:focus-visible, .booking-field select:focus-visible { outline: 3px solid var(--blue-soft); border-color: var(--action-border); }
+.booking-text {
+  width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--surface); color: var(--ink); font: inherit; line-height: 1.7; resize: vertical;
+}
+.booking-actions { display: flex; }
+@media (max-width: 640px) { .booking-grid { grid-template-columns: 1fr 1fr; } }
