@@ -540,7 +540,7 @@ test('3.1 步驟：鎖住的步驟收成一列（無內容、有小鎖），解�
   assert.deepStrictEqual(page.errors, []);
 });
 
-test('最新消息：依日期顯示、每 5 秒往上換一則、滑鼠移上去暫停、全部過期就隱藏', async (b, base) => {
+test('最新消息：依日期顯示、一次兩則每 5 秒往上捲一則、滑鼠移上去暫停、全部過期就隱藏', async (b, base) => {
   const fake = (iso) => async (ctx) => ctx.addInitScript((t) => {
     const start = new Date(t).getTime(), D = Date, t0 = D.now(), now = () => start + (D.now() - t0);
     Date = class extends D { constructor(...a) { if (a.length) super(...a); else super(now()); } static now() { return now(); } };
@@ -549,10 +549,11 @@ test('最新消息：依日期顯示、每 5 秒往上換一則、滑鼠移上�
   let page = await newPage(b, base);
   await fake('2026-12-11T10:00:00+08:00')(page.context());
   await openHome(page); await dismissModals(page);
-  const items = page.locator('#newsStrip .news-item');
+  const items = page.locator('#newsStrip .news-item:not(.is-clone)');
   assert.ok(await page.locator('#newsStrip').isVisible(), '有消息時應顯示');
   assert.strictEqual(await items.count(), 5, '12/11 時應剩 5 則');
   assert.ok(!(await items.allTextContents()).some((t) => t.startsWith('12/10')), '過期的不顯示');
+  assert.ok((await items.first().innerText()).includes('還有'), '每則應有倒數天數');
   const first = await page.locator('#newsStrip .news-item.is-active').innerText();
   await page.waitForTimeout(5600);
   const second = await page.locator('#newsStrip .news-item.is-active').innerText();

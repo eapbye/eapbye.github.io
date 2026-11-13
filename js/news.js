@@ -1,5 +1,5 @@
 // 首頁「最新消息」輪播。更新消息只改 NEWS：until 是最後顯示日（台灣時間當天結束後自動消失）。
-// 沒有任何有效消息時整條隱藏；只有一則時靜止；多則時每 5 秒往上換一則，滑鼠移上去暫停。
+// 沒有有效消息時整條隱藏；一次顯示兩則，超過兩則時每 5 秒往上捲一則（像車站看板），滑鼠移上去暫停。
 (function () {
   "use strict";
   var NEWS = [
@@ -24,49 +24,67 @@
     return NEWS.filter(function (n) { return n.until >= today; });
   }
 
+  var VISIBLE = 2; // 同時顯示幾則
+
+  function daysLeft(until) {
+    var t = taipeiToday().split("-").map(Number), u = until.split("-").map(Number);
+    return Math.round((Date.UTC(u[0], u[1] - 1, u[2]) - Date.UTC(t[0], t[1] - 1, t[2])) / 86400000);
+  }
+
+  function row(n) {
+    var li = document.createElement("li");
+    li.className = "news-item";
+    var text = document.createElement("span");
+    text.className = "news-text";
+    text.textContent = n.text;
+    text.title = n.text;
+    var d = daysLeft(n.until);
+    var chip = document.createElement("span");
+    chip.className = "news-days" + (d <= 7 ? " is-soon" : "");
+    chip.textContent = d === 0 ? "今天" : "還有 " + d + " 天";
+    li.append(text, chip);
+    return li;
+  }
+
   function build() {
     var strip = document.getElementById("newsStrip");
     if (!strip) return;
     var items = activeNews();
     if (!items.length) { strip.hidden = true; return; }
     var viewport = strip.querySelector(".news-viewport");
+    var shown = Math.min(VISIBLE, items.length);
+    viewport.style.setProperty("--news-rows", shown);
     var list = document.createElement("ul");
     list.className = "news-list";
-    items.forEach(function (n) {
-      var li = document.createElement("li");
-      li.className = "news-item";
-      li.textContent = n.text;
-      li.title = n.text;
-      list.append(li);
-    });
+    items.forEach(function (n) { list.append(row(n)); });
+    var rolling = items.length > shown;
+    // 無縫循環：尾端接上前幾則的複本
+    if (rolling) items.slice(0, shown).forEach(function (n) { var c = row(n); c.setAttribute("aria-hidden", "true"); c.classList.add("is-clone"); list.append(c); });
     viewport.replaceChildren(list);
     strip.hidden = false;
-    if (items.length < 2) return;
+    if (!rolling) return;
 
-    var index = 0, timer = null, paused = false;
     var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    var lis = Array.prototype.slice.call(list.children);
-    lis.forEach(function (li, i) { li.classList.toggle("is-active", i === 0); });
-    strip.classList.add(reduce ? "is-fading" : "is-rolling");
-
-    function show(next) {
-      var prev = lis[index];
-      index = next;
-      var cur = lis[index];
-      prev.classList.remove("is-active");
-      prev.classList.add("is-leaving");
-      cur.classList.remove("is-leaving");
-      cur.classList.add("is-active");
-      setTimeout(function () { prev.classList.remove("is-leaving"); }, 600);
+    var index = 0, paused = false;
+    function rowHeight() { var f = list.firstElementChild; return f ? f.getBoundingClientRect().height : 0; }
+    function go(i, animate) {
+      list.style.transition = animate && !reduce ? "transform 560ms cubic-bezier(0.2, 0.7, 0.2, 1)" : "none";
+      list.style.transform = "translateY(" + (-i * rowHeight()) + "px)";
+      list.querySelectorAll(".news-item").forEach(function (li, k) { li.classList.toggle("is-active", k === i); });
     }
-    function tick() { if (!paused) show((index + 1) % lis.length); }
-    function start() { if (!timer) timer = setInterval(tick, INTERVAL_MS); }
+    function tick() {
+      if (paused) return;
+      index += 1;
+      go(index, true);
+      if (index === items.length) setTimeout(function () { index = 0; go(0, false); }, reduce ? 0 : 600);
+    }
+    go(0, false);
     strip.addEventListener("mouseenter", function () { paused = true; });
     strip.addEventListener("mouseleave", function () { paused = false; });
     strip.addEventListener("focusin", function () { paused = true; });
     strip.addEventListener("focusout", function () { paused = false; });
     document.addEventListener("visibilitychange", function () { paused = document.hidden; });
-    start();
+    setInterval(tick, INTERVAL_MS);
   }
 
   window.EapNews = { activeNews: activeNews };

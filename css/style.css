@@ -5226,13 +5226,13 @@
     }
     body.workflow-open .version-mark { display: none; }
 
-    /* 最新消息：一行、上下輪播（js/news.js）；減少動態時改淡入淡出 */
+    /* 最新消息：一次兩則、往上捲（js/news.js）；最右邊是倒數天數，7 天內轉紅 */
     .news-strip {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
       margin-top: 2px;
-      padding: 10px 18px;
+      padding: 8px 18px;
       border: 1px solid var(--line-soft);
       border-radius: var(--radius-lg);
       background: rgba(255, 255, 255, 0.82);
@@ -5241,6 +5241,7 @@
     .news-strip[hidden] { display: none; }
     .news-label {
       flex: 0 0 auto;
+      align-self: center;
       padding: 4px 12px;
       border-radius: 999px;
       background: var(--blue);
@@ -5250,33 +5251,38 @@
       letter-spacing: 0.04em;
     }
     .news-viewport {
-      position: relative;
+      --news-row: 2.1rem;
       flex: 1 1 auto;
       min-width: 0;
-      height: 1.6em;
+      height: calc(var(--news-row) * var(--news-rows, 1));
       overflow: hidden;
       color: var(--blue-dark);
       font-size: 1rem;
       font-weight: 700;
-      line-height: 1.6;
     }
-    .news-list { margin: 0; padding: 0; list-style: none; }
+    .news-list { margin: 0; padding: 0; list-style: none; will-change: transform; }
     .news-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: var(--news-row);
+    }
+    .news-text {
+      flex: 1 1 auto;
+      min-width: 0;
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
     }
-    .news-strip.is-rolling .news-item,
-    .news-strip.is-fading .news-item {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
+    .news-days {
+      flex: 0 0 auto;
+      min-width: 76px;
+      padding: 1px 10px;
+      border-radius: 999px;
+      background: var(--blue-soft);
+      color: var(--blue-dark);
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-align: center;
     }
-    .news-strip.is-rolling .news-item {
-      transform: translateY(100%);
-      transition: transform 520ms var(--ease), opacity 520ms var(--ease);
-    }
-    .news-strip.is-rolling .news-item.is-active { transform: translateY(0); opacity: 1; }
-    .news-strip.is-rolling .news-item.is-leaving { transform: translateY(-100%); opacity: 0; }
-    .news-strip.is-fading .news-item { transition: opacity 400ms ease; }
-    .news-strip.is-fading .news-item.is-active { opacity: 1; }
+    .news-days.is-soon { background: var(--danger-soft); color: var(--danger); }
