@@ -1,0 +1,22 @@
+/* 改版公告橫幅：頁內、不遮住畫面，按「知道了」後不再顯示。只用 tokens.css 的顏色變數。 */
+.update-notice {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center;
+  margin: 10px 0 18px; padding: 14px 16px; border: 1px solid var(--warm); border-left-width: 6px; border-radius: 8px;
+  background: var(--warm-panel); color: var(--ink);
+}
+.update-notice[hidden] { display: none; }
+.update-notice .notice-tag {
+  padding: 5px 10px; border-radius: 999px; background: var(--warm); color: #fff; font-size: 0.8rem; font-weight: 900; white-space: nowrap;
+}
+.update-notice strong { display: block; margin-bottom: 2px; font-size: 1.02rem; color: var(--ink); }
+.update-notice p { margin: 0; line-height: 1.6; color: var(--ink); font-size: 0.95rem; }
+.update-notice button {
+  min-height: 44px; padding: 8px 14px; border: 1px solid var(--warm); border-radius: 8px; background: var(--surface);
+  color: var(--ink); font: inherit; font-weight: 800; cursor: pointer; white-space: nowrap;
+}
+.update-notice button:focus-visible { outline: 3px solid var(--warm-soft); }
+@media (max-width: 760px) {
+  .update-notice { grid-template-columns: 1fr; gap: 10px; }
+  .update-notice .notice-tag { justify-self: start; }
+  .update-notice button { justify-self: stretch; }
+}

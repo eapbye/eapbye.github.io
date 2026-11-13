@@ -457,6 +457,29 @@ test('自動填表：已有資料時走完整個流程，所有可填表單都�
   assert.deepStrictEqual(page.errors, []);
 });
 
+// ---------- 改版公告橫幅 ----------
+test('改版公告：第一次顯示、不擋操作；按「知道了」後重新整理不再出現', async (b, base) => {
+  const page = await newPage(b, base);
+  await openHome(page);
+  assert.ok(await page.locator('#updateNotice').isVisible(), '第一次進站應看到公告橫幅');
+  const t = await page.locator('#updateNotice').innerText();
+  assert.ok(t.includes('論文比對與檢測，改在考前完成') && t.includes('學位論文原創比對（Turnitin）證明表') && t.includes('學位論文AIGC檢測報告書'), '公告內容不完整');
+  assert.ok(!(await page.locator('#updateNotice').getAttribute('aria-modal')), '公告不可是彈窗');
+  assert.strictEqual(await page.locator('#updateNotice').evaluate((e) => !!e.closest('.info-modal')), false);
+  await dismissModals(page);
+  await page.click('#closeUpdateNotice');
+  assert.strictEqual(await page.locator('#updateNotice').count(), 0);
+  await page.reload(); await page.waitForSelector('.mode-card');
+  assert.strictEqual(await page.locator('#updateNotice').count(), 0, '重新整理後不應再出現');
+  // 公告顯示時，三個入口仍可點（不是彈窗）
+  const page2 = await newPage(b, base);
+  await openHome(page2); await dismissModals(page2);
+  assert.ok(await page2.locator('#updateNotice').isVisible());
+  await enterMode(page2, 'defense');
+  assert.ok(await page2.locator('#workflow').isVisible(), '公告顯示時仍應能進入流程');
+  assert.deepStrictEqual(page.errors, []); assert.deepStrictEqual(page2.errors, []);
+});
+
 async function runSuite(root, { stub = false, only = null } = {}) {
   const srv = await serve(root, stub);
   const base = 'http://localhost:' + srv.address().port;
