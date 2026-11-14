@@ -21,7 +21,7 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--cn);font-size:16px;line-height:1.55;font-variant-numeric:tabular-nums}
-.top{padding:4px 14px 2px}
+.top{padding:12px 14px 2px}
 header{position:sticky;top:0;z-index:5;background:var(--paper);padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;box-shadow:0 1px 0 var(--line2)}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:10px;height:40px}
 .sbtn{display:flex;align-items:center;gap:6px;height:38px;padding:0 14px;border:1px solid var(--pri);background:var(--pri);color:#fff;border-radius:var(--r);font-family:var(--cn);font-size:15px;font-weight:700}
@@ -127,10 +127,8 @@ td.p span{font-size:12.5px;font-weight:700;background:var(--navy-soft);color:var
     <button class="scancel" id="scancel">取消</button>
     <div class="chips" id="chips"></div>
   </div>
-  <div class="tabs" id="nav"><button data-v="all" class="on">全部</button><button data-v="core">核心</button><button data-v="ambush">防突襲</button><button data-v="nums">數字</button></div>
 </header>
 <div class="top">
-  <div class="who-h"><small id="whoHint"></small></div>
   <div class="people" id="people"></div>
 </div>
 
@@ -238,8 +236,7 @@ function fmt(text){
 function roleOf(c){
   if(c.m==="all") return "all";
   if(state.who==="all"||PRESENTERS.includes(state.who)) return null;
-  if(c.m.includes(state.who)) return "main";
-  if(c.h.includes(state.who)) return "help";
+  if(c.m.includes(state.who)||c.h.includes(state.who)) return "mine";
   return "none";
 }
 function match(c){
@@ -249,9 +246,9 @@ function match(c){
 }
 function cardHTML(c){
   const r=roleOf(c);
-  const owners=c.m==="all"?"全員":"主答 "+c.m.map(nameOf).join("、")+(c.h.length?"｜協答 "+c.h.map(nameOf).join("、"):"");
-  const tag=r==="main"?'<span class="role main">主答</span>':r==="help"?'<span class="role help">協答</span>':"";
-  return `<div class="card ${r==="main"?"main":r==="help"?"help":""}${state.q?" open":""}">
+  const owners=c.m==="all"?"全員":"負責："+[...c.m,...c.h].map(nameOf).join("、");
+  const tag="";
+  return `<div class="card${state.q?" open":""}">
     <button class="q"><span class="n">${esc(c.id)}</span><span class="t">${c.amb?'<em class="amb">突襲</em>':''}${fmt(c.q)}</span>${tag}</button>
     <div class="a">
       ${c.k?`<p class="key">${fmt(c.k)}</p>`:""}
@@ -267,28 +264,19 @@ function syncHTML(){
   return `<div class="sync">${txt}<a href="${EDIT_URL}" target="_blank" rel="noopener">編修擬答</a></div>`;
 }
 function numTable(list){ return '<div class="tbl"><table>'+list.map(n=>`<tr><td class="num">${n[0]}</td><td>${n[1]}</td><td class="p"><span>${n[2]}</span></td></tr>`).join("")+'</table></div>'; }
+function numsHTML(){ return `<div class="sec">數字速查</div>
+  <div class="formula"><div>方案二　3.50×0.25＋3.63×0.15＋3.75×0.1＋3.63×0.25＋3.25×0.15＋2.63×0.1＝<b>3.45</b></div><div>方案一　3.25×0.25＋2.00×0.15＋1.88×0.1＋3.00×0.25＋3.13×0.15＋4.38×0.1＝<b>2.96</b></div></div>
+  <div style="height:10px"></div>${numTable(NUMS)}`; }
 function render(){
   const m=$("#main"); drawPeople();
-  if(state.view==="nums"&&!state.q){
-    m.innerHTML=`<div class="sec">決策矩陣算式</div>
-      <div class="formula"><div>方案二　3.50×0.25＋3.63×0.15＋3.75×0.1＋3.63×0.25＋3.25×0.15＋2.63×0.1＝<b>3.45</b></div><div>方案一　3.25×0.25＋2.00×0.15＋1.88×0.1＋3.00×0.25＋3.13×0.15＋4.38×0.1＝<b>2.96</b></div></div>
-      <div class="sec">數字速查</div>${numTable(NUMS)}<p class="foot">頁碼依報告目次，請以紙本核對</p>`;
-    return;
-  }
-  const list=CARDS.filter(c=>{
-    if(state.view==="core"&&c.amb) return false;
-    if(state.view==="ambush"&&!c.amb) return false;
-    if(roleOf(c)==="none") return false;
-    return match(c);
-  });
+  const list=CARDS.filter(c=>roleOf(c)!=="none" && match(c));
   const numHits=state.q?NUMS.filter(n=>n.join("").toLowerCase().includes(state.q.toLowerCase())):[];
   let html=syncHTML();
-  if(!list.length&&!numHits.length){ m.innerHTML=html+'<p class="empty">沒有對應的題目，換個關鍵字試試</p>'; return; }
-  if(state.who!=="all"&&!PRESENTERS.includes(state.who)) html+='<div class="legend"><span><i style="background:var(--pri)"></i>你主答</span><span><i style="background:var(--slate-line)"></i>你協答</span></div>';
-  else if(PRESENTERS.includes(state.who)) html+='<div class="legend">報告人：顯示全部卡片</div>';
+  if(state.q && !list.length && !numHits.length){ m.innerHTML=html+'<p class="empty">沒有對應的題目，換個關鍵字試試</p>'; return; }
   let g="";
   list.forEach(c=>{ if(c.g!==g){ g=c.g; const n=list.filter(x=>x.g===g).length; html+=`<div class="sec">${esc(g)}<small>${n} 題</small></div>`; } html+=cardHTML(c); });
-  if(numHits.length) html+='<div class="sec">數字</div>'+numTable(numHits);
+  if(state.q){ if(numHits.length) html+='<div class="sec">數字</div>'+numTable(numHits); }
+  else html+=numsHTML();
   html+='<p class="foot">頁碼依報告目次，請以紙本核對</p>';
   m.innerHTML=html;
 }
@@ -304,19 +292,10 @@ $("#clr").onclick=()=>{ $("#q").value=""; $("#q").dispatchEvent(new Event("input
 $("#chips").innerHTML=CHIPS.map(c=>`<button class="chip">${c}</button>`).join("");
 $("#chips").addEventListener("click",e=>{ const c=e.target.closest(".chip"); if(!c) return;
   $("#q").value=state.q===c.textContent?"":c.textContent; $("#q").dispatchEvent(new Event("input")); $("#q").blur(); window.scrollTo(0,0); });
-$("#nav").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; state.view=b.dataset.v;
-  document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("on",x===b));
-  if(state.q||!$("#spanel").hidden) closeSearch();
-  render(); window.scrollTo(0,0); });
+
 function counts(id){ let mm=0,hh=0; CARDS.forEach(c=>{ if(c.m!=="all"){ if(c.m.includes(id)) mm++; else if(c.h.includes(id)) hh++; } }); return [mm,hh]; }
 function drawPeople(){
   $("#people").innerHTML=PEOPLE.map(p=>`<button data-id="${p.id}" class="${p.id===state.who?"on":""}">${p.id==="all"?"":`<i>${p.id}</i>`}${p.short}</button>`).join("");
-  const p=PEOPLE.find(x=>x.id===state.who)||PEOPLE[0];
-  let hint;
-  if(p.id==="all") hint="點自己的名字，只看全體適用和你負責的題目";
-  else if(PRESENTERS.includes(p.id)) hint=`${p.name}｜報告人，顯示全部題目`;
-  else { const [mm,hh]=counts(p.id); hint=`${p.name}｜${p.note}・主答 ${mm} 題、協答 ${hh} 題`; }
-  $("#whoHint").textContent=hint;
 }
 $("#people").addEventListener("click",e=>{ const b=e.target.closest("button[data-id]"); if(!b) return;
   state.who=b.dataset.id; try{localStorage.setItem("g5qa",JSON.stringify({who:state.who}))}catch(err){} render();
