@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>第5組 專題研討答詢快查</title>
+<style>
+:root{
+  --ink:#20303a; --ink-soft:#4f5c65; --ink2:#45525b; --faint:#76818a;
+  --paper:#f1efea; --card:#fffdf9; --line:#c4c8be; --line2:#d3dbe3; --sep:#efefea;
+  --pri:#1d6fa5; --pri-soft:#e7eff6; --pri-line:#9fb9d0;
+  --slate:#4d6a85; --slate-soft:#e9eef2; --slate-line:#b5c3d1;
+  --navy:#2c4677; --navy-soft:#e8ecf4;
+  --seal:#a23b3b; --seal-soft:#f6e9e7;
+  --violet:#6c5a9e; --violet-soft:#efeaf6;
+  --board:#e6ecf2; --zebra:#f4f7fa;
+  --lift:0 1px 2px rgba(32,48,58,.07),0 3px 10px rgba(32,48,58,.05);
+  --r-sm:7px; --r:11px; --r-lg:14px;
+  --cn:"Microsoft JhengHei","PingFang TC","Noto Sans TC","Heiti TC",sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--cn);font-size:16px;line-height:1.55;font-variant-numeric:tabular-nums}
+.top{padding:calc(env(safe-area-inset-top) + 14px) 14px 4px}
+header{position:sticky;top:0;z-index:5;background:var(--paper);padding:8px 14px 10px;box-shadow:0 1px 0 var(--line2)}
+.who-h{display:flex;align-items:baseline;gap:8px;margin:14px 0 8px;font-size:14px;font-weight:700;color:var(--violet)}
+.who-h small{font-size:13px;font-weight:400;color:var(--ink-soft)}
+.people{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.people button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;height:50px;border:1px solid transparent;border-radius:var(--r);background:var(--card);box-shadow:var(--lift);font-family:var(--cn);font-size:15px;font-weight:700;color:var(--ink);padding:0}
+.people button i{font-style:normal;font-size:11px;font-weight:400;color:var(--faint);line-height:1.1}
+.people button.on{background:var(--violet);color:#fff;box-shadow:0 2px 8px rgba(108,90,158,.35)}
+.people button.on i{color:rgba(255,255,255,.8)}
+.title{display:flex;justify-content:space-between;align-items:center;gap:8px}
+h1{font-size:19px;margin:0;font-weight:700;letter-spacing:.5px;padding-left:10px;border-left:4px solid var(--pri);line-height:26px}
+.who-btn{display:flex;align-items:center;gap:4px;height:34px;border:1px solid var(--violet);background:var(--violet-soft);color:var(--violet);border-radius:var(--r);padding:0 12px;font-size:15px;font-family:var(--cn)}
+.who-btn b{font-weight:700}
+.search{position:relative}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--faint)}
+.search input{width:100%;font-family:var(--cn);font-size:16px;color:var(--ink);padding:10px 38px 10px 38px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);outline:none;-webkit-appearance:none}
+.search input::placeholder{color:#a9b1ad}
+.search input:focus{border-color:var(--pri)}
+.search input::-webkit-search-cancel-button{display:none}
+.clear{position:absolute;right:4px;top:50%;transform:translateY(-50%);border:0;background:none;font-size:22px;line-height:1;color:var(--faint);padding:4px 10px;display:none}
+.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-top:10px;padding:4px;background:var(--board);border-radius:var(--r)}
+.tabs button{height:34px;border:0;border-radius:9px;background:transparent;font-family:var(--cn);font-size:15px;color:var(--ink-soft)}
+.tabs button.on{background:var(--pri);color:#fff;font-weight:700}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0 0;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);border-radius:999px;padding:4px 12px;font-size:14px;font-family:var(--cn)}
+.chip.on{background:var(--pri-soft);border-color:var(--pri);color:var(--pri);font-weight:700}
+main{padding:6px 12px calc(env(safe-area-inset-bottom) + 28px)}
+.sec{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700;color:var(--ink);margin:20px 2px 10px;padding-left:9px;border-left:4px solid var(--pri);line-height:22px}
+.sec.amb{border-left-color:var(--seal)}
+.sec small{font-size:13px;font-weight:400;color:var(--faint)}
+.card{position:relative;background:var(--card);border-radius:var(--r-lg);box-shadow:var(--lift);margin-bottom:10px;overflow:hidden}
+.card.main::before,.card.help::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--pri)}
+.card.help::before{background:var(--slate-line)}
+.q{display:flex;gap:10px;align-items:flex-start;padding:13px 14px;width:100%;text-align:left;border:0;background:none;font:inherit;color:inherit}
+.q .n{flex:none;width:24px;height:24px;border-radius:7px;background:var(--board);color:var(--ink-soft);font-size:13px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.card.open .q .n{background:var(--pri);color:#fff}
+.q .t{flex:1;font-weight:700;font-size:16px;line-height:1.5}
+.role{flex:none;font-size:12px;border-radius:6px;padding:1px 7px;margin-top:2px;border:1px solid}
+.role.main{background:var(--pri-soft);color:var(--pri);border-color:var(--pri-line)}
+.role.help{background:var(--slate-soft);color:var(--slate);border-color:var(--slate-line)}
+.a{display:none;padding:0 14px 14px 48px}
+.card.open .a{display:block}
+.key{font-size:16px;font-weight:400;line-height:1.7;color:var(--ink);margin:0 0 8px;padding:9px 11px;background:var(--pri-soft);border-radius:var(--r-sm);border-left:3px solid var(--pri)}
+.a ul{margin:0;padding-left:18px;color:var(--ink2)}
+.a li{margin:4px 0;font-size:15px}
+.a li::marker{color:var(--pri-line)}
+.meta{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:10px;padding-top:9px;border-top:1px solid var(--sep);align-items:center}
+.pg{font-size:13px;font-weight:700;background:var(--navy-soft);color:var(--navy);border-radius:6px;padding:2px 8px}
+.ow{font-size:12.5px;color:var(--faint)}
+mark{background:#fff0b3;color:inherit;padding:0 1px;border-radius:2px}
+.tbl{background:var(--card);border-radius:var(--r-lg);box-shadow:var(--lift);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+tr:nth-child(even){background:var(--zebra)}
+td{padding:10px 12px;vertical-align:top;font-size:15px;color:var(--ink2)}
+td.num{font-weight:700;color:var(--pri);white-space:nowrap;width:1%;font-size:16px}
+td.p{white-space:nowrap;width:1%}
+td.p span{font-size:12.5px;font-weight:700;background:var(--navy-soft);color:var(--navy);border-radius:6px;padding:1px 7px}
+.formula{background:var(--card);border-radius:var(--r-lg);box-shadow:var(--lift);padding:12px 14px;font-size:14.5px;color:var(--ink2);line-height:1.7}
+.formula b{color:var(--pri);font-size:16px}
+.formula div+div{margin-top:6px;padding-top:6px;border-top:1px solid var(--sep)}
+.empty{color:var(--faint);text-align:center;padding:40px 0}
+.legend{display:flex;gap:14px;font-size:13px;color:var(--faint);margin:12px 4px 0}
+.legend i{display:inline-block;width:4px;height:13px;border-radius:2px;margin-right:6px;vertical-align:-2px}
+.sheet{position:fixed;inset:0;z-index:10;background:rgba(32,48,58,.38);display:none;align-items:flex-end}
+.sheet.show{display:flex}
+.panel{background:var(--paper);width:100%;border-radius:18px 18px 0 0;padding:18px 14px calc(env(safe-area-inset-bottom) + 18px)}
+.panel h2{font-size:17px;margin:0 0 4px;padding-left:9px;border-left:4px solid var(--violet);line-height:22px}
+.panel p{margin:6px 0 12px;font-size:13.5px;color:var(--ink-soft)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid button{border:1px solid transparent;background:var(--card);box-shadow:var(--lift);border-radius:var(--r);padding:10px 6px;font-size:15px;font-family:var(--cn);color:var(--ink);text-align:center}
+.grid button small{display:block;font-size:12px;color:var(--faint);margin-top:1px}
+.grid button.on{border-color:var(--violet);background:var(--violet-soft);color:var(--violet);font-weight:700}
+.foot{font-size:12.5px;color:var(--faint);text-align:center;margin:22px 0 0}
+.hl{color:var(--pri);font-weight:700}
+.key .hl{color:#155a88}
+.sync{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:12px 4px 0;font-size:12.5px;color:var(--faint)}
+.sync a{color:var(--violet);text-decoration:none;font-weight:700;border:1px solid var(--violet);background:var(--violet-soft);border-radius:var(--r-sm);padding:2px 9px}
+.sync .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--pri);margin-right:5px;vertical-align:1px}
+.sync .dot.off{background:var(--faint)}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>第5組　答詢快查</h1>
+  <div class="who-h">我是誰<small id="whoHint">選自己，只看全員必會和你負責的題目</small></div>
+  <div class="people" id="people"></div>
+</div>
+<header>
+  <div class="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input id="q" type="search" placeholder="打關鍵字：經費、個資、3.45、訪談…" autocomplete="off">
+    <button class="clear" id="clr" aria-label="清除">×</button>
+  </div>
+  <div class="tabs" id="nav"><button data-v="all" class="on">全部</button><button data-v="core">核心20</button><button data-v="ambush">防突襲</button><button data-v="nums">數字</button></div>
+  <div class="chips" id="chips"></div>
+</header>
+
+<main id="main"></main>
+
+
+
+<script>
+// ---- config ----
+const SHEET_ID = "1GBoehjMgbGZ2gm86rkYUp2pB2NYx9Eikt4s2AvrRNRY";           // Google Sheet id; empty = embedded data only
+const EDIT_URL = SHEET_ID ? "https://docs.google.com/spreadsheets/d/"+SHEET_ID+"/edit" : "";
+const CSV_URL  = SHEET_ID ? "https://docs.google.com/spreadsheets/d/"+SHEET_ID+"/export?format=csv&gid=0" : "";
+const EMBED = [{"編號": "1", "分類": "全員必會", "題目": "一句話說本報告的建議", "關鍵答": "長照機構**不缺數位工具，缺的是讓工具真正用起來的人**，所以我們提出**轉型教練陪跑模式**，用專業陪伴補上導入過程的缺口。", "要點1": "", "要點2": "", "要點3": "", "頁碼": "摘要・p.15", "主答": "全員", "協答": "", "搜尋關鍵字": "結論 總結 一句話 核心 建議 重點 困難"}, {"編號": "2", "分類": "全員必會", "題目": "為什麼選長照？", "關鍵答": "長照需求預估**突破90萬人**、機構**逾4,000家**，照服員卻還要兼做**紙本紀錄、核銷、排班**，是最需要用數位減輕行政負擔的產業。", "要點1": "長照3.0把「**導入智慧照顧，善用科技輔具**」列為八大面向之一（p.1）", "要點2": "中小型長照機構跟中小微企業一樣**缺資金、缺人才、缺技術**（p.1–2）", "要點3": "", "頁碼": "p.1–2", "主答": "全員", "協答": "", "搜尋關鍵字": "選題 動機 長照 原因 超高齡 長照3.0 十年計畫"}, {"編號": "3", "分類": "全員必會", "題目": "政府為什麼要介入？機構自己買系統不行嗎？", "關鍵答": "機構規模小、**缺資訊人才**，自己買常**買錯、買了不會用**；長照又多由**政府給付、政府評鑑**，行政效率直接影響照護品質，政府有協助的責任。", "要點1": "現行已有雲市集補助，本案是**補強導入環節**，不是另起爐灶", "要點2": "", "要點3": "", "頁碼": "p.1–3", "主答": "全員", "協答": "", "搜尋關鍵字": "政府 介入 正當性 公共問題 為什麼 自己買 市場"}, {"編號": "4", "分類": "全員必會", "題目": "本報告有什麼限制？有沒有實際訪談？", "關鍵答": "主要三點：**沒有正式訪談**、**決策矩陣是組內評分**、**經費與教練人數尚未精算**。", "要點1": "資料來自衛福部、資策會、中小企業白皮書；組員曾**聯繫立心基金會**了解系統使用情形（附件2第4次）", "要點2": "補救：試辦第一年的**需求診斷就是實地蒐集**；正式推動時可**邀機構與業者共同評分**", "要點3": "", "頁碼": "參考資料・p.16", "主答": "全員", "協答": "", "搜尋關鍵字": "限制 不足 訪談 實地 二手資料 調查 立心 缺點"}, {"編號": "5", "分類": "現況與問題", "題目": "雲市集是什麼？跟長照有什麼落差？", "關鍵答": "雲市集是**數產署2021年**建的平台，提供雲端工具加**1:1數位點數補助**；但工具多是**通用型**，長照要的照護紀錄、個資保護、系統整合和現場教學，它補不到。", "要點1": "", "要點2": "", "要點3": "", "頁碼": "p.1、p.3", "主答": "呂承穎", "協答": "劉怡秀、黃竣顯", "搜尋關鍵字": "雲市集 數產署 數發部 點數 補助 SaaS 落差 平台"}, {"編號": "6", "分類": "現況與問題", "題目": "非營利機構算中小微企業嗎？能用雲市集嗎？", "關鍵答": "雲市集是**由資服業者提案申請**，機構是導入場域；非營利機構的資格要**逐案確認**，所以方案二**不綁點數補助**，改由衛福部試辦經費支應。", "要點1": "", "要點2": "", "要點3": "", "頁碼": "附件2第4次", "主答": "呂承穎", "協答": "黃竣顯、劉怡秀", "搜尋關鍵字": "非營利 基金會 中小微 資格 適用 申請 誰申請 營利"}, {"編號": "7", "分類": "現況與問題", "題目": "方案二由衛福部主責，雲市集還剩什麼角色？", "關鍵答": "雲市集仍是**工具來源與業者媒合**的管道，由數發部協辦；方案二補的是**導入過程中的人**，從「給工具」變成「**給工具，再加人陪跑**」。", "要點1": "", "要點2": "", "要點3": "", "頁碼": "表4-1・p.9", "主答": "郭哲宇", "協答": "黃竣顯、呂承穎", "搜尋關鍵字": "雲市集 角色 題目 關係 現行政策 不同 差異 補助政策"}, {"編號": "8", "分類": "現況與問題", "題目": "為什麼聚焦人力和技術？財務呢？", "關鍵答": "魚骨圖列了六個面向，其中**財務已有點數補助降低門檻**；**人力與技術是第一線最直接卡住的地方**，所以聚焦這兩項。", "要點1": "六面向：人力、環境、技術、需求認知落差、財務、制度（圖3-1）", "要點2": "財務沒有被忽略，決策矩陣仍有**財務承受度**一項", "要點3": "", "頁碼": "圖3-1・p.5", "主答": "陳昱蓉", "協答": "郭哲宇", "搜尋關鍵字": "聚焦 人力 技術 財務 六面向 魚骨圖 為什麼"}, {"編號": "9", "分類": "現況與問題", "題目": "系統普及率已達84%，還算「導入」問題嗎？", "關鍵答": "普及率高不代表用得好，同一份資料指出**近三成卡在介接與資料整合**；我們要解決的是**接不起來、用不順**，不是再買系統。", "要點1": "", "要點2": "", "要點3": "", "頁碼": "p.5", "主答": "陳昱蓉", "協答": "郭哲宇", "搜尋關鍵字": "84% 普及率 矛盾 導入 已經有系統 資策會"}, {"編號": "10", "分類": "方案與決策矩陣", "題目": "分析工具怎麼串起來？", "關鍵答": "**向右魚骨圖找原因**→**向左魚骨圖找對策**→**決策矩陣選方案**→**SWOT/TOWS擬策略**→**甘特圖排期程、KPI訂成效**。", "要點1": "SWOT看內外部條件，TOWS把四者**交叉組合成策略**（表4-3、4-4）", "要點2": "頁碼：圖3-1 p.5／圖4-1 p.8／表4-2 p.10／表4-3、4-4 p.11–12／表4-5 p.13", "要點3": "", "頁碼": "p.5–14", "主答": "郭哲宇", "協答": "陳昱蓉", "搜尋關鍵字": "方法 工具 魚骨圖 SWOT TOWS 甘特圖 架構 課程所學 分析"}, {"編號": "11", "分類": "方案與決策矩陣", "題目": "陪跑模式怎麼做？", "關鍵答": "四個步驟：**需求診斷、分級培訓、到點陪跑、持續追蹤**，讓機構從不會用、學著用，到**自己會用**。", "要點1": "試辦**24個月**，第一年招**10家**", "要點2": "先做排班、出勤、電子表單，再導入照顧紀錄與系統介接（表4-5）", "要點3": "", "頁碼": "表4-1 p.9・表4-5 p.13", "主答": "郭哲宇", "協答": "陳昱蓉", "搜尋關鍵字": "陪跑 教練 執行 怎麼做 步驟 方案二 內容"}, {"編號": "12", "分類": "方案與決策矩陣", "題目": "為什麼選方案二？3.45怎麼算？", "關鍵答": "加權後**方案二3.45、方案一2.96**，差距主要來自**技術整合度與永續發展度**。", "要點1": "3.50×0.25＋3.63×0.15＋3.75×0.1＋3.63×0.25＋3.25×0.15＋2.63×0.1＝**3.45**", "要點2": "8人各給1–5分，取平均後加權", "要點3": "", "頁碼": "表4-2・p.10", "主答": "郭哲宇", "協答": "陳昱蓉", "搜尋關鍵字": "3.45 2.96 決策矩陣 分數 計算 加權 選擇 為什麼選"}, {"編號": "13", "分類": "方案與決策矩陣", "題目": "方案二財務承受度為什麼比較高？", "關鍵答": "註5是**從機構角度看成本**：方案一機構要**自付一半**，沒人輔導還可能買錯、閒置；方案二由**政府試辦經費支應**，又從低成本工具起步。", "要點1": "兩案只差0.12分，加權後**只差0.018**，不影響結果", "要點2": "報告未逐項寫評分理由，這是組內統一的口徑", "要點3": "", "頁碼": "註5・p.10", "主答": "郭哲宇", "協答": "陳昱蓉", "搜尋關鍵字": "財務 承受度 成本 比較省 費用 註5"}, {"編號": "14", "分類": "方案與決策矩陣", "題目": "方案二政策支持度只有2.63，為什麼還選？", "關鍵答": "方案一**直接用現成的雲市集資源**，方案二要**另編預算、跨部會協調**，分數低是合理的；這項權重只有**0.1**，就算兩案打平，方案二仍然領先。", "要點1": "", "要點2": "", "要點3": "", "頁碼": "表4-2・p.10", "主答": "郭哲宇", "協答": "陳昱蓉", "搜尋關鍵字": "政策支持度 2.63 4.38 分數低 註6"}, {"編號": "15", "分類": "方案與決策矩陣", "題目": "權重怎麼定？分數客觀嗎？", "關鍵答": "權重反映本案核心：**人力配合度、工作效益度各0.25**，因為重點是第一線願不願意用、能不能省事。", "要點1": "技術整合、財務承受各0.15；永續發展、政策支持各0.1", "要點2": "評分有主觀成分，但**指標與權重先訂好才評分**；正式推動可邀機構與業者共評", "要點3": "", "頁碼": "表4-2・p.10", "主答": "郭哲宇", "協答": "陳昱蓉", "搜尋關鍵字": "權重 客觀 主觀 評分 標準 指標"}, {"編號": "16", "分類": "方案與決策矩陣", "題目": "方案一是不是稻草人？為什麼只比兩案？", "關鍵答": "方案一就是**現行做法**，以現狀當比較基準是政策分析的常規；方案二是從**四案逐步整併**出來的。", "要點1": "四案→三案→兩案（附件2第5、6次）", "要點2": "方案二整併了「專業輔導」與「階段導入」兩案", "要點3": "", "頁碼": "表4-1・p.9", "主答": "郭哲宇", "協答": "陳昱蓉", "搜尋關鍵字": "稻草人 對照 兩案 方案一 合併 替選方案 為什麼只有"}, {"編號": "17", "分類": "方案與決策矩陣", "題目": "為什麼由衛福部主責？", "關鍵答": "**人力面屬長照政策，由衛福部主責**；**技術面交給數發部數產署**協辦，中企署負責產業輔導，各用專長分工。", "要點1": "衛福部不是資訊專業機關，所以技術交給數發部", "要點2": "", "要點3": "", "頁碼": "p.4・表4-5", "主答": "郭哲宇", "協答": "陳昱蓉", "搜尋關鍵字": "衛福部 數發部 主責 協辦 分工 機關 跨部會 中企署"}, {"編號": "18", "分類": "方案與決策矩陣", "題目": "經費、教練人力從哪來？為什麼兩年、10家？", "關鍵答": "經費由**衛福部編列試辦預算**，可結合既有補助；**目前尚未精算**，這點照實說。", "要點1": "兩年：第一年診斷與基礎數位化，第二年導入照顧紀錄並評估", "要點2": "先以**10家**控制輔導品質，成效確認後再擴大", "要點3": "", "頁碼": "p.13–14", "主答": "郭哲宇", "協答": "吳倍儀", "搜尋關鍵字": "經費 預算 錢 教練人數 人力 兩年 24個月 10家 樣本 規模"}, {"編號": "19", "分類": "方案與決策矩陣", "題目": "行政時間縮短20%的依據？沒達標怎麼辦？", "關鍵答": "20%是**試辦目標值，不是已驗證的成果**；導入前先量**基準工時**，第二年第四季再比較。", "要點1": "沒達標就檢討流程與訓練，**滾動修正**", "要點2": "服務品質之後可加紀錄完整率、家屬滿意度", "要點3": "", "頁碼": "p.14", "主答": "郭哲宇", "協答": "吳倍儀", "搜尋關鍵字": "20% KPI 績效 依據 達標 失敗 成效 服務品質 證明"}, {"編號": "20", "分類": "方案與決策矩陣", "題目": "機構缺人、怕增加負擔、不願配合怎麼辦？", "關鍵答": "採**到點輔導、短時數、分批上課**並配合排班，初期**紙電雙軌**，不增加第一線負擔。", "要點1": "先做排班、出勤、電子表單，讓人員**先看到省時**", "要點2": "再以**評鑑獎勵**給誘因（TOWS的WT策略，p.12）", "要點3": "", "頁碼": "p.7", "主答": "郭哲宇", "協答": "陳昱蓉", "搜尋關鍵字": "缺人 上課 負擔 不配合 抗拒 意願 年長 照服員 培訓 排班 評鑑"}, {"編號": "21", "分類": "防突襲", "題目": "系統接不起來？為什麼不做全國統一系統？", "關鍵答": "訂**資料交換標準與API**，先接衛福部的照顧服務管理平台與長照人員管理系統；機構差異大，所以**訂標準、不統一系統**。", "要點1": "", "要點2": "", "要點3": "", "頁碼": "p.7", "主答": "郭哲宇", "協答": "陳昱蓉", "搜尋關鍵字": "串接 介接 API 整合 統一系統 全國 標準 格式"}, {"編號": "22", "分類": "防突襲", "題目": "SWOT說多數有設備，又說要處理設備不足？", "關鍵答": "**多數機構已有設備**（系統普及率84%），**少數不足的在需求診斷時盤點**，兩者不衝突。", "要點1": "", "要點2": "", "要點3": "", "頁碼": "表4-3・p.11", "主答": "郭哲宇", "協答": "陳昱蓉", "搜尋關鍵字": "SWOT 矛盾 設備 電腦 不足 優勢"}, {"編號": "23", "分類": "防突襲", "題目": "地端AI是什麼？", "關鍵答": "資料**留在機構自己的主機運算、不上雲端**，降低個資外流風險。", "要點1": "", "要點2": "", "要點3": "", "頁碼": "p.7–8", "主答": "陳昱蓉", "協答": "郭哲宇", "搜尋關鍵字": "地端AI AI 人工智慧 雲端 本地"}, {"編號": "24", "分類": "防突襲", "題目": "個資怎麼保護？", "關鍵答": "**資安檢核表、帳號不共用、定期資安訓練與檢測**，導入前先做資安測試。", "要點1": "", "要點2": "", "要點3": "", "頁碼": "p.7–8", "主答": "陳昱蓉", "協答": "郭哲宇", "搜尋關鍵字": "個資 資安 隱私 外洩 帳號 共用"}, {"編號": "25", "分類": "防突襲", "題目": "引用來源可信嗎？（Jubo是業者）", "關鍵答": "Jubo只引用它指出的**資安現象**（共用帳號、未做弱點掃描），不引用產品主張；照服員年齡偏高引自**楊梓峻（2024）期刊論文**。", "要點1": "", "要點2": "", "要點3": "", "頁碼": "p.5", "主答": "呂曉琳", "協答": "陳昱蓉", "搜尋關鍵字": "Jubo 智齡 業者 客觀 引用 來源 可信 年齡 楊梓峻 文獻"}, {"編號": "26", "分類": "防突襲", "題目": "資服業者為什麼只列「受影響群體」？", "關鍵答": "方案要求業者**簡化介面、設單一客服窗口、配合資料標準**，業者是**被規範配合的一方**。", "要點1": "", "要點2": "", "要點3": "", "頁碼": "p.4", "主答": "呂承穎", "協答": "劉怡秀", "搜尋關鍵字": "利害關係人 資服業者 受影響 廠商 業者"}, {"編號": "27", "分類": "防突襲", "題目": "8家、5家、80%怎麼訂？", "關鍵答": "由10家逐步收斂：**基礎數位化較容易，訂8家**；**照顧紀錄較難，訂5家**；80%是培訓後實作測驗通過率。", "要點1": "", "要點2": "", "要點3": "", "頁碼": "p.14", "主答": "郭哲宇", "協答": "吳倍儀", "搜尋關鍵字": "8家 5家 80% KPI 目標 怎麼訂"}, {"編號": "28", "分類": "防突襲", "題目": "結語提到AI，方案裡卻沒有？", "關鍵答": "結語講的是**長期願景**，試辦先做**基礎數位化**，照顧紀錄、智慧照護在中後期才導入。", "要點1": "", "要點2": "", "要點3": "", "頁碼": "p.15", "主答": "吳倍儀", "協答": "洪家琪", "搜尋關鍵字": "結語 AI 人工智慧 願景 超出"}, {"編號": "29", "分類": "防突襲", "題目": "試辦結束後怎麼延續？", "關鍵答": "靠**機構內的種子教師**、**懶人包與短影音**，再要求業者設**單一客服窗口並訂回應時限**。", "要點1": "", "要點2": "", "要點3": "", "頁碼": "p.7", "主答": "吳倍儀", "協答": "洪家琪", "搜尋關鍵字": "永續 延續 結束後 沒預算 種子教師 客服"}, {"編號": "30", "分類": "防突襲", "題目": "會不會取代照服員？", "關鍵答": "省下的是**文書時間**，不是照護人力；目的是讓照服員**回到照護本業**。", "要點1": "", "要點2": "", "要點3": "", "頁碼": "p.15", "主答": "吳倍儀", "協答": "洪家琪", "搜尋關鍵字": "取代 失業 照服員 人力 科技"}];
+
+const PEOPLE = [
+  {id:"all", name:"全部", short:"全部", note:"看全部卡片"},
+  {id:"02", name:"郭哲宇", short:"哲宇", note:"解決建議"},
+  {id:"10", name:"呂承穎", short:"承穎", note:"現況分析"},
+  {id:"12", name:"黃竣顯", short:"竣顯", note:"報告人・雲市集"},
+  {id:"18", name:"呂曉琳", short:"曉琳", note:"資料蒐集"},
+  {id:"24", name:"吳倍儀", short:"倍儀", note:"結語"},
+  {id:"26", name:"陳昱蓉", short:"昱蓉", note:"問題檢討"},
+  {id:"35", name:"劉怡秀", short:"怡秀", note:"前言"},
+  {id:"40", name:"洪家琪", short:"家琪", note:"報告人・修潤"}
+];
+const PRESENTERS = ["12","40"];
+const NAME2ID = Object.fromEntries(PEOPLE.map(p=>[p.name,p.id]));
+
+const NUMS = [
+ ["90萬","長照服務需求人數（衛福部2026預估）","p.2"],
+ ["4,000家","長照機構（社區式、居家式、住宿式）","p.2"],
+ ["171.6萬家","中小企業家數；提供近8成就業","p.2"],
+ ["2021","數產署建置臺灣雲市集","p.1"],
+ ["1:1","雲市集數位點數補助","p.3"],
+ ["84%","長照管理系統普及率（資策會2026）","p.5"],
+ ["近三成","面臨系統介接、資料整合困難","p.5"],
+ ["近六成","已導入科技者遇整合、意願、IT人力、維修問題","p.5"],
+ ["3.45","方案二加權總分（第1）","p.10"],
+ ["2.96","方案一加權總分（第2）","p.10"],
+ ["0.25","人力配合度、工作效益度權重","p.10"],
+ ["0.15","技術整合度、財務承受度權重","p.10"],
+ ["0.1","永續發展度、政策支持度權重","p.10"],
+ ["8人","評分人數，1–5分取平均","p.10"],
+ ["24個月","試辦期程（兩年、每年四季）","p.13"],
+ ["10家","第一年招募機構","p.14"],
+ ["8家","第二年Q3前完成一項以上行政數位化並持續3個月","p.14"],
+ ["5家","第二年Q3前導入照顧紀錄或服務管理","p.14"],
+ ["80%","培訓人員實務操作測驗通過率","p.14"],
+ ["20%","第二年Q4數位化行政作業平均時間縮短","p.14"],
+ ["90%","CPI：進度、經費執行率、輔導場次","p.14"]
+];
+const CHIPS = ["經費","個資","3.45","84%","訪談","衛福部","雲市集","20%","權重","稻草人","缺人","串接","非營利","永續"];
+
+// ---- data ----
+let CARDS = [], SRC = {mode:"embed", at:""};
+function splitNames(s){ return (s||"").split(/[、,，\/／\s]+/).map(x=>x.trim()).filter(Boolean).map(n=>NAME2ID[n]||n); }
+function toCards(rows){
+  return rows.filter(r=>(r["題目"]||"").trim()).map(r=>{
+    const m=(r["主答"]||"").trim();
+    return { id:(r["編號"]||"").trim(), g:(r["分類"]||"").trim()||"其他", q:r["題目"].trim(),
+      k:(r["關鍵答"]||"").trim(), b:[r["要點1"],r["要點2"],r["要點3"]].map(x=>(x||"").trim()).filter(Boolean),
+      p:(r["頁碼"]||"").trim(), m: (m==="全員"||m==="")?"all":splitNames(m), h:splitNames(r["協答"]), kw:r["搜尋關鍵字"]||"" };
+  });
+}
+function parseCSV(t){
+  const out=[]; let row=[], f="", q=false;
+  for(let i=0;i<t.length;i++){ const c=t[i];
+    if(q){ if(c==='"'){ if(t[i+1]==='"'){f+='"';i++;} else q=false; } else f+=c; }
+    else if(c==='"') q=true; else if(c===','){row.push(f);f="";}
+    else if(c==='\n'){row.push(f);out.push(row);row=[];f="";} else if(c!=='\r') f+=c; }
+  if(f!==""||row.length){row.push(f);out.push(row);}
+  const h=out.shift()||[]; return out.map(r=>Object.fromEntries(h.map((k,i)=>[k.trim(),r[i]||""])));
+}
+function stamp(){ const d=new Date(); return (d.getMonth()+1)+"/"+d.getDate()+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
+function loadLocal(){
+  try{ const c=JSON.parse(localStorage.getItem("g5qa_cache")||"null"); if(c&&c.rows&&c.rows.length){ CARDS=toCards(c.rows); SRC={mode:"cache",at:c.at}; return true; } }catch(e){}
+  return false;
+}
+async function loadSheet(){
+  if(!CSV_URL) return;
+  try{
+    const r=await fetch(CSV_URL+"&_="+Date.now(),{cache:"no-store"});
+    if(!r.ok) throw 0;
+    const rows=parseCSV(await r.text());
+    if(!rows.length || !("題目" in rows[0])) throw 0;
+    CARDS=toCards(rows); SRC={mode:"live",at:stamp()};
+    try{ localStorage.setItem("g5qa_cache",JSON.stringify({rows,at:SRC.at})); }catch(e){}
+    render();
+  }catch(e){ if(SRC.mode==="live"){} else { SRC.fail=true; render(); } }
+}
+
+// ---- view ----
+let state={view:"all",who:"all",q:""};
+try{ const s=JSON.parse(localStorage.getItem("g5qa")||"{}"); if(s.who) state.who=s.who; }catch(e){}
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const nameOf=id=>(PEOPLE.find(p=>p.id===id)||{}).name||id;
+function fmt(text){
+  let t=esc(text);
+  t=t.replace(/\*\*(.+?)\*\*/g,'<b class="hl">$1</b>');
+  if(state.q){ const q=esc(state.q); t=t.split(/(<[^>]+>)/).map(seg=>seg.startsWith("<")?seg:seg.split(q).join("<mark>"+q+"</mark>")).join(""); }
+  return t;
+}
+function roleOf(c){
+  if(c.m==="all") return "all";
+  if(state.who==="all"||PRESENTERS.includes(state.who)) return null;
+  if(c.m.includes(state.who)) return "main";
+  if(c.h.includes(state.who)) return "help";
+  return "none";
+}
+function match(c){
+  if(!state.q) return true;
+  const hay=(c.q+c.k+c.b.join("")+c.kw+c.p).replace(/\*/g,"").toLowerCase();
+  return state.q.toLowerCase().split(/\s+/).every(w=>hay.includes(w));
+}
+function cardHTML(c){
+  const r=roleOf(c);
+  const owners=c.m==="all"?"全員":"主答 "+c.m.map(nameOf).join("、")+(c.h.length?"｜協答 "+c.h.map(nameOf).join("、"):"");
+  const tag=r==="main"?'<span class="role main">主答</span>':r==="help"?'<span class="role help">協答</span>':"";
+  return `<div class="card ${r==="main"?"main":r==="help"?"help":""}${state.q?" open":""}">
+    <button class="q"><span class="n">${esc(c.id)}</span><span class="t">${fmt(c.q)}</span>${tag}</button>
+    <div class="a">
+      ${c.k?`<p class="key">${fmt(c.k)}</p>`:""}
+      ${c.b.length?"<ul>"+c.b.map(x=>"<li>"+fmt(x)+"</li>").join("")+"</ul>":""}
+      <div class="meta">${c.p?`<span class="pg">${esc(c.p)}</span>`:""}<span class="ow">${esc(owners)}</span></div>
+    </div></div>`;
+}
+function syncHTML(){
+  if(!SHEET_ID) return "";
+  const txt = SRC.mode==="live" ? `<span><i class="dot"></i>已同步　${SRC.at}</span>` :
+              SRC.mode==="cache" ? `<span><i class="dot off"></i>${SRC.fail?"離線，":""}上次同步　${SRC.at}</span>` :
+              `<span><i class="dot off"></i>${SRC.fail?"讀不到試算表，用內建版":"同步中…"}</span>`;
+  return `<div class="sync">${txt}<a href="${EDIT_URL}" target="_blank" rel="noopener">編修擬答</a></div>`;
+}
+function numTable(list){ return '<div class="tbl"><table>'+list.map(n=>`<tr><td class="num">${n[0]}</td><td>${n[1]}</td><td class="p"><span>${n[2]}</span></td></tr>`).join("")+'</table></div>'; }
+function render(){
+  const m=$("#main"); drawPeople();
+  if(state.view==="nums"&&!state.q){
+    m.innerHTML=`<div class="sec">決策矩陣算式</div>
+      <div class="formula"><div>方案二　3.50×0.25＋3.63×0.15＋3.75×0.1＋3.63×0.25＋3.25×0.15＋2.63×0.1＝<b>3.45</b></div><div>方案一　3.25×0.25＋2.00×0.15＋1.88×0.1＋3.00×0.25＋3.13×0.15＋4.38×0.1＝<b>2.96</b></div></div>
+      <div class="sec">數字速查</div>${numTable(NUMS)}<p class="foot">頁碼依報告目次，請以紙本核對</p>`;
+    return;
+  }
+  const list=CARDS.filter(c=>{
+    if(state.view==="core"&&c.g==="防突襲") return false;
+    if(state.view==="ambush"&&c.g!=="防突襲") return false;
+    if(roleOf(c)==="none") return false;
+    return match(c);
+  });
+  const numHits=state.q?NUMS.filter(n=>n.join("").toLowerCase().includes(state.q.toLowerCase())):[];
+  let html=syncHTML();
+  if(!list.length&&!numHits.length){ m.innerHTML=html+'<p class="empty">沒有對應的題目，換個關鍵字試試</p>'; return; }
+  if(state.who!=="all"&&!PRESENTERS.includes(state.who)) html+='<div class="legend"><span><i style="background:var(--pri)"></i>你主答</span><span><i style="background:var(--slate-line)"></i>你協答</span></div>';
+  else if(PRESENTERS.includes(state.who)) html+='<div class="legend">報告人：顯示全部卡片</div>';
+  let g="";
+  list.forEach(c=>{ if(c.g!==g){ g=c.g; const n=list.filter(x=>x.g===g).length; html+=`<div class="sec${g==="防突襲"?" amb":""}">${esc(g)}<small>${n} 題</small></div>`; } html+=cardHTML(c); });
+  if(numHits.length) html+='<div class="sec">數字</div>'+numTable(numHits);
+  html+='<p class="foot">頁碼依報告目次，請以紙本核對</p>';
+  m.innerHTML=html;
+}
+// ---- events ----
+$("#main").addEventListener("click",e=>{ const b=e.target.closest(".q"); if(b) b.parentElement.classList.toggle("open"); });
+$("#q").addEventListener("input",e=>{ state.q=e.target.value.trim(); $("#clr").style.display=state.q?"block":"none";
+  document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",c.textContent===state.q)); render(); });
+$("#clr").onclick=()=>{ $("#q").value=""; $("#q").dispatchEvent(new Event("input")); };
+$("#chips").innerHTML=CHIPS.map(c=>`<button class="chip">${c}</button>`).join("");
+$("#chips").addEventListener("click",e=>{ const c=e.target.closest(".chip"); if(!c) return;
+  $("#q").value=state.q===c.textContent?"":c.textContent; $("#q").dispatchEvent(new Event("input")); window.scrollTo(0,0); });
+$("#nav").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; state.view=b.dataset.v;
+  document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("on",x===b));
+  if(state.q){ $("#q").value=""; state.q=""; $("#clr").style.display="none"; document.querySelectorAll(".chip").forEach(c=>c.classList.remove("on")); }
+  render(); window.scrollTo(0,0); });
+function counts(id){ let mm=0,hh=0; CARDS.forEach(c=>{ if(c.m!=="all"){ if(c.m.includes(id)) mm++; else if(c.h.includes(id)) hh++; } }); return [mm,hh]; }
+function drawPeople(){
+  $("#people").innerHTML=PEOPLE.map(p=>`<button data-id="${p.id}" class="${p.id===state.who?"on":""}">${p.id==="all"?"":`<i>${p.id}</i>`}${p.short}</button>`).join("");
+  const p=PEOPLE.find(x=>x.id===state.who)||PEOPLE[0];
+  let hint;
+  if(p.id==="all") hint="選自己，只看全員必會和你負責的題目";
+  else if(PRESENTERS.includes(p.id)) hint=`${p.name}｜報告人，顯示全部題目`;
+  else { const [mm,hh]=counts(p.id); hint=`${p.name}｜${p.note}・主答 ${mm} 題、協答 ${hh} 題`; }
+  $("#whoHint").textContent=hint;
+}
+$("#people").addEventListener("click",e=>{ const b=e.target.closest("button[data-id]"); if(!b) return;
+  state.who=b.dataset.id; try{localStorage.setItem("g5qa",JSON.stringify({who:state.who}))}catch(err){} render();
+  b.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"}); });
+
+if(!(SHEET_ID && loadLocal())){ CARDS=toCards(EMBED); }
+render();
+loadSheet();
+</script>
+</body>
+</html>
