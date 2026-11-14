@@ -5,11 +5,12 @@
 .fill-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
 .fill-field { display: grid; gap: 4px; align-content: start; line-height: 1.5; font-weight: 700; color: var(--ink); font-size: 0.92rem; }
 .fill-field.wide { grid-column: 1 / -1; }
-.fill-field input {
+.fill-field input, .fill-field select {
   min-height: 42px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
   background: var(--surface); color: var(--ink); font: inherit; font-weight: 500;
 }
-.fill-field input:focus-visible { outline: 3px solid var(--blue-soft); border-color: var(--action-border); }
+.fill-field select { cursor: pointer; }
+.fill-field input:focus-visible, .fill-field select:focus-visible { outline: 3px solid var(--blue-soft); border-color: var(--action-border); }
 .fill-note { margin: 0 0 14px; padding: 10px 12px; border-radius: 8px; background: var(--soft); color: var(--muted); font-size: 0.88rem; line-height: 1.6; }
 .fill-actions { display: grid; gap: 10px; }
 .fill-actions .fill-secondary { display: flex; gap: 10px; justify-content: space-between; flex-wrap: wrap; }
@@ -35,5 +36,5 @@
 .fill-chip button:hover, .fill-chip button:focus-visible { color: var(--blue-dark); text-decoration-color: currentColor; }
 /* 口試資訊（3.0.9）：日期、開始時間、教室一列三欄，教室欄窄一點 */
 .fill-grid.fill-exam { grid-template-columns: 1.3fr 1fr 0.7fr; margin-top: -2px; }
-.fill-grid.fill-exam .fill-field, .fill-grid.fill-exam input { min-width: 0; width: 100%; box-sizing: border-box; }
+.fill-grid.fill-exam .fill-field, .fill-grid.fill-exam input, .fill-grid.fill-exam select { min-width: 0; width: 100%; box-sizing: border-box; }
 @media (max-width: 560px) { .fill-grid, .fill-grid.fill-exam { grid-template-columns: 1fr; } }
