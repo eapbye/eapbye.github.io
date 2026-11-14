@@ -5389,3 +5389,14 @@
       font-weight: 800;
       cursor: pointer;
     }
+
+/* ===== 巡檢修正（2026-11-14）：「已完成」標籤可再點一下取消 ===== */
+button.document-status.is-undoable {
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 950;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+button.document-status.is-undoable:hover { filter: brightness(0.96); }
+button.document-status.is-undoable:focus-visible { outline: 2px solid var(--done); outline-offset: 2px; }

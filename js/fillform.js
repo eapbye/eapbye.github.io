@@ -1,5 +1,6 @@
 /* 自動填表：點擊可填的 .odt 表單時，第一次跳出小視窗收集基本資料，
-   之後每份表單都直接下載「已填好」的版本。資料只存在這台電腦的瀏覽器（localStorage），不會上傳。
+   之後每份表單都直接下載「已填好」的版本。已存過資料時，每次打開網站的第一次下載仍會先跳窗讓學生確認
+   （公用電腦上才不會直接拿到上一位同學的資料），確認後這次瀏覽不再跳。資料只存在這台電腦的瀏覽器（localStorage），不會上傳。
    依賴：js/odtfill.js（fillOdt）。 */
 (function (global) {
   var KEY = "eapFillProfile_v1";
@@ -16,6 +17,7 @@
     "documents/defense/aigc-detection-report.odt"
   ];
   var skippedThisVisit = false; // 選過「不填」後，這次瀏覽不再一直跳窗
+  var confirmedThisVisit = false; // 這次瀏覽已看過（確認過）存著的資料；公用電腦上才不會拿到上一位的資料
   var pending = null;           // 等彈窗結果的那次下載
 
   function $(s) { return document.querySelector(s); }
@@ -31,6 +33,9 @@
   function save(p) { try { localStorage.setItem(KEY, JSON.stringify(p)); } catch (e) { /* 無法儲存時仍可使用這一次 */ } }
   function clear() { try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ } }
   function clean(v) { return String(v == null ? "" : v).replace(/[\s　]+/g, " ").trim(); }
+  // 學號、手機、e-mail：全形英數（注音輸入法的全形模式）一律轉半形；姓名與題目不轉，免得動到中文標點
+  var HALF = { sid: 1, phone: 1, email: 1 };
+  function half(v) { return String(v).replace(/[\uff01-\uff5e]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xfee0); }).replace(/\u3000/g, " "); }
   function hasAny(p) { return !!p && FIELDS.some(function (k) { return clean(p[k]); }); }
 
   function triggerDownload(href, name) {
@@ -64,15 +69,16 @@
 
   function readForm() {
     var p = {};
-    FIELDS.forEach(function (k) { p[k] = clean($("#fill_" + k).value); });
+    FIELDS.forEach(function (k) { var v = $("#fill_" + k).value; p[k] = clean(HALF[k] ? half(v) : v); });
     return p;
   }
 
   function openModal(editOnly) {
-    var p = load() || {};
+    var saved = load();
+    var p = saved || {};
     FIELDS.forEach(function (k) { $("#fill_" + k).value = p[k] || ""; });
     $("#fillModal").classList.toggle("is-edit", !!editOnly);
-    $("#fillTitle").textContent = editOnly ? "修改我的基本資料" : "要幫你填好表單嗎？";
+    $("#fillTitle").textContent = editOnly ? "修改我的基本資料" : (hasAny(saved) ? "確認你的基本資料" : "要幫你填好表單嗎？");
     $("#fillSubmit").textContent = editOnly ? "儲存" : "下載已填好的表";
     $("#fillClear").hidden = !load();
     $("#fillModal").classList.remove("hidden");
@@ -102,6 +108,7 @@
       e.preventDefault();
       var p = readForm();
       save(p);
+      confirmedThisVisit = true;
       renderChip();
       var job = pending;
       var edit = modal.classList.contains("is-edit");
@@ -133,7 +140,7 @@
     link.addEventListener("click", function (e) {
       e.preventDefault();
       var p = load();
-      if (hasAny(p)) { run(href, downloadName, p, onDone); return; }
+      if (hasAny(p) && confirmedThisVisit) { run(href, downloadName, p, onDone); return; }
       if (skippedThisVisit) { run(href, downloadName, null, onDone); return; }
       pending = { href: href, name: downloadName, onDone: onDone };
       openModal(false);

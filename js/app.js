@@ -162,7 +162,7 @@
       const mode = activeMode();
       const savedGraduationTasks = state.graduationTasks;
       const savedGraduationCompletion = state.graduationCompletion;
-      localStorage.removeItem(STORAGE_KEY);
+      storeRemove(STORAGE_KEY);
       Object.keys(state).forEach((key) => delete state[key]);
       if (savedGraduationTasks) state.graduationTasks = savedGraduationTasks;
       if (savedGraduationCompletion) state.graduationCompletion = savedGraduationCompletion;
@@ -669,9 +669,18 @@
       number.textContent = index + 1;
       const title = document.createElement("strong");
       title.textContent = doc.title;
-      const status = document.createElement("span");
+      // 下載就標「已完成」；誤點時可以再點一下標籤取消（只限有下載檔的文件，手動確認的文件本來就有取消鈕）
+      const undoable = done && doc.word && !locked && !isDownloadUnavailable(doc.word[1]);
+      const status = document.createElement(undoable ? "button" : "span");
       status.className = "document-status";
       status.textContent = isInfoOnly ? (doc.status || "提醒") : (done ? "已完成" : "待完成");
+      if (undoable) {
+        status.type = "button";
+        status.classList.add("is-undoable");
+        status.title = "再點一下改回待完成";
+        status.setAttribute("aria-label", "已完成，按一下改回待完成");
+        status.addEventListener("click", () => toggleDone(doc.id, { scroll: false }));
+      }
       const titleWrap = document.createElement("div");
       titleWrap.className = "document-title-wrap";
       titleWrap.append(title);
@@ -1302,7 +1311,7 @@
     }
 
     function wasPromptSeenRecently(key, intervalMs) {
-      const raw = localStorage.getItem(key);
+      const raw = storeGet(key);
       if (!raw) return false;
       const seenAt = Number(raw);
       if (!Number.isFinite(seenAt) || seenAt <= 0) {
@@ -1313,7 +1322,7 @@
     }
 
     function markPromptSeen(key) {
-      localStorage.setItem(key, String(Date.now()));
+      storeSet(key, String(Date.now()));
     }
 
     function showGraduation() {
@@ -1961,16 +1970,21 @@
       });
     }
 
+    // 瀏覽器封鎖網站資料（或無痕等限制）時，讀寫 localStorage 會丟錯；一律吞掉，網站照常可用，只是不記進度
+    function storeGet(key) { try { return localStorage.getItem(key); } catch { return null; } }
+    function storeSet(key, value) { try { localStorage.setItem(key, value); } catch { /* 存不了就算了 */ } }
+    function storeRemove(key) { try { localStorage.removeItem(key); } catch { /* ignore */ } }
+
     function saveState() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      storeSet(STORAGE_KEY, JSON.stringify(state));
     }
 
     function loadState() {
       try {
-        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+        const saved = JSON.parse(storeGet(STORAGE_KEY) || "{}");
         return saved && typeof saved === "object" ? saved : {};
       } catch {
-        localStorage.removeItem(STORAGE_KEY);
+        storeRemove(STORAGE_KEY);
         return {};
       }
     }

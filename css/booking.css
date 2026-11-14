@@ -38,6 +38,8 @@
 /* 指導教授（2026-11-14）：與日期欄同寬；選「其他」時下方出現文字欄 */
 .booking-people { display: grid; grid-template-columns: 190px 190px; justify-content: start; align-items: start; gap: 12px; }
 .booking-other { margin-top: 6px; }
+/* 電腦版沒有自動填表資料時多出姓名、學號兩欄（2026-11-14 巡檢修正）：輸入欄填滿欄寬，不互相重疊 */
+.booking-people .booking-field input { width: 100%; min-width: 0; box-sizing: border-box; }
 .booking-other[hidden] { display: none; }
 .booking-actions { gap: 10px; }
 .booking-share {

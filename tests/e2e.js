@@ -751,14 +751,22 @@ test('續辦首頁：有進度的流程卡片顯示完成數；沒進度不顯�
   assert.deepStrictEqual(page.errors, []);
 });
 
-test('自動填表：已有資料時走完整個流程，所有可填表單都直接下載、不跳窗', async (b, base) => {
+test('自動填表：已有資料時，這次瀏覽第一次下載先確認，之後走完整個流程都直接下載、不跳窗', async (b, base) => {
   const page = await newPage(b, base);
   await page.context().addInitScript(([k, v]) => { if (!localStorage.getItem('__fillseeded')) { localStorage.setItem(k, v); localStorage.setItem('__fillseeded', '1'); } }, [FILL_KEY, JSON.stringify(PROFILE)]);
   const downloads = [];
   page.on('download', (d) => downloads.push(d));
   await openQualification(page);
   await retry(page, () => page.locator('.qualification-download').click());
+  // 第一次：跳出「確認你的基本資料」，欄位已帶好；按下載即可
+  await page.waitForSelector('#fillModal:not(.hidden)');
+  assert.strictEqual(await page.locator('#fillTitle').innerText(), '確認你的基本資料');
+  assert.strictEqual(await page.inputValue('#fill_name'), PROFILE.name);
+  assert.ok(await page.locator('#fillClear').isVisible(), '確認時要能清除上一位的資料');
+  await page.click('#fillSubmit');
   await page.waitForSelector('.qualification-question');
+  // 之後不應再跳窗：記錄填表視窗打開的次數
+  await page.evaluate(() => { window.__fillOpens = 0; const m = document.querySelector('#fillModal'); new MutationObserver(() => { if (!m.classList.contains('hidden')) window.__fillOpens++; }).observe(m, { attributes: true, attributeFilter: ['class'] }); });
   await retry(page, () => page.locator('.qualification-question label').nth(0).click());
   await page.waitForTimeout(500);
   await greedyWalk(page);
@@ -767,6 +775,108 @@ test('自動填表：已有資料時走完整個流程，所有可填表單都�
   assert.ok(downloads.length >= 4, `應有多份下載，實際 ${downloads.length}`);
   assert.ok(downloads.every((d) => d.suggestedFilename().endsWith('.odt') || d.suggestedFilename().endsWith('.docx')), '下載副檔名異常');
   assert.ok(!(await fillModalOpen(page)));
+  assert.strictEqual(await page.evaluate(() => window.__fillOpens), 0, '確認過後同一次瀏覽不應再跳填表視窗');
+  assert.deepStrictEqual(page.errors, []);
+});
+
+// ===== 錯誤路徑巡檢修正（2026-11-14）=====
+test('巡檢：瀏覽器封鎖網站資料（localStorage 丟錯）時，網站照常可用，只是不記進度', async (b, base) => {
+  const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, acceptDownloads: true });
+  await ctx.addInitScript(() => { Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('blocked', 'SecurityError'); } }); });
+  const page = await ctx.newPage(); const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message)); page.on('dialog', (d) => d.accept()); page.setDefaultTimeout(6000); page.base = base; page.errors = errors;
+  await openHome(page); await dismissModals(page);
+  await enterMode(page, 'proposal');
+  assert.ok(await page.locator('#workflowTitle').isVisible(), '封鎖網站資料時仍要進得了流程');
+  const label = await page.evaluate(() => baseFlow.precheck.passedLabel);
+  await retry(page, () => page.getByText(label, { exact: false }).first().click());
+  await page.waitForSelector('.qualification-download');
+  assert.deepStrictEqual(errors, []);
+  await ctx.close();
+});
+
+test('巡檢：公用電腦——上一位的資料不會直接被帶進表單，可清除；全形學號轉半形', async (b, base) => {
+  const page = await newPage(b, base);
+  await page.context().addInitScript(([k, v]) => { if (!localStorage.getItem('__fillseeded')) { localStorage.setItem(k, v); localStorage.setItem('__fillseeded', '1'); } }, [FILL_KEY, JSON.stringify(PROFILE)]);
+  await openQualification(page);
+  await retry(page, () => page.locator('.qualification-download').click());
+  await page.waitForSelector('#fillModal:not(.hidden)');
+  await page.click('#fillClear');
+  assert.strictEqual(await page.inputValue('#fill_name'), '', '清除後欄位應清空');
+  assert.strictEqual(await page.evaluate((k) => localStorage.getItem(k), FILL_KEY), null, '清除後不應留存資料');
+  await page.fill('#fill_name', '乙同學'); await page.fill('#fill_sid', '１１３１７１００９'); await page.fill('#fill_phone', '０９１２３４５６７８'); await page.fill('#fill_title', '論文：測試（一）');
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#fillSubmit')]);
+  const saved = JSON.parse(await page.evaluate((k) => localStorage.getItem(k), FILL_KEY));
+  assert.strictEqual(saved.sid, '113171009', '全形學號應轉成半形');
+  assert.strictEqual(saved.phone, '0912345678', '全形手機應轉成半形');
+  assert.strictEqual(saved.title, '論文：測試（一）', '題目的全形標點不可被轉換');
+  const xml = (await readDownload(dl)).xml;
+  assert.ok(xml.includes('乙同學') && !xml.includes(PROFILE.name), '下載的表單只能有新的資料');
+  assert.strictEqual(await page.evaluate(() => RoomBooking.draft('x', { sid: '１１３１７１００９' }).includes('教政所113級')), true, '舊資料是全形學號也能算出級數');
+  assert.deepStrictEqual(page.errors, []);
+});
+
+test('巡檢：下載後「已完成」可以再點一下取消，步驟跟著退回', async (b, base) => {
+  const page = await newPage(b, base);
+  await openQualification(page);
+  await retry(page, () => page.locator('.qualification-download').click());
+  await dismissModals(page);
+  await page.waitForSelector('.qualification-question');
+  await retry(page, () => page.locator('.qualification-question label').nth(0).click());
+  await page.waitForTimeout(300);
+  await retry(page, () => page.locator('#stepsList button.step-done-action:not([disabled])').first().click());
+  const item = page.locator('#stepsList .document-item:not(.is-info):not(.is-locked)').first();
+  await item.waitFor();
+  assert.strictEqual(await item.locator('.document-status').evaluate((e) => e.tagName), 'SPAN', '待完成時標籤不可點');
+  await Promise.all([page.waitForEvent('download'), retry(page, () => item.locator('a.download-link').first().click())]);
+  await dismissModals(page);
+  const id = await item.getAttribute('data-doc-id');
+  const done = page.locator(`#stepsList .document-item[data-doc-id="${id}"]`);
+  await page.waitForFunction((i) => document.querySelector(`#stepsList .document-item[data-doc-id="${i}"]`).classList.contains('is-done'), id);
+  assert.strictEqual(await done.locator('.document-status').evaluate((e) => e.tagName), 'BUTTON', '已完成的標籤要可以點');
+  await done.locator('button.document-status').click();
+  await page.waitForTimeout(200);
+  assert.ok(!(await done.evaluate((e) => e.classList.contains('is-done'))), '點了應改回待完成');
+  assert.strictEqual(await done.locator('.document-status').innerText(), '待完成');
+  assert.strictEqual(JSON.parse(await page.evaluate((k) => localStorage.getItem(k), STORAGE_KEY)).done[id], false, '取消要存進進度');
+  assert.deepStrictEqual(page.errors, []);
+});
+
+test('巡檢：預約訊息——結束選得比開始早自動修正、晚場可選到 22:00、沒填完複製會提醒、電腦版沒資料時可補姓名學號', async (b, base) => {
+  const page = await newPage(b, base, { });
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+  await openHome(page); await dismissModals(page);
+  const out = await page.evaluate(async () => {
+    localStorage.removeItem(FillForm._KEY);
+    const box = RoomBooking.build('學位論文計畫口試'); document.body.append(box); box.open = true; box.dispatchEvent(new Event('toggle'));
+    const area = box.querySelector('textarea');
+    const inputs = box.querySelectorAll('.booking-people input[type=text]:not(.booking-other)');
+    const sel = box.querySelectorAll('.booking-grid select');
+    const set = (el, v, ev = 'change') => { el.value = v; el.dispatchEvent(new Event(ev, { bubbles: true })); };
+    set(sel[0], '14:00'); set(sel[1], '10:00');
+    const reversed = sel[1].value;
+    set(sel[0], '21:00'); const late = sel[1].value;
+    const copy = box.querySelector('.booking-copy');
+    copy.click(); await new Promise((r) => setTimeout(r, 300)); const copiedUnfinished = copy.textContent;
+    set(inputs[0], '王小明', 'input'); set(inputs[1], '１１３１７１００９', 'input');
+    set(box.querySelector('input[type=date]'), '2027-03-10', 'input');
+    set(box.querySelector('.booking-people select'), '吳政達');
+    await new Promise((r) => setTimeout(r, 2800));
+    copy.click(); await new Promise((r) => setTimeout(r, 300)); const copiedDone = copy.textContent;
+    const range = [...sel].map((x) => [x.options[1].value, x.options[x.options.length - 1].value].join('-'));
+    const r = { range, fields: inputs.length, reversed, late, copiedUnfinished, copiedDone, text: area.value }; box.remove();
+    localStorage.setItem(FillForm._KEY, JSON.stringify({ name: '郭哲宇', sid: '113171009' }));
+    const box2 = RoomBooking.build('學位論文計畫口試'); r.fieldsWithProfile = box2.querySelectorAll('.booking-people input[type=text]:not(.booking-other)').length;
+    return r;
+  });
+  assert.deepStrictEqual(out.range, ['08:00-22:00', '08:00-22:00'], '開始、結束都可選 08:00～22:00（R 指定）');
+  assert.strictEqual(out.fields, 2, '電腦版沒有基本資料時要有姓名、學號兩欄');
+  assert.strictEqual(out.fieldsWithProfile, 0, '已有姓名學號時電腦版不多出欄位');
+  assert.strictEqual(out.reversed, '16:00', '結束早於開始時自動改成開始＋2 小時');
+  assert.strictEqual(out.late, '22:00', '21:00 開始，結束要能選到 22:00');
+  assert.strictEqual(out.copiedUnfinished, '已複製（還有空白要補）');
+  assert.strictEqual(out.copiedDone, '已複製，可以貼到 LINE 或信件');
+  assert.ok(out.text.includes('教政所113級的王小明（學號：113171009）'), out.text);
   assert.deepStrictEqual(page.errors, []);
 });
 

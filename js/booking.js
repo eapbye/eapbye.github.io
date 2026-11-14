@@ -13,9 +13,10 @@
   function pad(n) { return (n < 10 ? "0" : "") + n; }
   function circles(n) { return new Array(n + 1).join("○"); }
 
-  function timeOptions() {
+  // 開始、結束都是 08:00～22:00（R 11/14 指定）；開始＋2 小時最晚到 22:00
+  function timeOptions(first, last) {
     var out = [];
-    for (var m = 8 * 60; m <= 21 * 60 + 30; m += 30) out.push(pad(Math.floor(m / 60)) + ":" + pad(m % 60));
+    for (var m = first; m <= last; m += 30) out.push(pad(Math.floor(m / 60)) + ":" + pad(m % 60));
     return out;
   }
   function plusMinutes(hhmm, add) {
@@ -28,6 +29,8 @@
     try { return (global.FillForm && global.FillForm._load && global.FillForm._load()) || {}; } catch (e) { return {}; }
   }
   function clean(v) { return String(v == null ? "" : v).replace(/[\s　]+/g, " ").trim(); }
+  // 全形數字轉半形（學號用；舊資料或手機全形輸入也能算出級數）
+  function halfDigits(v) { return String(v == null ? "" : v).replace(/[０-９]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xfee0); }); }
 
   // 沒選日期：年份用今年，月日以 ○ 佔位
   function dateText(v) {
@@ -49,7 +52,7 @@
   // 產生訊息本文（純函式，方便測試）。格式依 R 提供的範本（給莊姐、借 303 教室）
   function draft(kind, s) {
     var name = clean(s.name) || circles(3);
-    var sid = clean(s.sid);
+    var sid = clean(halfDigits(s.sid));
     var advisors = (s.advisors || []).map(clean).filter(Boolean);
     var advisorText = advisors.length ? advisors.map(function (a) { return a + "老師"; }).join("、") : circles(3) + "老師";
     return [
@@ -106,9 +109,10 @@
     box.append(summary);
     var body = el("div", "booking-body");
 
+    // 姓名、學號：手機獨立視窗一律顯示；電腦版只在自動填表沒有姓名或學號時顯示（選過「不填」的同學才有地方補）
     var who = null, nameIn = null, sidIn = null;
-    if (opts.standalone) {
-      var p0 = profile();
+    var p0 = profile();
+    if (opts.standalone || !clean(p0.name) || !clean(p0.sid)) {
       nameIn = el("input"); nameIn.type = "text"; nameIn.id = uid + "n"; nameIn.autocomplete = "name"; nameIn.value = p0.name || "";
       sidIn = el("input"); sidIn.type = "text"; sidIn.id = uid + "i"; sidIn.inputMode = "numeric"; sidIn.maxLength = 9; sidIn.value = p0.sid || "";
       who = el("div", "booking-people");
@@ -121,9 +125,10 @@
     var d0 = new Date(); date.min = d0.getFullYear() + "-" + pad(d0.getMonth() + 1) + "-" + pad(d0.getDate());
     var start = el("select"); start.id = uid + "s";
     var end = el("select"); end.id = uid + "e";
-    [start, end].forEach(function (sel) {
+    [[start, 8 * 60, 22 * 60], [end, 8 * 60, 22 * 60]].forEach(function (x) {
+      var sel = x[0];
       var o = el("option", "", "選擇"); o.value = ""; sel.append(o);
-      timeOptions().forEach(function (t) { var op = el("option", "", t); op.value = t; sel.append(op); });
+      timeOptions(x[1], x[2]).forEach(function (t) { var op = el("option", "", t); op.value = t; sel.append(op); });
     });
 
     var grid = el("div", "booking-grid");
@@ -160,13 +165,18 @@
       area.value = draft(kind, { name: name, sid: sid, advisors: [adv1.value()], date: date.value, start: start.value, end: end.value });
       fit();
     }
-    start.addEventListener("change", function () { if (start.value && !end.value) end.value = plusMinutes(start.value, 120); refresh(); });
+    // 選了開始而結束沒選、或結束不晚於開始（選反了）：結束自動改成開始＋2 小時
+    function fixEnd() { if (start.value && (!end.value || end.value <= start.value)) end.value = plusMinutes(start.value, 120); }
+    start.addEventListener("change", function () { fixEnd(); refresh(); });
+    end.addEventListener("change", fixEnd);
     [date, end, adv1.sel, adv1.input].concat(nameIn ? [nameIn, sidIn] : []).forEach(function (c) { c.addEventListener("input", refresh); c.addEventListener("change", refresh); });
     box.addEventListener("toggle", function () { if (box.open) refresh(); });
     var timer = null;
     copy.addEventListener("click", function () {
       copyText(area.value, area, function (ok) {
-        copy.textContent = ok ? "已複製，可以貼到 LINE 或信件" : "請長按文字框全選後複製";
+        // 訊息裡還有 ○ 或 0 佔位（沒選的欄位）：照樣複製，但提醒還有空白要補
+        var unfinished = /○|000000000|00:00/.test(area.value);
+        copy.textContent = !ok ? "請長按文字框全選後複製" : (unfinished ? "已複製（還有空白要補）" : "已複製，可以貼到 LINE 或信件");
         clearTimeout(timer);
         timer = setTimeout(function () { copy.textContent = "複製這段訊息"; }, 2600);
       });
