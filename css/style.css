@@ -5400,3 +5400,33 @@ button.document-status.is-undoable {
 }
 button.document-status.is-undoable:hover { filter: brightness(0.96); }
 button.document-status.is-undoable:focus-visible { outline: 2px solid var(--done); outline-offset: 2px; }
+
+/* ===== 最後確認清單：短名、簽名跟著那一格（3.0.9） ===== */
+.inventory-chip {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 10px;
+  min-height: 58px;
+  background: #ffffff;
+}
+.inventory-main { display: grid; align-content: center; gap: 2px; min-width: 0; }
+.inventory-label { font-size: 1.05rem; letter-spacing: 0.02em; }
+.inventory-hint { color: #7a8ca3; font-size: 0.8rem; font-weight: 700; line-height: 1.35; }
+.inventory-sign { color: #b03a55; font-size: 0.8rem; font-weight: 850; line-height: 1.35; }
+.inventory-side { display: grid; justify-items: end; align-content: center; gap: 4px; align-self: stretch; }
+.inventory-tag,
+.inventory-day {
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  font-weight: 850;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.inventory-tag { background: rgba(43, 120, 182, 0.1); color: #2f6fb8; }
+.inventory-day { background: #eef1f5; color: #6a7a90; }
+.inventory-qty { color: #d0602a; font-size: 1rem; font-weight: 950; }
+.inventory-chip.is-lead { border: 2px solid #2f80d8; background: #f7fbff; }
+.inventory-chip.is-lead .inventory-tag { background: #2f80d8; color: #ffffff; }
+.inventory-chip.is-checked .inventory-sign,
+.inventory-chip.is-checked .inventory-hint { color: #8a97a8; }

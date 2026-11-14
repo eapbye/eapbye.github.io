@@ -43,7 +43,6 @@
       width: 100%;
       height: auto;
       overflow: visible;
-      filter: drop-shadow(0 18px 24px rgba(79, 31, 53, .16));
     }
 
     .float { animation: float 3s ease-in-out infinite; transform-origin: center; }
@@ -79,6 +78,10 @@
       0%, 100% { opacity: .55; transform: scale(.9); }
       50% { opacity: 1; transform: scale(1.18); }
     }
+      .blink { animation: blink 4.2s infinite; transform-box: fill-box; transform-origin: center; }
+    @keyframes blink { 0%, 90%, 100% { transform: scaleY(1); } 93% { transform: scaleY(.08); } 96% { transform: scaleY(1); } }
+    .wiggle { animation: wiggle 4.2s ease-in-out infinite; transform-origin: 260px 330px; }
+    @keyframes wiggle { 0%, 60%, 100% { transform: rotate(0); } 70% { transform: rotate(-3deg); } 80% { transform: rotate(2deg); } 88% { transform: rotate(0); } }
   </style>
       <defs>
         <linearGradient id="skinGrad" x1="0" y1="0" x2="0" y2="1">
@@ -118,7 +121,7 @@
         <path class="line" d="M178 332 C206 326 235 334 260 365 C231 368 202 362 184 344 Z" fill="var(--collar)" />
         <path class="line" d="M342 332 C314 326 285 334 260 365 C289 368 318 362 336 344 Z" fill="var(--collar)" />
 
-        <!-- 耳朵 -->
+        <g class="wiggle"><!-- 耳朵 -->
         <ellipse class="line" cx="143" cy="238" rx="28" ry="36" fill="var(--skin)" />
         <ellipse class="line" cx="377" cy="238" rx="28" ry="36" fill="var(--skin)" />
         <path class="soft-line" d="M139 232 C151 232 153 250 141 258" />
@@ -139,13 +142,14 @@
         <path class="thin-line" d="M310 100 C336 127 352 159 360 195" stroke="rgba(255,255,255,.20)" fill="none" />
 
         <!-- 臉部：眼鏡、眼睛、腮紅、嘴巴 -->
-        <ellipse cx="214" cy="228" rx="19" ry="23" fill="var(--eye)" />
+        <g class="blink"><ellipse cx="214" cy="228" rx="19" ry="23" fill="var(--eye)" />
         <ellipse cx="306" cy="228" rx="19" ry="23" fill="var(--eye)" />
         <circle cx="207" cy="219" r="6" fill="white" />
         <circle cx="299" cy="219" r="6" fill="white" />
         <circle cx="221" cy="238" r="4" fill="rgba(255,255,255,.7)" />
         <circle cx="313" cy="238" r="4" fill="rgba(255,255,255,.7)" />
 
+        </g>
         <ellipse class="thin-line" cx="214" cy="228" rx="39" ry="28" fill="rgba(255,255,255,.12)" stroke="var(--glasses)" />
         <ellipse class="thin-line" cx="306" cy="228" rx="39" ry="28" fill="rgba(255,255,255,.12)" stroke="var(--glasses)" />
         <path class="thin-line" d="M253 227 H267" stroke="var(--glasses)" />
@@ -158,6 +162,7 @@
         <path d="M227 290 C244 312 277 312 294 290" fill="none" stroke="var(--mouth)" stroke-width="8" stroke-linecap="round" />
         <path d="M237 296 C251 306 270 306 283 296 C273 318 248 318 237 296 Z" fill="#ff9aaa" opacity=".75" />
 
+        </g>
         <!-- 可愛點綴 -->
         <path class="sparkle" d="M93 138 L104 164 L130 175 L104 186 L93 212 L82 186 L56 175 L82 164 Z" fill="#fff" opacity=".9" />
         <path class="sparkle second" d="M424 160 L432 178 L450 186 L432 194 L424 212 L416 194 L398 186 L416 178 Z" fill="#fff" opacity=".9" />

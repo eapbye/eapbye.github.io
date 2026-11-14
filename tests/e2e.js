@@ -605,17 +605,21 @@ test('3.1 步驟：鎖住的步驟收成一列（無內容、有小鎖），解�
   await page.locator('text=我已修業滿 18 學分').click(); await dismissModals(page);
   // 有進度後按重設：取消則保留
   const before = await page.locator('#progressText, .progress-meter span').first().innerText();
-  page.removeAllListeners('dialog');
-  let asked = '';
-  page.once('dialog', (d) => { asked = d.message(); d.dismiss(); });
+  // 3.0.9 起用站內確認視窗（#confirmModal），不再用瀏覽器內建 confirm
   await page.click('#resetProgress');
   await page.waitForTimeout(200);
-  if (before.trim().startsWith('0')) assert.strictEqual(asked, '', '沒有進度時不需確認');
+  const askedOpen = await page.locator('#confirmModal:not(.hidden)').count();
+  if (before.trim().startsWith('0')) assert.strictEqual(askedOpen, 0, '沒有進度時不需確認');
   else {
-    assert.ok(asked.includes('重設'), '有進度時重設應先確認');
+    assert.ok(askedOpen && (await page.locator('#confirmTitle').innerText()).includes('重設'), '有進度時重設應先確認');
+    await page.click('#confirmCancel');
+    assert.ok(await page.locator('#confirmModal.hidden').count(), '按「先不要」關閉確認視窗');
     assert.strictEqual(await page.locator('#progressText, .progress-meter span').first().innerText(), before, '取消後進度不變');
+    await page.click('#resetProgress');
+    await page.click('#confirmOk');
+    await page.waitForTimeout(200);
+    assert.ok((await page.locator('#progressText, .progress-meter span').first().innerText()).trim().startsWith('0'), '確定重設後進度歸零');
   }
-  page.on('dialog', (d) => d.accept());
   assert.deepStrictEqual(page.errors, []);
 });
 
@@ -736,15 +740,16 @@ test('續辦首頁：有進度的流程卡片顯示完成數；沒進度不顯�
   const back = await page.locator('.mode-card[data-mode="defense"] .mode-status').innerText();
   assert.strictEqual(back, `繼續上次進度（${bar.replace('/', ' / ')}）`);
   // 改選另一個流程：先確認；取消就保留，同意才清除
-  let asked = '';
-  page.removeAllListeners('dialog');
-  page.once('dialog', (d) => { asked = d.message(); d.dismiss(); });
   await page.click('.mode-card[data-mode="proposal"]');
-  assert.ok(asked.includes('清除') , '應先跳出確認：' + asked);
+  await page.waitForSelector('#confirmModal:not(.hidden)');
+  const asked = await page.locator('#confirmMessage').innerText();
+  assert.ok(asked.includes('清除'), '應先跳出確認：' + asked);
+  await page.keyboard.press('Escape');
+  assert.ok(await page.locator('#confirmModal.hidden').count(), 'Esc 關閉確認視窗＝取消');
   assert.ok(!(await page.locator('body').evaluate((el) => el.classList.contains('workflow-open'))), '取消後仍在首頁');
   assert.ok((await page.locator('.mode-card[data-mode="defense"] .mode-status').innerText()).startsWith('繼續上次進度'), '取消後進度還在');
-  page.once('dialog', (d) => d.accept());
   await page.click('.mode-card[data-mode="proposal"]');
+  await page.click('#confirmOk');
   await page.waitForSelector('body.workflow-open');
   await page.click('#backToModes');
   assert.strictEqual(await page.locator('.mode-card[data-mode="defense"] .mode-status').innerText(), '點擊進入', '同意切換後，舊流程進度已清除');

@@ -192,13 +192,20 @@ def check(root):
         if before.endswith("原創比對（") and (after.startswith("）證明表") or after.startswith("）全文電子")):
             continue
         add("INFO", f"Turnitin 單獨出現（請人確認是否合理）：{loc_line(m.start())}")
+    def is_short_display(pos):
+        # 最後確認清單（app.js 的 INVENTORY_DISPLAY）刻意用短名，那幾行不算漏寫全名
+        line = where(idx, segs, pos)[2]
+        return "short: \"" in line
+
     for m in re.finditer("AIGC", idx):
         s = idx[max(0, m.start() - 4):m.end() + 5]
-        if s != AIGC_FULL:
+        if s != AIGC_FULL and not is_short_display(m.start()):
             add("WARN", f"AIGC 未用全名「{AIGC_FULL}」：{loc_line(m.start())}")
     for m in re.finditer("成績單", idx):
         # 「高普特考及格證明影本或成績單」是考試成績，不是歷年成績單，屬正常寫法
         if idx[max(0, m.start() - 2):m.start()] == "歷年" or idx[max(0, m.start() - 11):m.start()] == "高普特考及格證明影本或":
+            continue
+        if is_short_display(m.start()):
             continue
         if True:
             add("WARN", f"「成績單」前面沒有「歷年」：{loc_line(m.start())}")

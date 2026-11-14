@@ -1,0 +1,189 @@
+/* ===== 彈窗統一（3.0.9） =====
+   提醒型（.remind-card）：左邊莊姐、右邊小標籤＋標題＋說明，按鈕靠右。
+   選擇型：標題列＋右上圓形 ✕（.modal-x）。
+   共通：頂端色帶（border-top）、實心膠囊主按鈕、淡藍遮罩。紅色只給「確定重設」「清除我的資料」。 */
+
+.info-modal,
+.celebration-modal {
+  background: rgba(34, 64, 104, 0.26);
+  -webkit-backdrop-filter: blur(6px) saturate(1.1);
+  backdrop-filter: blur(6px) saturate(1.1);
+  animation: modalFade 0.16s ease-out;
+}
+#confirmModal { z-index: 30; }
+
+@keyframes modalFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modalRise { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }
+
+.info-card,
+.celebration-card {
+  --ac: #2f80d8;
+  --ac-soft: #eaf3fd;
+  --ac-dark: #1d4f8f;
+  position: relative;
+  border: 1px solid rgba(160, 190, 225, 0.55);
+  border-top: 6px solid var(--ac);
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 26px 60px rgba(22, 44, 82, 0.22), 0 3px 8px rgba(22, 44, 82, 0.07);
+  animation: modalRise 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.info-card h2 { color: var(--ac-dark); }
+.info-card p { color: #4f6076; }
+
+/* 各視窗的顏色 */
+#deadlineModal .info-card { --ac: #e0569a; --ac-soft: #ffe6f2; --ac-dark: #9c2b61; background: linear-gradient(160deg, #ffffff, #fff6fb); }
+#thesesModal .info-card { --ac: #f28c28; --ac-soft: #fff2e4; --ac-dark: #b5600f; }
+#graduationModal .info-card,
+.celebration-card { --ac: #2f9a7e; --ac-soft: #e6f6f0; --ac-dark: #1f6b57; }
+.info-card.graduation-card { border-color: rgba(70, 145, 135, 0.38); border-top: 6px solid var(--ac); }
+
+/* 主要按鈕：實心膠囊 */
+.info-card .ack-button.full-action,
+.celebration-card .full-action {
+  width: auto;
+  min-width: 150px;
+  min-height: 48px;
+  margin: 0;
+  padding: 11px 30px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ac);
+  color: #ffffff;
+  font-size: 1.05rem;
+  box-shadow: 0 8px 18px rgba(30, 80, 140, 0.2);
+}
+.info-card .ack-button.full-action:hover:not(:disabled),
+.celebration-card .full-action:hover:not(:disabled) {
+  border: 0;
+  background: var(--ac);
+  filter: brightness(1.07);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 22px rgba(30, 80, 140, 0.24);
+}
+.celebration-card .full-action { justify-self: center; }
+
+/* 次要按鈕 */
+.modal-ghost {
+  min-height: 48px;
+  padding: 11px 24px;
+  border: 1.5px solid #c9d8ea;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #3c5574;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 760;
+  cursor: pointer;
+}
+.modal-ghost:hover { border-color: var(--ac); color: var(--ac-dark); background: var(--ac-soft); }
+
+/* 右上圓形 ✕ */
+.modal-x {
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #d6e2f0;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #56708f;
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(22, 44, 82, 0.06);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.modal-x:hover,
+.modal-x:focus-visible { background: var(--ac-soft); color: var(--ac-dark); border-color: var(--ac); }
+.graduation-modal-actions #closeGraduation.modal-x,
+.graduation-modal-actions #closeGraduation.modal-x:hover {
+  width: 40px; min-width: 40px; min-height: 40px; padding: 0;
+  border: 1px solid #d6e2f0; background: #ffffff; box-shadow: 0 2px 6px rgba(22, 44, 82, 0.06);
+}
+.graduation-modal-actions #closeGraduation.modal-x:hover { background: var(--ac-soft); border-color: var(--ac); }
+.mobile-booking-close.modal-x { padding: 0; font-size: 1.1rem; }
+
+/* ---- 提醒型 ---- */
+.info-card.remind-card {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 0 20px;
+  align-items: start;
+  width: min(560px, 100%);
+  padding: 28px 28px 24px;
+}
+.modal-avatar {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--ac-soft);
+}
+.modal-avatar img { width: 118%; height: 118%; object-fit: cover; object-position: 50% 18%; }
+.remind-body { min-width: 0; }
+.remind-tag {
+  display: inline-block;
+  margin: 0 0 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--ac-soft);
+  color: var(--ac-dark);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+.remind-card h2 { margin: 0 0 8px; font-size: 1.42rem; }
+.remind-card p { margin: 0 0 18px; font-size: 1rem; line-height: 1.75; }
+.remind-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 10px; }
+.remind-actions .mobile-booking-entry { width: auto; margin: 0; padding: 8px 20px; }
+.remind-actions .mobile-booking-entry[hidden] { display: none; }
+.remind-card.is-danger #confirmOk { background: #e0475b; box-shadow: 0 8px 18px rgba(224, 71, 91, 0.24); }
+
+/* ---- 選擇型 ---- */
+.theses-head h2 { color: var(--ac-dark); font-size: 1.3rem; white-space: nowrap; }
+.thesis-advisor { transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease; }
+
+.fill-card .fill-x { position: absolute; top: 18px; right: 18px; }
+.fill-card h2 { padding-right: 48px; font-size: 1.42rem; }
+.fill-actions { display: flex; flex-direction: row-reverse; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.fill-actions .fill-secondary { display: flex; gap: 18px; justify-content: flex-start; }
+.fill-link { text-decoration: none; color: #56708f; }
+.fill-link:hover { color: var(--ac-dark); text-decoration: underline; }
+.fill-link.danger { color: var(--danger); }
+.fill-field input { border-radius: 12px; background: #f7faff; }
+.fill-field input:focus-visible { background: #ffffff; border-color: var(--ac); outline: 3px solid var(--ac-soft); }
+.fill-note { border-radius: 12px; }
+
+.celebration-card .modal-avatar { width: 104px; height: 104px; margin: 0 auto -6px; }
+
+/* ---- 手機 ---- */
+@media (max-width: 820px) {
+  .info-modal { background: rgba(34, 64, 104, 0.5); }
+  .info-card.remind-card { grid-template-columns: 1fr; gap: 12px; padding: 24px 20px 20px; }
+  .remind-card .modal-avatar { width: 76px; height: 76px; }
+  .remind-actions { flex-direction: column-reverse; align-items: stretch; }
+  .remind-actions .ack-button.full-action,
+  .remind-actions .modal-ghost,
+  .remind-actions .mobile-booking-entry { width: 100%; }
+  .deadline-card.remind-card { gap: 12px; }
+  .fill-actions { flex-direction: column; align-items: stretch; }
+  .fill-actions .ack-button.full-action { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .info-modal, .celebration-modal, .info-card, .celebration-card { animation: none; }
+}
+
+/* 手機預約視窗的「複製這段訊息」也是主要按鈕 */
+.info-card .booking-copy { border: 0; border-radius: 999px; background: var(--ac); color: #ffffff; box-shadow: 0 8px 18px rgba(30, 80, 140, 0.2); }
+.info-card .booking-copy:hover { border: 0; background: var(--ac); color: #ffffff; filter: brightness(1.07); }

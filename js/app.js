@@ -58,8 +58,8 @@
               if (doc.id === "committee-review-result") {
                 return {
                   ...doc,
-                  title: "計畫口試委員評審結果表 3 份",
-                  word: ["計畫口試委員評審結果表（ODT）", doc.word[1]]
+                  title: "計畫口試委員評審意見表 3 份",
+                  word: ["計畫口試委員評審意見表（ODT）", doc.word[1]]
                 };
               }
               if (doc.id === "committee-summary-result") {
@@ -136,29 +136,50 @@
         }
         const nextMode = button.dataset.mode || "proposal";
         if (state.mode !== nextMode && state.started && flowModes[state.mode] && progressCounts().done > 0) {
-          const ok = window.confirm(`目前「${flowModes[state.mode].label}」已有進度。\n改選其他流程會清除這份進度，確定要切換嗎？`);
-          if (!ok) return;
+          askConfirm({
+            title: `要改辦「${(flowModes[nextMode] || {}).label || "這個流程"}」嗎？`,
+            message: `你在「${flowModes[state.mode].label}」已有進度，切換後那份進度會清除。`,
+            okLabel: "確定切換",
+            cancelLabel: "繼續原本的",
+            returnFocus: button
+          }).then((ok) => { if (ok) startMode(nextMode); });
+          return;
         }
-        if (state.mode !== nextMode) {
-          const savedGraduationTasks = state.graduationTasks;
-          const savedGraduationCompletion = state.graduationCompletion;
-          Object.keys(state).forEach((key) => delete state[key]);
-          if (savedGraduationTasks) state.graduationTasks = savedGraduationTasks;
-          if (savedGraduationCompletion) state.graduationCompletion = savedGraduationCompletion;
-        }
-        state.mode = nextMode;
-        state.started = true;
-        saveState();
-        showWorkflow();
+        startMode(nextMode);
       });
     });
+
+    function startMode(nextMode) {
+      if (state.mode !== nextMode) {
+        const savedGraduationTasks = state.graduationTasks;
+        const savedGraduationCompletion = state.graduationCompletion;
+        Object.keys(state).forEach((key) => delete state[key]);
+        if (savedGraduationTasks) state.graduationTasks = savedGraduationTasks;
+        if (savedGraduationCompletion) state.graduationCompletion = savedGraduationCompletion;
+      }
+      state.mode = nextMode;
+      state.started = true;
+      saveState();
+      showWorkflow();
+    }
 
     $("#backToModes").addEventListener("click", () => {
       showHome();
     });
 
     $("#resetProgress").addEventListener("click", () => {
-      if (progressCounts().done > 0 && !window.confirm("重設會清除這個流程的所有進度，確定要重設嗎？")) return;
+      if (progressCounts().done <= 0) { resetProgress(); return; }
+      askConfirm({
+        title: "要重設進度嗎？",
+        message: "重設會清除這個流程的所有進度，下載過的檔案不受影響。",
+        okLabel: "確定重設",
+        cancelLabel: "先不要",
+        danger: true,
+        returnFocus: $("#resetProgress")
+      }).then((ok) => { if (ok) resetProgress(); });
+    });
+
+    function resetProgress() {
       const mode = activeMode();
       const savedGraduationTasks = state.graduationTasks;
       const savedGraduationCompletion = state.graduationCompletion;
@@ -170,14 +191,62 @@
       state.started = true;
       saveState();
       render();
+    }
+
+    // 站內確認視窗（取代瀏覽器內建的 confirm）；回傳 Promise<boolean>
+    let confirmResolve = null;
+    function askConfirm({ title, message, okLabel = "確定", cancelLabel = "先不要", danger = false, returnFocus = null }) {
+      if (confirmResolve) confirmResolve(false);
+      $("#confirmTitle").textContent = title;
+      $("#confirmMessage").textContent = message;
+      $("#confirmOk").textContent = okLabel;
+      $("#confirmCancel").textContent = cancelLabel;
+      $("#confirmModal .remind-card").classList.toggle("is-danger", danger);
+      $("#confirmModal").classList.remove("hidden");
+      $("#confirmCancel").focus({ preventScroll: true });
+      return new Promise((resolve) => {
+        confirmResolve = (ok) => {
+          confirmResolve = null;
+          $("#confirmModal").classList.add("hidden");
+          if (returnFocus && document.contains(returnFocus)) returnFocus.focus({ preventScroll: true });
+          resolve(ok);
+        };
+      });
+    }
+    $("#confirmOk").addEventListener("click", () => { if (confirmResolve) confirmResolve(true); });
+    $("#confirmCancel").addEventListener("click", () => { if (confirmResolve) confirmResolve(false); });
+    $("#confirmModal").addEventListener("click", (event) => {
+      if (event.target === event.currentTarget && confirmResolve) confirmResolve(false);
+    });
+
+    // 彈窗打開時把焦點移進視窗（Tab 不會跑到背後），關閉後回到原本的位置
+    document.querySelectorAll(".info-modal, .celebration-modal").forEach((modal) => {
+      let opener = null;
+      let wasOpen = !modal.classList.contains("hidden");
+      new MutationObserver(() => {
+        const open = !modal.classList.contains("hidden");
+        if (open === wasOpen) return;
+        wasOpen = open;
+        if (open) {
+          opener = document.activeElement;
+          requestAnimationFrame(() => {
+            if (modal.classList.contains("hidden") || modal.contains(document.activeElement)) return;
+            const target = modal.querySelector(".full-action, button:not([hidden]):not(:disabled), input, a[href]");
+            if (target) target.focus({ preventScroll: true });
+          });
+        } else {
+          const active = document.activeElement;
+          if ((!active || active === document.body || modal.contains(active)) && opener && document.contains(opener) && opener.offsetParent !== null) {
+            opener.focus({ preventScroll: true });
+          }
+          opener = null;
+        }
+      }).observe(modal, { attributes: true, attributeFilter: ["class"] });
     });
 
     $("#closeCelebration").addEventListener("click", () => {
       $("#celebrationModal").classList.add("hidden");
       showHome();
-    });
-    $("#closeGuide").addEventListener("click", () => {
-      $("#guideModal").classList.add("hidden");
     });
     $("#closeSubmissionNotice").addEventListener("click", () => {
       $("#submissionNoticeModal").classList.add("hidden");
@@ -276,9 +345,9 @@
 
     // Esc：關掉最上層的彈窗，效果等同按該視窗的關閉／取消鈕
     const ESC_CLOSERS = [
+      ["confirmModal", "confirmCancel"],
       ["fillModal", "fillCancel"],
       ["submissionNoticeModal", "closeSubmissionNotice"],
-      ["guideModal", "closeGuide"],
       ["mobileBookingModal", "closeMobileBooking"],
       ["mobileOnlyNoticeModal", "closeMobileOnlyNotice"],
       ["deadlineModal", "closeDeadline"],
@@ -849,19 +918,61 @@
       committee: "口試委員"
     };
 
+    // 最後確認清單的顯示：只用短名（流程已經分計畫口試／學位考試，不再重複全名）。
+    // sign＝送件前要簽好的人；day＝口試當天委員才簽；note＝真正要動手的提醒；tag＝去哪裡拿或規格
+    const SIGN_ME_ADVISOR = "你＋指導教授";
+    const DAY_SIGN = "口試當天委員簽";
+    const INVENTORY_DISPLAY = {
+      "計畫口試資料檢核表": { short: "資料檢核表", tag: "放第一張", sign: "你自己簽", lead: true },
+      "學位論文考試檢核表": { short: "資料檢核表", tag: "放第一張", sign: "你自己簽", lead: true },
+      "歷年成績單": { short: "成績單", tag: "行政大樓 4 樓印" },
+      "資格考試申請表": { short: "資格考試申請表" },
+      "外審制期刊或國際學術研討會發表證明影本": { short: "發表證明影本" },
+      "出版論著影本（封面+目錄+本文）": { short: "論著影本", note: "封面＋目錄＋本文" },
+      "登錄學生資訊系統論著目錄證明": { short: "論著目錄登錄證明" },
+      "高普特考及格證明影本或成績單": { short: "高普特考及格證明", note: "或成績單影本" },
+      "學位論文原創比對（Turnitin）證明表": { short: "Turnitin 比對證明表", note: "第 2 頁貼截圖，也要簽", sign: SIGN_ME_ADVISOR },
+      "學位論文原創比對（Turnitin）全文電子檔": { short: "Turnitin 全文電子檔" },
+      "學位論文AIGC檢測報告書": { short: "AIGC 檢測報告書", sign: SIGN_ME_ADVISOR },
+      "論文題目申報單": { short: "題目申報單", tag: "iNCCU 列印", sign: "指導教授" },
+      "計畫口試申請表": { short: "申請表", note: "下方四項自己勾", sign: SIGN_ME_ADVISOR },
+      "學位考試申請書": { short: "申請書", tag: "iNCCU 列印", sign: SIGN_ME_ADVISOR },
+      "計畫口試本": { short: "口試本", officeTag: "膠裝" },
+      "學位論文考試本": { short: "考試本", officeTag: "膠裝" },
+      "計畫口試委員評審意見表（3 份）": { short: "評審意見表", day: DAY_SIGN },
+      "計畫口試委員綜合評審結果表": { short: "綜合評審結果表", day: DAY_SIGN },
+      "學位論文考試評分表（3 份）": { short: "評分表", day: DAY_SIGN },
+      "學位考試成績報告單": { short: "成績報告單", sign: "你（延後畢業欄）", day: DAY_SIGN },
+      "學位論文通過簽名頁": { short: "簽名頁", day: DAY_SIGN },
+      "口試委員邀請函": { short: "邀請函" },
+      "學位論文考試委員邀請函": { short: "邀請函" }
+    };
+
+    function inventoryDisplay(item) {
+      const d = INVENTORY_DISPLAY[item.label] || {};
+      return {
+        short: d.short || item.label,
+        note: d.note || "",
+        sign: d.sign || "",
+        day: d.day || "",
+        tag: d.tag || (item.recipient === "office" ? d.officeTag || "" : ""),
+        lead: Boolean(d.lead)
+      };
+    }
+
     function buildProposalSubmissionInventory() {
       const qualification = state.qualification;
       const items = [
-        inventoryItem("資格考試申請表", "office"),
         inventoryItem("計畫口試資料檢核表", "office"),
         inventoryItem("歷年成績單", "office"),
+        inventoryItem("資格考試申請表", "office"),
         inventoryItem("學位論文原創比對（Turnitin）證明表", "office"),
         inventoryItem("學位論文AIGC檢測報告書", "office"),
         inventoryItem("論文題目申報單", "office"),
         inventoryItem("計畫口試申請表", "office"),
-        inventoryItem("計畫口試委員評審結果表（3 份）", "office", recipientLabels.office, { quantity: 3 }),
-        inventoryItem("計畫口試委員綜合評審結果表", "office"),
         inventoryItem("計畫口試本", "office"),
+        inventoryItem("計畫口試委員評審意見表（3 份）", "office", recipientLabels.office, { quantity: 3 }),
+        inventoryItem("計畫口試委員綜合評審結果表", "office"),
         inventoryItem("口試委員邀請函", "advisor"),
         inventoryItem("口試委員邀請函", "committee", "A 口試委員"),
         inventoryItem("口試委員邀請函", "committee", "B 口試委員"),
@@ -870,14 +981,14 @@
         inventoryItem("計畫口試本", "committee", "B 口試委員")
       ];
       if (qualification === "journal-publication") {
-        items.splice(2, 0,
+        items.splice(3, 0,
           inventoryItem("外審制期刊或國際學術研討會發表證明影本", "office"),
           inventoryItem("出版論著影本（封面+目錄+本文）", "office"),
           inventoryItem("登錄學生資訊系統論著目錄證明", "office")
         );
       }
       if (qualification === "civil-service-exam") {
-        items.splice(2, 0, inventoryItem("高普特考及格證明影本或成績單", "office"));
+        items.splice(3, 0, inventoryItem("高普特考及格證明影本或成績單", "office"));
       }
       return items.map((item, index) => ({
         key: `inventory:proposal:${qualification || "none"}:${index}:${item.label}:${item.detail}`,
@@ -892,15 +1003,15 @@
     function buildDefenseSubmissionInventory() {
       const items = [
         inventoryItem("學位論文考試檢核表", "office"),
-        inventoryItem("學位論文原創比對（Turnitin）證明表", "office"),
-        inventoryItem("學位論文原創比對（Turnitin）全文電子檔", "office"),
-        inventoryItem("學位論文AIGC檢測報告書", "office"),
         inventoryItem("歷年成績單", "office"),
         inventoryItem("學位考試申請書", "office"),
+        inventoryItem("學位論文考試本", "office"),
         inventoryItem("學位論文考試評分表（3 份）", "office", recipientLabels.office, { quantity: 3 }),
         inventoryItem("學位考試成績報告單", "office"),
         inventoryItem("學位論文通過簽名頁", "office"),
-        inventoryItem("學位論文考試本", "office"),
+        inventoryItem("學位論文原創比對（Turnitin）證明表", "office"),
+        inventoryItem("學位論文原創比對（Turnitin）全文電子檔", "office"),
+        inventoryItem("學位論文AIGC檢測報告書", "office"),
         inventoryItem("學位論文考試委員邀請函", "advisor"),
         inventoryItem("學位論文考試委員邀請函", "committee", "A 口試委員"),
         inventoryItem("學位論文考試委員邀請函", "committee", "B 口試委員"),
@@ -924,11 +1035,9 @@
       box.classList.toggle("is-complete", checkedCount === totalCount);
       const header = document.createElement("div");
       header.className = "inventory-header";
-      const reminder = submissionReminderText();
       header.innerHTML = `
         <div class="inventory-title-wrap">
           <strong>你本次應準備資料：${totalCount} 份</strong>
-          ${reminder ? `<span class="inventory-title-note is-danger">${reminder}</span>` : ""}
         </div>
         <span class="inventory-count">已確認 ${checkedCount} / ${totalCount}</span>
       `;
@@ -970,16 +1079,6 @@
       container.append(box);
     }
 
-    function submissionReminderText() {
-      if (activeMode() === "proposal") {
-        return "小提醒：計畫口試資料檢核表、學位論文原創比對（Turnitin）證明表和學位論文AIGC檢測報告書，記得簽名喔~";
-      }
-      if (activeMode() === "defense") {
-        return "小提醒：學位論文考試檢核表、學位論文原創比對（Turnitin）證明表和學位論文AIGC檢測報告書，記得簽名喔~";
-      }
-      return "";
-    }
-
     function inventoryButton(item, locked) {
       const checked = isChecklistChecked(item.key);
       const button = document.createElement("button");
@@ -988,7 +1087,14 @@
       button.classList.toggle("is-checked", checked);
       button.setAttribute("aria-pressed", checked ? "true" : "false");
       button.dataset.inventoryKey = item.key;
-      button.innerHTML = `<span class="inventory-check" aria-hidden="true"></span><span class="inventory-label">${item.label}</span>${item.note ? `<span class="inventory-extra">${item.note}</span>` : ""}`;
+      const d = inventoryDisplay(item);
+      button.classList.toggle("is-lead", d.lead);
+      button.title = item.label.replace(/（\d+ 份）$/, "");
+      const qty = item.quantity > 1 ? `<span class="inventory-qty">×${item.quantity}</span>` : "";
+      const side = d.tag || d.day || qty
+        ? `<span class="inventory-side">${d.tag ? `<span class="inventory-tag">${d.tag}</span>` : ""}${d.day ? `<span class="inventory-day">${d.day}</span>` : ""}${qty}</span>`
+        : "";
+      button.innerHTML = `<span class="inventory-check" aria-hidden="true"></span><span class="inventory-main"><span class="inventory-label">${d.short}</span>${d.note ? `<span class="inventory-hint">${d.note}</span>` : ""}${d.sign ? `<span class="inventory-sign">✍ ${d.sign}</span>` : ""}${item.note ? `<span class="inventory-extra">${item.note}</span>` : ""}</span>${side}`;
       button.disabled = locked;
       button.addEventListener("click", () => {
         const restoreScroll = rememberPageScroll();
@@ -1359,7 +1465,6 @@
       setGraduationView("grades");
       $("#graduationTitle").textContent = "選擇你的級數";
       $("#graduationTitle").classList.remove("is-detail-title");
-      $("#closeGraduation").textContent = "關閉";
       const content = $("#graduationContent");
       content.replaceChildren();
       const grid = document.createElement("div");
@@ -1409,7 +1514,6 @@
       setGraduationView("detail");
       $("#graduationTitle").textContent = `${item.year}畢業專區`;
       $("#graduationTitle").classList.add("is-detail-title");
-      $("#closeGraduation").textContent = item.pendingTitle ? "我知道了" : "關閉";
       const content = $("#graduationContent");
       content.replaceChildren();
 

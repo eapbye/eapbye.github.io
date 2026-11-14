@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/fill.css">
   <link rel="stylesheet" href="css/booking.css">
+  <link rel="stylesheet" href="css/modal.css">
 </head>
 <body>
   <div class="wrap">
@@ -135,6 +136,7 @@
 
   <div class="celebration-modal hidden" id="celebrationModal" role="dialog" aria-modal="true" aria-labelledby="celebrationTitle">
     <div class="celebration-card">
+      <div class="modal-avatar" aria-hidden="true"><img alt="" src="css/zhuang-avatar.svg"></div>
       <h2 id="celebrationTitle">恭喜，你已準備所有資料！</h2>
       <p id="celebrationMessage">表單請依規定簽名，完成後請列印紙本檔案繳交至所辦。</p>
       <div class="celebration-reference" id="celebrationReference">
@@ -145,89 +147,16 @@
     </div>
   </div>
 
-  <div class="info-modal hidden" id="guideModal" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
-    <div class="info-card guide-card">
-      <h2 id="guideTitle">第一次使用小提醒</h2>
-      <p class="hidden" id="guideIntro"></p>
-      <div class="guide-grid" id="guideGrid"></div>
-      <div class="guide-delivery" id="guideDeliveryStage" aria-hidden="true">
-        <img class="guide-delivery-svg" id="guideDeliveryScene" src="eap_nccu_background.svg?v=20260528" alt="">
-        <div class="guide-grid guide-wall-grid" id="deliveryGuideGrid"></div>
-        <div class="guide-progress-fill"></div>
-        <div class="guide-runner">
-          <svg class="guide-arrival-svg" viewBox="0 0 180 110" aria-hidden="true" focusable="false">
-            <defs>
-              <linearGradient id="guideCartBody" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#d3a46d"></stop>
-                <stop offset="100%" stop-color="#9c6634"></stop>
-              </linearGradient>
-              <linearGradient id="guideRobe" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#1f4654"></stop>
-                <stop offset="100%" stop-color="#17323f"></stop>
-              </linearGradient>
-              <linearGradient id="guideSkin" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#ffe6d4"></stop>
-                <stop offset="100%" stop-color="#f6c8aa"></stop>
-              </linearGradient>
-            </defs>
-            <ellipse cx="84" cy="101" rx="76" ry="7" fill="rgba(83, 70, 50, 0.13)"></ellipse>
-            <g>
-              <g transform="translate(28 34) rotate(-1)">
-                <path d="M0 5 C0 2 2 0 5 0 H31 C34 0 36 2 36 5 V38 H2 Z" fill="#f8fbff" stroke="#9fb1c2" stroke-width="1.4"></path>
-                <path d="M5 13 H31 M5 22 H28 M5 31 H26" stroke="#c7d8e6" stroke-width="1.3" stroke-linecap="round"></path>
-              </g>
-              <g transform="translate(50 35) rotate(4)">
-                <path d="M0 5 C0 2 2 0 5 0 H30 C33 0 35 2 35 5 V36 H2 Z" fill="#fbf8ff" stroke="#b4a6da" stroke-width="1.4"></path>
-                <path d="M5 13 H29 M5 22 H26 M5 31 H27" stroke="#d7cdef" stroke-width="1.3" stroke-linecap="round"></path>
-              </g>
-              <rect x="16" y="58" width="66" height="32" rx="10" fill="url(#guideCartBody)" stroke="#74491f" stroke-width="3"></rect>
-              <path d="M23 63 H75" stroke="rgba(255,255,255,0.36)" stroke-width="3" stroke-linecap="round"></path>
-              <circle cx="33" cy="90" r="10" fill="#4f321e" stroke="#70471f" stroke-width="3"></circle>
-              <circle cx="33" cy="90" r="4" fill="#f3ddbf"></circle>
-              <circle cx="69" cy="90" r="10" fill="#4f321e" stroke="#70471f" stroke-width="3"></circle>
-              <circle cx="69" cy="90" r="4" fill="#f3ddbf"></circle>
-            </g>
-            <g transform="translate(99 25.3) scale(0.84)">
-              <path d="M19 57 C22 43 31 36 43 36 C55 36 64 43 67 57 L70 89 H16 Z" fill="url(#guideRobe)" stroke="#15384e" stroke-width="2.5"></path>
-              <path d="M29 40 L43 65 L57 40" fill="#eaf7f6" stroke="#b7d9d3" stroke-width="1.5"></path>
-              <path d="M34 40 L43 56 L52 40" fill="#78bfd1"></path>
-              <path d="M19 56 C11 59 4 63 -4 68" fill="none" stroke="#f1c1a1" stroke-width="8" stroke-linecap="round"></path>
-              <circle cx="-4" cy="68" r="8" fill="url(#guideSkin)" stroke="#c58d67" stroke-width="2"></circle>
-              <circle cx="43" cy="26" r="23" fill="url(#guideSkin)" stroke="#8a5b3d" stroke-width="2.5"></circle>
-              <path d="M21 22 C22 6 37 -2 55 5 C66 9 70 18 63 28 C54 21 39 18 21 22 Z" fill="#55301f"></path>
-              <path d="M27 14 C31 5 50 3 60 12" fill="none" stroke="#6d3d26" stroke-width="5" stroke-linecap="round"></path>
-              <circle cx="34" cy="29" r="6" fill="#fff" stroke="#21384a" stroke-width="2"></circle>
-              <circle cx="53" cy="29" r="6" fill="#fff" stroke="#21384a" stroke-width="2"></circle>
-              <path d="M40 29 H47" stroke="#21384a" stroke-width="2" stroke-linecap="round"></path>
-              <path d="M34 42 C39 47 48 47 53 42" fill="none" stroke="#a95c5f" stroke-width="2.5" stroke-linecap="round"></path>
-              <path d="M20 19 L43 12 L68 19 L43 25.5 Z" fill="#233744" stroke="#152a34" stroke-width="2"></path>
-              <path d="M43 25.5 V34" stroke="#d9b96e" stroke-width="2" stroke-linecap="round"></path>
-              <circle cx="43" cy="35" r="2.6" fill="#d9b96e"></circle>
-            </g>
-          </svg>
-        </div>
-      </div>
-      <button class="ack-button full-action" id="closeGuide" type="button">我知道了</button>
-    </div>
-  </div>
 
   <div class="info-modal hidden" id="deadlineModal" role="dialog" aria-modal="true" aria-labelledby="deadlineTitle">
-    <div class="info-card deadline-card">
-      <div>
-        <p class="eyebrow">重要提醒</p>
-        <h2 id="deadlineTitle">口試提報期限</h2>
-        <p>請於口試前14天提出申請（當學期最後提出申請日為校訂休學日）</p>
-        <button class="ack-button full-action" id="closeDeadline" type="button">我知道了</button>
-      </div>
-      <div class="mini-avatar" aria-hidden="true"><img class="avatar-image" alt="Q版提醒人物" src="css/zhuang-avatar.svg"></div>
-    </div>
+    <div class="info-card deadline-card remind-card"><div class="modal-avatar" aria-hidden="true"><img alt="" src="css/zhuang-avatar.svg"></div><div class="remind-body"><span class="remind-tag">重要提醒</span><h2 id="deadlineTitle">口試提報期限</h2><p>請於口試前 14 天提出申請（當學期最後提出申請日為校訂休學日）</p><div class="remind-actions"><button class="ack-button full-action" id="closeDeadline" type="button">我知道了</button></div></div></div>
   </div>
 
   <div class="info-modal hidden" id="thesesModal" role="dialog" aria-modal="true" aria-labelledby="thesesTitle">
     <div class="info-card theses-card">
       <div class="theses-head">
         <h2 id="thesesTitle">選擇指導教授</h2>
-        <button class="ack-button" id="closeTheses" type="button">關閉</button>
+        <button class="modal-x" id="closeTheses" type="button" aria-label="關閉" title="關閉">✕</button>
       </div>
       <div class="theses-grid">
         <a class="thesis-advisor" href="https://thesis.lib.nccu.edu.tw/search/?query_term=%E6%95%99%E8%82%B2%E8%A1%8C%E6%94%BF&amp;query_field=dept&amp;query_op=&amp;match_type=phrase&amp;query_term=%E5%90%B3%E6%94%BF%E9%81%94&amp;query_field=cadvisor&amp;query_op=and" target="_blank" rel="noopener noreferrer">吳政達<span class="thesis-advisor-out" aria-hidden="true">↗</span></a>
@@ -244,34 +173,30 @@
   </div>
 
   <div class="info-modal hidden" id="mobileOnlyNoticeModal" role="dialog" aria-modal="true" aria-labelledby="mobileOnlyNoticeTitle">
-    <div class="info-card">
-      <h2 id="mobileOnlyNoticeTitle">請改用電腦操作</h2>
-      <p>此系統不適合使用手機操作，請改用電腦開啟後再繼續。</p>
-      <button class="ack-button full-action" id="closeMobileOnlyNotice" type="button">我知道了</button>
-      <button class="mobile-booking-entry" id="openMobileBooking" type="button" hidden>只是要約教室？幫我寫預約訊息</button>
-    </div>
+    <div class="info-card remind-card"><div class="modal-avatar" aria-hidden="true"><img alt="" src="css/zhuang-avatar.svg"></div><div class="remind-body"><span class="remind-tag">手機查、電腦辦</span><h2 id="mobileOnlyNoticeTitle">請改用電腦操作</h2><p>此系統不適合使用手機操作，請改用電腦開啟後再繼續。</p><div class="remind-actions"><button class="mobile-booking-entry" id="openMobileBooking" type="button" hidden>只是要約教室？幫我寫預約訊息</button><button class="ack-button full-action" id="closeMobileOnlyNotice" type="button">我知道了</button></div></div></div>
   </div>
 
   <div class="info-modal hidden" id="mobileBookingModal" role="dialog" aria-modal="true" aria-labelledby="mobileBookingTitle">
     <div class="info-card mobile-booking-card">
       <div class="mobile-booking-head">
         <h2 id="mobileBookingTitle">預約口試教室</h2>
-        <button class="mobile-booking-close" id="closeMobileBooking" type="button">關閉</button>
+        <button class="mobile-booking-close modal-x" id="closeMobileBooking" type="button" aria-label="關閉" title="關閉">✕</button>
       </div>
       <div id="mobileBookingBody"></div>
     </div>
   </div>
 
+  <div class="info-modal hidden" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="info-card remind-card"><div class="modal-avatar" aria-hidden="true"><img alt="" src="css/zhuang-avatar.svg"></div><div class="remind-body"><span class="remind-tag">確認一下</span><h2 id="confirmTitle"></h2><p id="confirmMessage"></p><div class="remind-actions"><button class="modal-ghost" id="confirmCancel" type="button">先不要</button><button class="ack-button full-action" id="confirmOk" type="button">確定</button></div></div></div>
+  </div>
+
   <div class="info-modal hidden" id="submissionNoticeModal" role="dialog" aria-modal="true" aria-labelledby="submissionNoticeTitle">
-    <div class="info-card">
-      <h2 id="submissionNoticeTitle">最後確認</h2>
-      <p>系統會在這一步協助你整理與分類需要繳交的資料，請依序清點完畢。</p>
-      <button class="ack-button full-action" id="closeSubmissionNotice" type="button">我知道了</button>
-    </div>
+    <div class="info-card remind-card"><div class="modal-avatar" aria-hidden="true"><img alt="" src="css/zhuang-avatar.svg"></div><div class="remind-body"><span class="remind-tag">最後一步</span><h2 id="submissionNoticeTitle">最後確認</h2><p>這一步會幫你把要繳交的資料分好類，請依序清點完畢。</p><div class="remind-actions"><button class="ack-button full-action" id="closeSubmissionNotice" type="button">我知道了</button></div></div></div>
   </div>
 
   <div class="info-modal hidden" id="fillModal" role="dialog" aria-modal="true" aria-labelledby="fillTitle">
     <form class="info-card fill-card" id="fillForm" autocomplete="on">
+      <button class="modal-x fill-x" id="fillCancel" type="button" aria-label="關閉" title="關閉">✕</button>
       <h2 id="fillTitle">要幫你填好表單嗎？</h2>
       <p class="fill-lead">填一次，之後下載的表單會自動帶入姓名、學號等欄位；不想填的欄位留空，表單上會標紅色「○」，提醒你之後自行打字輸入。</p>
       <div class="fill-grid">
@@ -286,7 +211,6 @@
         <button class="ack-button full-action" id="fillSubmit" type="submit">下載已填好的表</button>
         <div class="fill-secondary">
           <button class="fill-link" id="fillSkip" type="button">不填，下載空白表</button>
-          <button class="fill-link" id="fillCancel" type="button">取消</button>
           <button class="fill-link danger" id="fillClear" type="button" hidden>清除我的資料</button>
         </div>
       </div>
@@ -299,7 +223,7 @@
         <span aria-hidden="true"></span>
         <h2 id="graduationTitle">選擇你的級數</h2>
         <div class="graduation-modal-actions">
-          <button class="ack-button full-action" id="closeGraduation" type="button">關閉</button>
+          <button class="modal-x" id="closeGraduation" type="button" aria-label="關閉" title="關閉">✕</button>
         </div>
       </div>
       <div id="graduationContent"></div>
@@ -314,7 +238,7 @@
       </span>
     </div>
     <footer class="site-credit" aria-label="網站資訊">
-      <span>政大教政所 維護｜3.0.8 版｜2026-11-14 更新</span>
+      <span>政大教政所 維護｜3.0.9 版｜2026-11-15 更新</span>
     </footer>
   </div>
 

@@ -61,7 +61,7 @@
             {
               id: "proposal-aigc-certificate",
               title: "學位論文AIGC檢測報告書 1 份",
-              note: "學位論文AIGC檢測報告書須經指導教授與所長簽名確認",
+              note: "學位論文AIGC檢測報告書須由指導教授簽名確認",
               word: ["學位論文AIGC檢測報告書（ODT）", "documents/defense/aigc-detection-report.odt"]
             }
           ]
@@ -111,8 +111,8 @@
             },
             {
               id: "committee-review-result",
-              title: "計畫口試委員評審結果表 3 份",
-              word: ["計畫口試委員評審結果表（ODT）", "documents/proposal/04-committee-review-result.odt"]
+              title: "計畫口試委員評審意見表 3 份",
+              word: ["計畫口試委員評審意見表（ODT）", "documents/proposal/04-committee-review-result.odt"]
             },
             {
               id: "committee-summary-result",
@@ -200,7 +200,7 @@
               {
                 id: "defense-aigc-certificate",
                 title: "學位論文AIGC檢測報告書 1 份",
-                note: "學位論文AIGC檢測報告書須經指導教授與所長簽名確認",
+                note: "學位論文AIGC檢測報告書須由指導教授簽名確認",
                 word: ["學位論文AIGC檢測報告書（ODT）", "documents/defense/aigc-detection-report.odt"]
               },
               {
