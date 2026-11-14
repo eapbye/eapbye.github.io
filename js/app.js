@@ -70,7 +70,7 @@
                 };
               }
               if (doc.id === "proposal-book") {
-                return { ...doc, title: mode.bookTitle, note: mode.bookNote };
+                return { ...doc, title: mode.bookTitle, note: mode.bookNote, tip: mode.bookTip };
               }
               return doc;
             })
@@ -381,6 +381,7 @@
       $("#backToModes").hidden = false;
       $("#progressFlowLabel").textContent = flow.label;
       $("#workflowTitle").textContent = "你現在的進度";
+      renderFlowDeadline();
       render();
       pushView("workflow");
     }
@@ -753,11 +754,30 @@
       const titleWrap = document.createElement("div");
       titleWrap.className = "document-title-wrap";
       titleWrap.append(title);
+      // 誰要簽名：跟著那份文件，做成小標籤
+      if (doc.sign && doc.sign.length) {
+        const sign = document.createElement("span");
+        sign.className = "doc-sign";
+        sign.textContent = `✍ ${doc.sign.join("、")}簽名`;
+        titleWrap.append(sign);
+      }
       heading.append(number, titleWrap, status);
       box.append(heading);
       if (doc.note) {
         box.append(textNote(doc.note));
       }
+      // 系統操作路徑：一格一格的小膠囊
+      if (doc.path && doc.path.length) {
+        const path = document.createElement("div");
+        path.className = "doc-path";
+        doc.path.forEach((part, i) => {
+          if (i) { const sep = document.createElement("span"); sep.className = "doc-path-sep"; sep.setAttribute("aria-hidden", "true"); sep.textContent = "›"; path.append(sep); }
+          const chip = document.createElement("span"); chip.className = "doc-path-step"; chip.textContent = part; path.append(chip);
+        });
+        box.append(path);
+      }
+      // 小提醒、經驗分享：莊姐說
+      if (doc.tip) box.append(zhuangTip(doc.tip));
       if (doc.tool === "roomBooking" && window.RoomBooking && !isInfoOnly) {
         box.append(RoomBooking.build(currentFlow().label));
       }
@@ -800,6 +820,20 @@
       }
       box.append(actions);
       container.append(box);
+    }
+
+    function zhuangTip(text) {
+      const tip = document.createElement("div");
+      tip.className = "zhuang-tip";
+      const face = document.createElement("img");
+      face.className = "zhuang-tip-face avatar-image";
+      face.alt = "";
+      face.src = window.EapSeason ? EapSeason.avatar() : "css/zhuang-avatar.svg";
+      const bubble = document.createElement("p");
+      bubble.className = "zhuang-tip-bubble";
+      bubble.textContent = text;
+      tip.append(face, bubble);
+      return tip;
     }
 
     function textNote(text) {
@@ -1288,7 +1322,11 @@
       link.href = disabled || unavailable ? "#" : href;
       link.target = "_blank";
       link.rel = "noopener noreferrer";
-      if (downloadName && !disabled && !unavailable) link.download = downloadName;
+      if (downloadName && !disabled && !unavailable) {
+        link.download = downloadName;
+        // 點下去的當下再算一次檔名：剛填好自動填表的姓名也會帶進檔名
+        link.addEventListener("click", () => { const n = chineseDownloadName(label, href); if (n) link.download = n; });
+      }
       if (downloadName) link.classList.add("download-link");
       if (unavailable) {
         link.classList.add("is-unavailable");
@@ -1299,7 +1337,10 @@
       return link;
     }
 
+    // 下載檔名：有全名的表單交給 FillForm（所網全名，前面加自動填表的姓名）；其他照按鈕文字
     function chineseDownloadName(label, href) {
+      const full = window.FillForm && FillForm.fileName ? FillForm.fileName(href, "") : "";
+      if (full) return full;
       const extensionMatch = href.match(/\.([a-z0-9]+)(?:[?#].*)?$/i);
       if (!extensionMatch) return "";
       const extension = extensionMatch[1].toLowerCase();
@@ -1671,7 +1712,9 @@
           link.removeAttribute("download");
           return;
         }
-        link.download = chineseDownloadName(link.textContent, href);
+        const label = link.textContent;
+        link.download = chineseDownloadName(label, href);
+        link.addEventListener("click", () => { const n = chineseDownloadName(label, href); if (n) link.download = n; });
       });
       detail.append(hero, checklist);
       content.append(detail);
@@ -2061,7 +2104,33 @@
       renderHomeProgress();
     }
 
-    // 首頁的流程卡片：有存檔進度的那張，直接顯示「繼續上次進度（完成數 / 總數）」
+    // 續辦卡片的字：寫出目前在第幾步（步驟名稱短，表單名稱太長），例如「繼續第三步：申報（3 / 9）」；全部做完寫「已完成」
+    function resumeLabel(done, total) {
+      const flow = currentFlow();
+      let step = "";
+      if (!state.precheckAck || (flow.qualification && !state.qualificationAck)) step = flow.precheck.number || "";
+      else { const next = (flow.steps || []).find((s) => !isDone(s.id)); step = next ? next.number || "" : ""; }
+      return step ? `繼續${step}（${done} / ${total}）` : `已完成（${done} / ${total}）`;
+    }
+
+    // 流程頁標題下方：這個流程最近的一則期限（資料來自最新消息 js/news.js）
+    function renderFlowDeadline() {
+      const box = $("#flowDeadline");
+      if (!box) return;
+      const next = window.EapNews && EapNews.nextFor ? EapNews.nextFor(activeMode()) : null;
+      if (!next) { box.hidden = true; return; }
+      box.replaceChildren();
+      const text = document.createElement("span");
+      text.className = "flow-deadline-text";
+      text.textContent = next.text;
+      const days = document.createElement("span");
+      days.className = "flow-deadline-days" + (next.days <= 7 ? " is-soon" : "");
+      days.textContent = next.days === 0 ? "今天" : `還有 ${next.days} 天`;
+      box.append(text, days);
+      box.hidden = false;
+    }
+
+    // 首頁的流程卡片：有存檔進度的那張，直接顯示目前步驟與完成數（見 resumeLabel）
     function renderHomeProgress() {
       const saved = state.started && flowModes[state.mode] ? state.mode : null;
       const { done, total } = saved ? progressCounts() : { done: 0, total: 0 };
@@ -2069,9 +2138,10 @@
         const status = card.querySelector(".mode-status");
         if (!status) return;
         const resume = saved === card.dataset.mode && done > 0;
-        status.textContent = resume ? `繼續上次進度（${done} / ${total}）` : "點擊進入";
+        status.textContent = resume ? resumeLabel(done, total) : "點擊進入";
         card.classList.toggle("has-progress", resume);
       });
+      if (window.EapNews && EapNews.refresh) EapNews.refresh();
     }
 
     // 瀏覽器封鎖網站資料（或無痕等限制）時，讀寫 localStorage 會丟錯；一律吞掉，網站照常可用，只是不記進度

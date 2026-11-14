@@ -167,7 +167,18 @@
     }
     // 選了開始而結束沒選、或結束不晚於開始（選反了）：結束自動改成開始＋2 小時
     function fixEnd() { if (start.value && (!end.value || end.value <= start.value)) end.value = plusMinutes(start.value, 120); }
-    start.addEventListener("change", function () { fixEnd(); refresh(); });
+    // 日期、開始時間記進自動填表資料：之後下載申請表、評審意見表等，會帶入口試時間
+    var p1 = profile();
+    if (p1.examDate && (!date.min || p1.examDate >= date.min)) date.value = p1.examDate;
+    if (p1.examStart && start.querySelector('option[value="' + p1.examStart + '"]')) { start.value = p1.examStart; fixEnd(); }
+    function remember() {
+      if (!global.FillForm || !FillForm.remember) return;
+      var f = { examDate: date.value, examStart: start.value };
+      if ((date.value || start.value) && !profile().examRoom) f.examRoom = "303"; // 預約訊息借的是 303；自己填過別間就不蓋掉
+      FillForm.remember(f);
+    }
+    date.addEventListener("change", remember);
+    start.addEventListener("change", function () { fixEnd(); refresh(); remember(); });
     end.addEventListener("change", fixEnd);
     [date, end, adv1.sel, adv1.input].concat(nameIn ? [nameIn, sidIn] : []).forEach(function (c) { c.addEventListener("input", refresh); c.addEventListener("change", refresh); });
     box.addEventListener("toggle", function () { if (box.open) refresh(); });

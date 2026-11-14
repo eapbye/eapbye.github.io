@@ -9,11 +9,17 @@ let playwright;
 try { playwright = require('playwright'); } catch (e) { playwright = require(path.join(process.env.NODE_PATH || '', 'playwright')); }
 const root = path.resolve(process.argv[2] || path.join(__dirname, '..'));
 const FORMS = ['proposal/01-proposal-review-checklist', 'proposal/04-committee-review-result', 'proposal/05-committee-summary-result',
-  'proposal/qualifying-exam-application', 'defense/00-defense-checklist', 'defense/02-originality-report', 'defense/04-exam-scoring-sheet', 'defense/aigc-detection-report'];
+  'proposal/qualifying-exam-application', 'defense/00-defense-checklist', 'defense/02-originality-report', 'defense/04-exam-scoring-sheet', 'defense/aigc-detection-report',
+  'proposal/02-proposal-template'];
+// 一次給 3 份的表單：填後頁數＝原檔 × 3（3.0.9）
+const COPIES = { 'proposal/04-committee-review-result': 3, 'defense/04-exam-scoring-sheet': 3 };
+// 口試資訊（3.0.9）：一般與壓力資料都帶入；壓力用 12 月（第 1 學期）、2 位數月日、晚場
+const EXAM = { examDate: '2026-12-18', examStart: '14:00', examRoom: '303' };
+const EXAM2 = { examDate: '2027-06-30', examStart: '21:50', examRoom: '312' };
 const STRESS = { name: '歐陽慕容小明', sid: '112123456', phone: '0912345678', email: 'ouyang.murong.xiaoming@example-university.edu.tw',
   title: '探討數位轉型脈絡下終身學習政策之執行困境與因應策略：以臺北市社區大學為例的混合研究' };
 const TYPICAL = { name: '郭哲宇', sid: '113171009', phone: '0912345678', email: 'test@nccu.edu.tw', title: '數位轉型下的終身學習政策研究' };
-const CASES = [['壓力', STRESS], ['一般', TYPICAL], ['留空', {}]];
+const CASES = [['壓力', { ...STRESS, ...EXAM2 }], ['一般', { ...TYPICAL, ...EXAM }], ['留空', {}]];
 const sh = (c) => cp.spawnSync('bash', ['-lc', c], { encoding: 'utf8' });
 const pages = (f) => { const m = (sh(`pdfinfo '${f}'`).stdout || '').match(/Pages:\s+(\d+)/); return m ? +m[1] : -1; };
 
@@ -45,8 +51,10 @@ const pages = (f) => { const m = (sh(`pdfinfo '${f}'`).stdout || '').match(/Page
     sh(`cd '${tmp}' && '${soffice}' --headless --convert-to pdf --outdir pdf *.odt >/dev/null 2>&1`);
     for (const name of Object.keys(out)) {
       const a = pages(path.join(tmp, 'pdf', name + '.orig.pdf')), b = pages(path.join(tmp, 'pdf', name + '.filled.pdf'));
-      const ok = a > 0 && a === b; if (!ok) bad++;
-      console.log((ok ? '通過  ' : '失敗  ') + name + `：原檔 ${a} 頁、填後 ${b} 頁；填入 ${out[name].join(',')}`);
+      const form = Object.keys(COPIES).find((f) => name.startsWith(path.basename(f) + '.'));
+      const want = a * (form ? COPIES[form] : 1);
+      const ok = a > 0 && b === want; if (!ok) bad++;
+      console.log((ok ? '通過  ' : '失敗  ') + name + `：原檔 ${a} 頁、填後 ${b} 頁（應為 ${want}）；填入 ${out[name].join(',')}`);
     }
   }
   console.log(`\n產出資料夾：${tmp}\n結果：${bad ? bad + ' 份版面改變' : '全部頁數一致'}`);

@@ -4,18 +4,48 @@
    依賴：js/odtfill.js（fillOdt）。 */
 (function (global) {
   var KEY = "eapFillProfile_v1";
-  var FIELDS = ["name", "sid", "phone", "email", "title"];
+  var FIELDS = ["name", "sid", "phone", "email", "title", "examDate", "examStart", "examRoom"];
   // 有欄位可以自動填的表單（路徑須與 data/flow.js 一致）
   var FILLABLE = [
     "documents/proposal/01-proposal-review-checklist.odt",
     "documents/proposal/04-committee-review-result.odt",
     "documents/proposal/05-committee-summary-result.odt",
+    "documents/proposal/02-proposal-template.odt",
     "documents/proposal/qualifying-exam-application.odt",
     "documents/defense/00-defense-checklist.odt",
     "documents/defense/02-originality-report.odt",
     "documents/defense/04-exam-scoring-sheet.odt",
     "documents/defense/aigc-detection-report.odt"
   ];
+  // 下載檔名用所網的表單全名（不加表號；評審意見表依紙本表頭）。有自動填表姓名時，前面加「姓名_」。
+  var FULL_NAMES = {
+    "documents/proposal/qualifying-exam-application.odt": "國立政治大學教育行政與政策研究所資格考試申請表",
+    "documents/defense/02-originality-report.odt": "學位論文原創比對（Turnitin）證明表",
+    "documents/defense/aigc-detection-report.odt": "碩士學位論文AIGC檢測報告書",
+    "documents/proposal/01-proposal-review-checklist.odt": "教政所學位論文計畫口試資料檢核表",
+    "documents/proposal/02-proposal-template.odt": "國立政治大學教育行政與政策研究所學位論文計畫口試申請表",
+    "documents/proposal/committee-invitation.odt": "國立政治大學教育行政與政策研究所學位論文考試邀請函",
+    "documents/proposal/04-committee-review-result.odt": "國立政治大學教育行政與政策研究所學位論文計畫口試委員評審意見表",
+    "documents/proposal/05-committee-summary-result.odt": "國立政治大學教育行政與政策研究所學位論文計畫口試委員綜合評審結果表",
+    "documents/defense/00-defense-checklist.odt": "教政所學位論文考試資料檢核表",
+    "documents/defense/03-committee-invitation.odt": "國立政治大學教育行政與政策研究所學位論文考試邀請函",
+    "documents/defense/04-exam-scoring-sheet.odt": "國立政治大學教育行政與政策研究所學位論文考試評分表",
+    "documents/defense/05-grade-report.odt": "國立政治大學碩、博士學位候選人學位考試成績報告單",
+    "documents/defense/06-signature-page.odt": "國立政治大學教育行政與政策研究所碩士班碩士學位論文通過簽名頁",
+    "documents/defense/thesis-spine-format.docx": "國立政治大學教育行政與政策研究所碩士論文書背撰打格式",
+    "documents/graduation/academic-quality-consent.odt": "國立政治大學碩博士學生電子論文學術品質同意書"
+  };
+  // 檔名不可用的字元一律拿掉
+  function safeName(v) { return String(v || "").replace(/[\\/:*?"<>|]/g, "").replace(/[\s　]+/g, "").trim(); }
+  function fileName(href, fallback, profile) {
+    var m = /\.([a-z0-9]+)(?:[?#].*)?$/i.exec(href || "");
+    var base = FULL_NAMES[href] && m ? FULL_NAMES[href] + "." + m[1].toLowerCase() : (fallback || "");
+    if (!base) return "";
+    var p = profile === undefined ? load() : profile;
+    var who = safeName(p && p.name);
+    return who ? who + "_" + base : base;
+  }
+
   var skippedThisVisit = false; // 選過「不填」後，這次瀏覽不再一直跳窗
   var confirmedThisVisit = false; // 這次瀏覽已看過（確認過）存著的資料；公用電腦上才不會拿到上一位的資料
   var pending = null;           // 等彈窗結果的那次下載
@@ -34,7 +64,7 @@
   function clear() { try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ } }
   function clean(v) { return String(v == null ? "" : v).replace(/[\s　]+/g, " ").trim(); }
   // 學號、手機、e-mail：全形英數（注音輸入法的全形模式）一律轉半形；姓名與題目不轉，免得動到中文標點
-  var HALF = { sid: 1, phone: 1, email: 1 };
+  var HALF = { sid: 1, phone: 1, email: 1, examRoom: 1 };
   function half(v) { return String(v).replace(/[\uff01-\uff5e]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xfee0); }).replace(/\u3000/g, " "); }
   function hasAny(p) { return !!p && FIELDS.some(function (k) { return clean(p[k]); }); }
 
@@ -58,6 +88,7 @@
 
   // 完成一次下載（填好 → 失敗就退回原始空白檔），最後通知 app.js
   async function run(href, name, profile, onDone) {
+    name = fileName(href, name, profile || load());
     if (profile) {
       try { await downloadFilled(href, name, profile); }
       catch (e) { triggerDownload(href, name); }
@@ -91,7 +122,8 @@
     if (!chip) return;
     var p = load();
     if (!hasAny(p)) { chip.hidden = true; return; }
-    var label = [clean(p.name), clean(p.sid)].filter(Boolean).join("・");
+    var exam = /^\d{4}-(\d{2})-(\d{2})$/.exec(clean(p.examDate));
+    var label = [clean(p.name), clean(p.sid), exam ? "口試 " + Number(exam[1]) + "/" + Number(exam[2]) + (clean(p.examStart) ? " " + clean(p.examStart) : "") : ""].filter(Boolean).join("・");
     var text = $("#fillChipText");
     text.replaceChildren();
     var k = document.createElement("span"); k.className = "fill-chip-label"; k.textContent = "表單自動帶入";
@@ -148,6 +180,18 @@
     return true;
   }
 
-  global.FillForm = { attach: attach, isFillable: isFillable, init: init, _load: load, _KEY: KEY };
+  // 預約教室訊息選的日期、開始時間，也記進同一份資料（下載時帶入口試時間）
+  function remember(fields) {
+    var p = load() || {};
+    var changed = false;
+    Object.keys(fields).forEach(function (k) {
+      if (FIELDS.indexOf(k) < 0) return;
+      var v = clean(fields[k]);
+      if (v && p[k] !== v) { p[k] = v; changed = true; }
+    });
+    if (changed) { save(p); renderChip(); }
+  }
+
+  global.FillForm = { attach: attach, isFillable: isFillable, init: init, fileName: fileName, remember: remember, _load: load, _KEY: KEY };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 })(window);

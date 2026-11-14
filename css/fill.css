@@ -33,4 +33,7 @@
   text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(36, 112, 173, 0.4);
 }
 .fill-chip button:hover, .fill-chip button:focus-visible { color: var(--blue-dark); text-decoration-color: currentColor; }
-@media (max-width: 560px) { .fill-grid { grid-template-columns: 1fr; } }
+/* 口試資訊（3.0.9）：日期、開始時間、教室一列三欄，教室欄窄一點 */
+.fill-grid.fill-exam { grid-template-columns: 1.3fr 1fr 0.7fr; margin-top: -2px; }
+.fill-grid.fill-exam .fill-field, .fill-grid.fill-exam input { min-width: 0; width: 100%; box-sizing: border-box; }
+@media (max-width: 560px) { .fill-grid, .fill-grid.fill-exam { grid-template-columns: 1fr; } }

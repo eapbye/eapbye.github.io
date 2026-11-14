@@ -119,6 +119,7 @@
           <div class="progress-heading">
             <div class="progress-flow-label" id="progressFlowLabel">學位論文計畫口試</div>
             <h2 id="workflowTitle">你現在的進度</h2>
+            <div class="flow-deadline" id="flowDeadline" hidden></div>
             <div class="fill-chip" id="fillChip" hidden><span id="fillChipText"></span><button type="button" id="fillChipEdit">修改</button></div>
           </div>
           <div class="progress-meter" aria-label="完成進度">
@@ -206,7 +207,12 @@
         <label class="fill-field" for="fill_email">E-mail<input id="fill_email" name="email" type="text" inputmode="email" autocomplete="email"></label>
         <label class="fill-field wide" for="fill_title">論文題目（可先空白）<input id="fill_title" name="title" autocomplete="off"></label>
       </div>
-      <p class="fill-note">資料只存在這台電腦的瀏覽器，不會傳到任何地方。簽名、勾選、日期仍需自己處理，下載後請再核對一次。</p>
+      <div class="fill-grid fill-exam">
+        <label class="fill-field" for="fill_examDate">口試日期（可先空白）<input id="fill_examDate" name="examDate" type="date" autocomplete="off"></label>
+        <label class="fill-field" for="fill_examStart">開始時間<input id="fill_examStart" name="examStart" type="time" min="08:00" max="22:00" step="600" autocomplete="off"></label>
+        <label class="fill-field" for="fill_examRoom">教室<input id="fill_examRoom" name="examRoom" inputmode="numeric" maxlength="3" placeholder="303" autocomplete="off"></label>
+      </div>
+      <p class="fill-note">資料只存在這台電腦的瀏覽器，不會傳到任何地方。簽名、勾選、填表日期仍需自己處理，下載後請再核對一次。</p>
       <div class="fill-actions">
         <button class="ack-button full-action" id="fillSubmit" type="submit">下載已填好的表</button>
         <div class="fill-secondary">
@@ -238,12 +244,13 @@
       </span>
     </div>
     <footer class="site-credit" aria-label="網站資訊">
-      <span>政大教政所 維護｜3.0.9 版｜2026-11-15 更新</span>
+      <span>政大教政所 維護｜3.0.10 版｜2026-11-15 更新</span>
     </footer>
   </div>
 
   <script src="js/guard.js"></script>
   <script src="js/news.js"></script>
+  <script src="js/season.js"></script>
   <script src="vendor/jszip.min.js"></script>
   <script src="js/odtfill.js"></script>
   <script src="js/fillform.js"></script>

@@ -402,7 +402,7 @@ test('自動填表：第一次跳窗、填好下載、檔名與內容正確；�
     await page.click('#fillSubmit');
   })()]);
   const r = await readDownload(dl);
-  assert.strictEqual(r.name, '資格考試申請表.odt');
+  assert.strictEqual(r.name, PROFILE.name + '_國立政治大學教育行政與政策研究所資格考試申請表.odt', '檔名要是「姓名_所網全名」');
   assert.ok(r.xml.includes(PROFILE.name) && r.xml.includes(PROFILE.sid) && r.xml.includes(PROFILE.email), '下載檔應含姓名、學號、e-mail');
   const names = Object.keys(r.zip.files);
   assert.strictEqual(names[0], 'mimetype', 'mimetype 必須是第一個檔案');
@@ -724,7 +724,7 @@ test('續辦首頁：有進度的流程卡片顯示完成數；沒進度不顯�
   // 這個種子沒進入流程，首頁一載入就該看到進度
   const texts = await page.evaluate(() => Array.from(document.querySelectorAll('.mode-card')).map((c) => [c.dataset.mode, c.querySelector('.mode-status').textContent]));
   const defense = texts.find((t) => t[0] === 'defense')[1], proposal = texts.find((t) => t[0] === 'proposal')[1];
-  assert.ok(/^繼續上次進度（\d+ \/ \d+）$/.test(defense) && !/^繼續上次進度（0 /.test(defense), defense);
+  assert.ok(/^繼續第.步：.+（\d+ \/ \d+）$/.test(defense) && !/（0 \//.test(defense), defense);
   assert.strictEqual(proposal, '點擊進入');
   // 進流程再回首頁，數字要跟流程裡的進度條一致
   await enterMode(page, 'defense');
@@ -738,7 +738,7 @@ test('續辦首頁：有進度的流程卡片顯示完成數；沒進度不顯�
   assert.ok(!bar.startsWith('0/'), '走完流程後進度不該是 0：' + bar);
   if (await page.locator('#closeCelebration').isVisible()) await page.click('#closeCelebration'); else await page.click('#backToModes');
   const back = await page.locator('.mode-card[data-mode="defense"] .mode-status').innerText();
-  assert.strictEqual(back, `繼續上次進度（${bar.replace('/', ' / ')}）`);
+  assert.ok(/^(繼續第.步：.+|已完成)（/.test(back) && back.endsWith(`（${bar.replace('/', ' / ')}）`), back);
   // 改選另一個流程：先確認；取消就保留，同意才清除
   await page.click('.mode-card[data-mode="proposal"]');
   await page.waitForSelector('#confirmModal:not(.hidden)');
@@ -747,7 +747,7 @@ test('續辦首頁：有進度的流程卡片顯示完成數；沒進度不顯�
   await page.keyboard.press('Escape');
   assert.ok(await page.locator('#confirmModal.hidden').count(), 'Esc 關閉確認視窗＝取消');
   assert.ok(!(await page.locator('body').evaluate((el) => el.classList.contains('workflow-open'))), '取消後仍在首頁');
-  assert.ok((await page.locator('.mode-card[data-mode="defense"] .mode-status').innerText()).startsWith('繼續上次進度'), '取消後進度還在');
+  assert.ok(/^(繼續|已完成)/.test(await page.locator('.mode-card[data-mode="defense"] .mode-status').innerText()), '取消後進度還在');
   await page.click('.mode-card[data-mode="proposal"]');
   await page.click('#confirmOk');
   await page.waitForSelector('body.workflow-open');
@@ -882,6 +882,69 @@ test('巡檢：預約訊息——結束選得比開始早自動修正、晚場�
   assert.strictEqual(out.copiedUnfinished, '已複製（還有空白要補）');
   assert.strictEqual(out.copiedDone, '已複製，可以貼到 LINE 或信件');
   assert.ok(out.text.includes('教政所113級的王小明（學號：113171009）'), out.text);
+  assert.deepStrictEqual(page.errors, []);
+});
+
+test('3.0.9：消息依流程加色點並可點、流程頁顯示最近期限、續辦寫步驟、莊姐小提醒與簽名標籤、季節造型', async (b, base) => {
+  const page = await newPage(b, base, { seed: { mode: 'defense', started: true, precheckAck: true } });
+  await openHome(page); await dismissModals(page);
+  // 消息：有流程的都有色點；正在辦學位論文考試，計畫口試的消息變淡、不能點；學位論文考試與離校的可點
+  const info = await page.$$eval('#newsStrip .news-item:not(.is-clone)', (els) => els.map((e) => ({ flow: e.dataset.flow || '', dot: !!e.querySelector('.news-dot:not(.is-blank)'), link: e.classList.contains('is-link'), dim: e.classList.contains('is-other-flow') })));
+  assert.ok(info.length > 0, '應有消息');
+  for (const n of info) {
+    assert.strictEqual(n.dot, !!n.flow, '有流程才有色點');
+    if (n.flow === 'proposal') assert.ok(!n.link && n.dim, '別的流程：變淡、不能點');
+    if (n.flow === 'defense') assert.ok(n.link && !n.dim, '自己的流程：可點');
+  }
+  // 續辦卡片寫出目前步驟
+  const status = await page.locator('.mode-card[data-mode="defense"] .mode-status').innerText();
+  assert.ok(/^繼續第.步：/.test(status), status);
+  // 點學位論文考試的消息直接進流程，標題下方有最近期限
+  const defenseNews = page.locator('#newsStrip .news-item.news-flow-defense:not(.is-clone)').first();
+  if (await defenseNews.count()) {
+    await page.evaluate(() => { const li = document.querySelector('#newsStrip .news-item.news-flow-defense:not(.is-clone)'); li.click(); });
+    await page.waitForSelector('body.workflow-open');
+    assert.ok(await page.locator('#flowDeadline').isVisible(), '流程頁應顯示最近期限');
+    assert.ok(/還有 \d+ 天|今天/.test(await page.locator('#flowDeadline').innerText()));
+  }
+  // 季節造型：日期對照
+  const themes = await page.evaluate(() => ['2026-12-24', '2027-02-20', '2027-06-09', '2027-06-20', '2027-09-15', '2027-09-28', '2027-11-15'].map((d) => EapSeason.theme(d)));
+  assert.deepStrictEqual(themes, ['christmas', 'newyear', 'dragonboat', 'graduation', 'midautumn', 'teacher', '']);
+  assert.deepStrictEqual(page.errors, []);
+  await page.context().close();
+  // 計畫口試：Turnitin 有簽名標籤與莊姐小提醒；AIGC 寫指導教授
+  const p2 = await newPage(b, base, { seed: { mode: 'proposal', started: true, precheckAck: true, qualificationAck: true } });
+  await openHome(p2); await dismissModals(p2);
+  await enterMode(p2, 'proposal');
+  const tur = p2.locator('[data-doc-id="proposal-plagiarism-certificate"]');
+  assert.ok((await tur.locator('.doc-sign').innerText()).includes('指導教授'), 'Turnitin 要有簽名標籤');
+  assert.ok((await tur.locator('.zhuang-tip-bubble').innerText()).includes('24 小時'), 'Turnitin 經驗分享改成莊姐小提醒');
+  assert.ok((await p2.locator('[data-doc-id="proposal-aigc-certificate"] .doc-sign').innerText()).includes('指導教授'));
+  assert.deepStrictEqual(p2.errors, []);
+});
+
+test('3.0.9：口試資訊只帶入有把握的格子、評審意見表與評分表一次三份、邀請函不動', async (b, base) => {
+  const page = await newPage(b, base);
+  await openHome(page);
+  const r = await page.evaluate(async () => {
+    const data = { name: '王小明', sid: '113171009', title: '題目', examDate: '2026-12-18', examStart: '14:00', examRoom: '303' };
+    const text = async (u) => { const res = await fillOdt(u, data); const z = await JSZip.loadAsync(await res.blob.arrayBuffer()); const x = await z.file('content.xml').async('string'); return { filled: res.filled, x }; };
+    return {
+      review: await text('documents/proposal/04-committee-review-result.odt'),
+      app: await text('documents/proposal/02-proposal-template.odt'),
+      score: await text('documents/defense/04-exam-scoring-sheet.odt'),
+      qual: await text('documents/proposal/qualifying-exam-application.odt'),
+    };
+  });
+  const plain = (x) => x.replace(/<text:s text:c="(\d+)"\/>/g, (m, n) => ' '.repeat(+n)).replace(/<text:s\/>/g, ' ').replace(/<[^>]+>/g, '');
+  assert.ok(r.review.filled.includes('term') && r.review.filled.includes('examTime'), r.review.filled.join(','));
+  assert.strictEqual((plain(r.review.x).match(/學位論文計畫口試委員評審意見表/g) || []).length, 3, '評審意見表要三份');
+  assert.ok(/115\s*學年度第\s*1\s*學期/.test(plain(r.review.x)), '學年度學期');
+  assert.ok(/115\s*年\s*12\s*月\s*18\s*日\s*14\s*時\s*00\s*分/.test(plain(r.review.x)), '口試時間');
+  assert.ok(/（星期\s*五\s*）/.test(plain(r.app.x)) && /3\s*樓\s*303\s*室/.test(plain(r.app.x)), '申請表時間星期與地點');
+  assert.ok(/井塘樓）/.test(plain(r.app.x)), '「井塘樓」不能被當成樓層空格');
+  assert.strictEqual((plain(r.score.x).match(/學位論文考試評分表/g) || []).length, 3, '評分表要三份');
+  assert.ok(!r.qual.filled.includes('term'), '資格考試申請表不帶入學年度（不是口試的表）');
   assert.deepStrictEqual(page.errors, []);
 });
 

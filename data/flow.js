@@ -1,4 +1,5 @@
-    const bookBindingNote = "規格：膠裝，封面採淺藍色（部分店家色卡編號為 A05，如有疑問，可先至所辦查看實體樣本）。\n小提醒：你還需要另外準備 3 本口試本，連同邀請函送交指導教授及口試委員。";
+    const bookBindingNote = "膠裝，封面淺藍色（部分店家色卡編號 A05，不確定可先到所辦看實體樣本）。";
+    const bookBindingTip = "另外再準備 3 本口試本，連同邀請函送給指導教授和兩位口試委員。";
     const graduationBindingNote = "規格：膠裝，書背上光，封面採淺藍色（部分店家色卡編號為 A05，如有疑問，可先至所辦查看實體樣本）。";
     const baseFlow = {
       label: "學位論文計畫口試",
@@ -54,14 +55,16 @@
             {
               id: "proposal-plagiarism-certificate",
               title: "學位論文原創比對（Turnitin）證明表 1 份",
-              note: "請至 Turnitin 比對（參考右下角範例）。\n\n小提醒：使用比對系統時，僅可勾選「排除參考書目」。比對結果須同時符合下列兩項標準：\n1. 總相似度指數：______ %（須低於 20%）\n2. 單一來源最大相似度：______ %（須低於 10%）\n學位論文原創比對（Turnitin）證明表須由指導教授簽名確認\n\n經驗分享：上傳 PDF 檔後，若需重新上傳，須間隔 24 小時；修改密碼後仍無法登入者，可嘗試開無痕視窗或切換瀏覽器。",
+              note: "到 Turnitin 比對，只勾「排除參考書目」。總相似度須低於 20%，單一來源最大相似度須低於 10%。",
+              sign: ["指導教授"],
+              tip: "上傳後若要重傳，得隔 24 小時；改了密碼還是登不進去，開無痕視窗或換個瀏覽器試試。",
               word: ["學位論文原創比對（Turnitin）證明表（ODT）", "documents/defense/02-originality-report.odt"],
               sample: ["比對論文系統操作指引", "documents/defense/02-originality-report-sample.pdf"]
             },
             {
               id: "proposal-aigc-certificate",
               title: "學位論文AIGC檢測報告書 1 份",
-              note: "學位論文AIGC檢測報告書須由指導教授簽名確認",
+              sign: ["指導教授"],
               word: ["學位論文AIGC檢測報告書（ODT）", "documents/defense/aigc-detection-report.odt"]
             }
           ]
@@ -94,7 +97,7 @@
             {
               id: "proposal-review-checklist",
               title: "計畫口試資料檢核表 1 份",
-              note: "小提醒：口試委員若有校內停車需求，請於資料檢核表中填寫車牌號碼。",
+              tip: "口試委員要開車進校園的話，記得在資料檢核表填上車牌號碼。",
               word: ["計畫口試資料檢核表（ODT）", "documents/proposal/01-proposal-review-checklist.odt"]
             },
             {
@@ -123,6 +126,7 @@
               id: "proposal-book",
               title: "計畫口試本 1 本",
               note: bookBindingNote,
+              tip: bookBindingTip,
               sample: ["計畫封面格式範例", "documents/proposal/proposal-cover-format.pdf"]
             }
           ]
@@ -149,6 +153,7 @@
         applicationWord: "計畫口試申請表（ODT）",
         bookTitle: "計畫口試本 1 本",
         bookNote: bookBindingNote,
+        bookTip: bookBindingTip,
         failedMessage: "論文計畫口試需要先修業滿 18 學分。請繼續完成課程，準備好之後再回來重新開始流程。"
       },
       defense: {
@@ -181,13 +186,15 @@
               {
                 id: "defense-checklist",
                 title: "學位論文考試檢核表 1 份",
-                note: "小提醒：口試委員若有校內停車需求，請於資料檢核表中填寫車牌號碼。",
+                tip: "口試委員要開車進校園的話，記得在資料檢核表填上車牌號碼。",
                 word: ["學位論文考試檢核表（ODT）", "documents/defense/00-defense-checklist.odt"]
               },
               {
                 id: "defense-plagiarism-certificate",
                 title: "學位論文原創比對（Turnitin）證明表 1 份",
-                note: "請至 Turnitin 比對（參考右下角範例）。\n\n小提醒：使用比對系統時，僅可勾選「排除參考書目」。比對結果須同時符合下列兩項標準：\n1. 總相似度指數：______ %（須低於 20%）\n2. 單一來源最大相似度：______ %（須低於 10%）\n學位論文原創比對（Turnitin）證明表須由指導教授簽名確認\n\n經驗分享：上傳 PDF 檔後，若需重新上傳，須間隔 24 小時；修改密碼後仍無法登入者，可嘗試開無痕視窗或切換瀏覽器。",
+                note: "到 Turnitin 比對，只勾「排除參考書目」。總相似度須低於 20%，單一來源最大相似度須低於 10%。",
+              sign: ["指導教授"],
+              tip: "上傳後若要重傳，得隔 24 小時；改了密碼還是登不進去，開無痕視窗或換個瀏覽器試試。",
                 word: ["學位論文原創比對（Turnitin）證明表（ODT）", "documents/defense/02-originality-report.odt"],
                 sample: ["比對論文系統操作指引", "documents/defense/02-originality-report-sample.pdf"]
               },
@@ -200,14 +207,16 @@
               {
                 id: "defense-aigc-certificate",
                 title: "學位論文AIGC檢測報告書 1 份",
-                note: "學位論文AIGC檢測報告書須由指導教授簽名確認",
+                sign: ["指導教授"],
                 word: ["學位論文AIGC檢測報告書（ODT）", "documents/defense/aigc-detection-report.odt"]
               },
               {
                 id: "defense-application",
                 title: "學位考試申請書 1 份",
                 tool: "roomBooking",
-                note: "請至 iNCCU 申請（校務資訊系統 → 學生資訊系統 → 學術服務 → 學位考試申請系統 → 列印）\n小提醒：如有調整論文題目名稱，請聯絡助教修正。",
+                note: "到 iNCCU 申請後列印。",
+                path: ["校務資訊系統", "學生資訊系統", "學術服務", "學位考試申請系統", "列印"],
+                tip: "論文題目有改的話，記得請助教幫你修正。",
                 sample: ["學位考試申請書範例", "documents/defense/01-degree-exam-application-sample.pdf"]
               },
 
@@ -236,6 +245,7 @@
                 id: "defense-book",
                 title: "學位論文考試本 1 本",
                 note: bookBindingNote,
+                tip: bookBindingTip,
                 sample: ["論文封面格式範例", "documents/defense/thesis-cover-format.pdf"]
               }
             ]
@@ -255,6 +265,7 @@
         applicationWord: "學位考試申請書（ODT）",
         bookTitle: "學位論文考試本 1 本",
         bookNote: bookBindingNote,
+        bookTip: bookBindingTip,
         failedMessage: "學位論文考試需要先確認修業與資格條件。若尚未符合，請準備好之後再回來重新開始流程。"
       }
     };

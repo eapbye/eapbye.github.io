@@ -29,7 +29,7 @@ const FAULTS = [
   ['自動填表：「不填」仍帶入資料', 'index.html', 'skippedThisVisit = true;\n      closeModal();\n      if (job) run(job.href, job.name, null, job.onDone);', 'skippedThisVisit = true;\n      closeModal();\n      if (job) run(job.href, job.name, { name: "X" }, job.onDone);', 1, '不填，下載空白表'],
   ['自動填表：留空欄位不標紅色 ○', 'index.html', '    if (!val) { p.appendChild(redCircle(doc, key)); return; }', '    if (!val) { return; }', 1, '標紅色'],
   ['預選登記：沒排課時不顯示說明', 'js/course-registration.js', '目前沒有排入會修或考慮中的課程。', '', 1, '沒有排入'],
-  ['續辦首頁：不再顯示進度', 'index.html', 'status.textContent = resume ? `繼續上次進度（${done} / ${total}）` : "點擊進入";', 'status.textContent = "點擊進入";', 1, '續辦首頁'],
+  ['續辦首頁：不再顯示進度', 'index.html', 'status.textContent = resume ? resumeLabel(done, total) : "點擊進入";', 'status.textContent = "點擊進入";', 1, '續辦首頁'],
   ['續辦首頁：改選流程不再確認', 'index.html', 'if (state.mode !== nextMode && state.started && flowModes[state.mode] && progressCounts().done > 0) {', 'if (false) {', 1, '續辦首頁'],
   ['重設進度不再確認', 'index.html', 'if (progressCounts().done <= 0) { resetProgress(); return; }', 'resetProgress(); return;', 1, '重設進度先確認'],
   ['防嵌入：guard 失效', 'index.html', 'document.documentElement.style.display = "none";', '', 1, '防嵌入'],
