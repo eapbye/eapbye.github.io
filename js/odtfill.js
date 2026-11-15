@@ -6,7 +6,7 @@
    3. 聯絡電話的格子若已印有「手機」（表21 的「(手機)(宅)(公)」、計畫口試檢核表的「手機」），
       只把手機號碼寫在「手機」後面，並把後面的空白縮短同樣的字數，版面不位移；宅、公不動。
    4. 簽名、勾選框、相似度、日期一律不碰。
-   5. 沒值的欄位標「紅字黃底的 ○」，個數依欄位一般長度（姓名 3、學號 9、電話 10、e-mail 8、題目 8）；填入的字依格寬調整字級。
+   5. 沒值的欄位標「紅字黃底的 ○」，個數依欄位一般長度（姓名 3、學號 9、電話 10、e-mail 8、題目 8）；填入的字目標 14pt（和表單標籤同大），放不下才縮小；題目可折兩行。
    依賴：vendor/jszip.min.js（全域 JSZip）。 */
 (function (global) {
   var NS = {
@@ -75,7 +75,7 @@
     }
     return total;
   }
-  // 手機號碼不能折行：格子太窄時，估算能放下的字級（最小 8pt）
+  // 手機號碼不能折行：格子太窄時，估算能放下的字級（最小 8pt；填入字最小 10pt）
   function shrinkStyle(doc, size) {
     var name = "TfillSmall" + size.toString().replace(".", "_");
     var auto = doc.getElementsByTagNameNS(NS.office, "automatic-styles")[0];
@@ -101,13 +101,16 @@
     sp.textContent = new Array(circleCount(key) + 1).join("○");
     return sp;
   }
-  // 填入的字：字級依格子寬度估算（最大 12pt、最小 8pt），避免比表單原有文字小很多、也不撐開版面
-  function fitSize(doc, cell, val) {
+  // 填入的字：目標 14pt（和表單印好的標籤一樣大）；放不下才逐級縮小（最小 10pt）。
+  // 論文題目可以折成兩行，其他欄位要一行放完。全形字寬 1 em、半形約 0.55 em。
+  function emWidth(s) { var w = 0; for (var i = 0; i < s.length; i++) w += s.charCodeAt(i) > 255 ? 1 : 0.55; return w; }
+  function fitSize(doc, cell, val, key) {
     var w = columnWidth(doc, cell);
-    if (!(w > 0)) return 11;
-    var avail = (w - 0.4) * 72;
-    var size = Math.floor(Math.min(12, avail / (width(val) * 0.64)) * 2) / 2;
-    return Math.max(8, size);
+    if (!(w > 0)) return 12;
+    var avail = (w - 0.4) * 72, em = emWidth(val), maxLines = key === "title" ? 2 : 1;
+    var sizes = [14, 13, 12, 11, 10.5, 10];
+    for (var i = 0; i < sizes.length; i++) if (Math.ceil(em * sizes[i] / avail) <= maxLines) return sizes[i];
+    return 10;
   }
 
   // 只填「手機」：找到含「手機」的段落，把號碼接在那段文字後面，並縮短緊接著的連續空白（text:s）
@@ -142,7 +145,7 @@
     if (!p) { p = doc.createElementNS(NS.text, "text:p"); cell.appendChild(p); }
     if (!val) { p.appendChild(redCircle(doc, key)); return; }
     var sp = doc.createElementNS(NS.text, "text:span");
-    sp.setAttributeNS(NS.text, "text:style-name", shrinkStyle(doc, fitSize(doc, cell, val)));
+    sp.setAttributeNS(NS.text, "text:style-name", shrinkStyle(doc, fitSize(doc, cell, val, key)));
     sp.appendChild(doc.createTextNode(val));
     p.appendChild(sp);
   }
