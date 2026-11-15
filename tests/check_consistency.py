@@ -310,12 +310,12 @@ def check(root):
         if "check_consistency.py" not in ci:
             add("WARN", "pages.yml 沒有在部署前執行 tests/check_consistency.py")
 
-    # ---- 頁尾版本號與更新日（格式：政大教政所 維護｜3.0.4 版｜2026-11-14 更新）----
+    # ---- 頁尾版本號與更新日（格式：政大教政所 維護｜Version 3.0.12｜2026-11-15 更新；版本與｜各包在 <b>、<i> 裡）----
     # 版本規則：大改版升第一碼（標題旁的 3.0 跟著改），每次上線升最後一碼
-    foot = re.findall(r"政大教政所 維護｜(\d+)\.(\d+)\.(\d+) 版｜(\d{4}-\d{2}-\d{2}) 更新", idx)
+    foot = re.findall(r"政大教政所 維護<i class=\"credit-sep\">｜</i><b class=\"credit-ver\">Version (\d+)\.(\d+)\.(\d+)</b><i class=\"credit-sep\">｜</i>(\d{4}-\d{2}-\d{2}) 更新", idx)
     ups = [f[3] for f in foot]
     if len(foot) != 1 or idx.count(" 更新</span>") != 1:
-        add("FAIL", f"首頁頁尾「政大教政所 維護｜X.Y.Z 版｜YYYY-MM-DD 更新」應恰好出現 1 次（全形｜、西元日期）；符合格式 {len(foot)} 次")
+        add("FAIL", f"首頁頁尾「政大教政所 維護｜Version X.Y.Z｜YYYY-MM-DD 更新」應恰好出現 1 次（全形｜、西元日期）；符合格式 {len(foot)} 次")
     elif not re.search(r'class="version-mark"[^>]*>' + foot[0][0] + r"\." + foot[0][1] + "<", idx):
         add("FAIL", f"頁尾版本 {'.'.join(foot[0][:3])} 的前兩碼與標題旁的版本號不一致")
     else:

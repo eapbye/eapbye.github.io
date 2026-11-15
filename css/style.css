@@ -5542,3 +5542,17 @@ button.document-status.is-undoable:focus-visible { outline: 2px solid var(--done
   background: #f6fafe;
   transform: rotate(45deg);
 }
+
+/* 3.0.13 頁尾版本號：Version 做成淡藍小膠囊，｜變淡 */
+.site-credit .credit-sep { margin: 0 0.55em; font-style: normal; color: #b9c7dc; }
+.site-credit .credit-ver {
+  display: inline-block;
+  padding: 1px 10px;
+  border: 1px solid #cfe0f7;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f3f8ff, #e6f0fd);
+  color: #2f6bd1;
+  font: 600 0.78rem/1.5 ui-monospace, "SF Mono", Consolas, "Courier New", monospace;
+  letter-spacing: 0.06em;
+  vertical-align: 1px;
+}

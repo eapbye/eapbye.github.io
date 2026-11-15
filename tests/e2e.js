@@ -150,7 +150,7 @@ test('首頁：載入無錯誤、三個入口、提醒彈窗只出現一次', as
   assert.ok(await page.locator('#openGraduation').isVisible(), '缺畢業專區入口');
   assert.ok(await page.locator('#deadlineModal:not(.hidden)').count(), '第一次進站應出現期限提醒彈窗');
   const foot = await page.locator('footer, body').first().innerText();
-  assert.ok(/政大教政所 維護｜\d+\.\d+\.\d+ 版｜\d{4}-\d{2}-\d{2} 更新/.test(foot), '首頁頁尾看不到版本號與更新日');
+  assert.ok(/政大教政所 維護｜Version \d+\.\d+\.\d+｜\d{4}-\d{2}-\d{2} 更新/.test(foot), '首頁頁尾看不到版本號與更新日');
   await dismissModals(page);
   await page.reload(); await page.waitForTimeout(1500);
   assert.ok(!(await page.locator('#deadlineModal:not(.hidden)').count()), '30 天內再進站不應再跳期限提醒');
