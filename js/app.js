@@ -1524,7 +1524,7 @@
             </span>
             <strong>${item.year}</strong>
           `;
-          watchImageFallback(button.querySelector("img"), () => {}, `graduation/${item.folder}/cover.jpg`);
+          watchImageFallback(button.querySelector("img"), () => {});
         } else {
           // 沒有照片的級數（尚未拍畢業照／還不能畢業）：照片位置放哭臉，高度與有照片的卡片一致
           button.classList.add("has-placeholder");
@@ -1590,8 +1590,7 @@
         renderGraduationCoverPlaceholder(hero.querySelector(".graduation-cover img"), item.coverPlaceholder, Boolean(item.coverCryFace));
       } else watchImageFallback(
         hero.querySelector(".graduation-cover img"),
-        (img) => renderGraduationCoverPlaceholder(img, item.coverPlaceholder || `${item.year}畢業專區封面照片`, Boolean(item.coverCryFace)),
-        `graduation/${item.folder}/cover.jpg`
+        (img) => renderGraduationCoverPlaceholder(img, item.coverPlaceholder || `${item.year}畢業專區封面照片`, Boolean(item.coverCryFace))
       );
 
       const checklist = document.createElement("section");

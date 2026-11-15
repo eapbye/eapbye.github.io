@@ -139,7 +139,7 @@ def check(root):
             if not folder or "pendingTitle" in body or "coverPlaceholder" in body:  # 還不能畢業／還沒拍畢業照：不需要圖
                 continue
             card = re.search(r'cardImage:\s*"([^"]+)"', body)
-            for name in (card.group(1) if card else "cover-card.jpg", "cover-detail.jpg", "cover.jpg"):
+            for name in (card.group(1) if card else "cover-card.jpg", "cover-detail.jpg"):
                 p = os.path.join(root, "graduation", folder.group(1), name)
                 if not os.path.isfile(p):
                     add("FAIL", f"畢業專區 {folder.group(1)} 級缺圖：graduation/{folder.group(1)}/{name}")
