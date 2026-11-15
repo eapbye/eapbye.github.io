@@ -38,15 +38,9 @@ ACCESSORIES = {
           <path class="thin-line" d="M362 432 L436 432" stroke="#c98a3f" fill="none" />
           <path class="thin-line" d="M398 368 L398 446" stroke="#c98a3f" fill="none" />
         </g>""",
-    # 中秋：頭戴柚子皮帽、帽頂一片葉子
-    "midautumn": """
-        <path class="line" d="M156 120 C164 44 356 44 364 120 L344 110 L326 122 L306 110 L286 122 L266 110 L246 122 L226 110 L206 122 L186 110 L170 122 Z" fill="#cfe27a" />
-        <path d="M184 92 C214 66 250 58 282 62" stroke="rgba(255,255,255,.45)" stroke-width="7" stroke-linecap="round" fill="none" />
-        <path class="thin-line" d="M260 58 L262 34" fill="none" />
-        <path class="thin-line" d="M262 40 C278 22 302 22 312 30 C300 46 278 48 262 40 Z" fill="#5fae5a" />""",
-    # 教師節：胸前別一朵康乃馨
+    # 教師節：胸前別一朵大康乃馨（放大 2.1 倍，遠看也認得出）
     "teacher": """
-        <g transform="translate(316 392)">
+        <g transform="translate(318 372) scale(2.1)">
           <path class="thin-line" d="M-6 14 L-18 44 M6 14 L18 44" stroke="#ff7cbc" fill="none" />
           <path class="thin-line" d="M0 6 C-24 10 -30 28 -14 30 C-6 22 0 16 0 6 Z" fill="#5fae5a" />
           <circle class="thin-line" cx="-12" cy="-6" r="12" fill="#ff5f7e" />
@@ -61,14 +55,6 @@ ACCESSORIES = {
         <circle cx="260" cy="81" r="8" fill="#ffcf4a" />
         <path d="M260 81 C320 86 372 92 388 100 L388 150" stroke="#ffcf4a" stroke-width="6" stroke-linecap="round" fill="none" />
         <path class="thin-line" d="M378 148 L398 148 L402 176 L374 176 Z" fill="#ffcf4a" />""",
-    # 開學季：右耳後夾一支鉛筆
-    "school": """
-        <g transform="rotate(-38 392 196)">
-          <rect class="thin-line" x="356" y="186" width="70" height="20" rx="3" fill="#ffd34d" />
-          <rect class="thin-line" x="344" y="186" width="14" height="20" rx="3" fill="#ff9aaa" />
-          <path class="thin-line" d="M426 186 L446 196 L426 206 Z" fill="#ffe7c2" />
-          <path d="M440 193 L446 196 L440 199 Z" fill="#342019" />
-        </g>""",
 }
 
 MARK = "      </g>\n    </svg>"

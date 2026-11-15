@@ -908,8 +908,8 @@ test('3.0.9：消息依流程加色點並可點、流程頁顯示最近期限、
     assert.ok(/還有 \d+ 天|今天/.test(await page.locator('#flowDeadline').innerText()));
   }
   // 季節造型：日期對照
-  const themes = await page.evaluate(() => ['2026-12-24', '2027-02-20', '2027-06-09', '2027-06-20', '2027-09-15', '2027-09-28', '2027-11-15'].map((d) => EapSeason.theme(d)));
-  assert.deepStrictEqual(themes, ['christmas', 'newyear', 'dragonboat', 'graduation', 'midautumn', 'teacher', '']);
+  const themes = await page.evaluate(() => ['2026-12-24', '2027-02-20', '2027-06-09', '2027-06-20', '2027-09-15', '2027-09-01', '2027-09-28', '2026-09-25', '2027-11-15'].map((d) => EapSeason.theme(d)));
+  assert.deepStrictEqual(themes, ['christmas', 'newyear', 'dragonboat', 'graduation', '', '', 'teacher', 'teacher', '']);
   assert.deepStrictEqual(page.errors, []);
   await page.context().close();
   // 計畫口試：Turnitin 有簽名標籤與莊姐小提醒；AIGC 寫指導教授
