@@ -131,17 +131,6 @@
 }
 .modal-avatar img { width: 118%; height: 118%; object-fit: cover; object-position: 50% 18%; }
 .remind-body { min-width: 0; }
-.remind-tag {
-  display: inline-block;
-  margin: 0 0 6px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: var(--ac-soft);
-  color: var(--ac-dark);
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-}
 .remind-card h2 { margin: 0 0 8px; font-size: 1.42rem; }
 .remind-card p { margin: 0 0 18px; font-size: 1rem; line-height: 1.75; }
 .remind-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 10px; }
