@@ -1,0 +1,289 @@
+/* ===== 手機「流程一覽」（3.0.17 試辦；js/mobile-overview.js） =====
+   手機點兩張申請主卡時開的唯讀畫面：五步（學位論文考試三步）收合卡，一次展開一步。
+   顏色隨流程：計畫口試藍、學位論文考試紫，與首頁主卡一致；一律純色（不用漸層字，避開 Samsung 強制深色）。
+   觸控目標一律 44px 以上。變數都加 --mo- 前綴，不與彈窗的 --ac 混用。 */
+
+body.mo-lock { overflow: hidden; }
+
+#mobileOverview {
+  --mo-ac: var(--blue);
+  --mo-soft: var(--blue-soft);
+  --mo-dark: var(--blue-dark);
+  --mo-panel: #e9f3fb;
+  position: fixed;
+  inset: 0;
+  z-index: 18; /* 低於彈窗（.info-modal 19），預約訊息視窗才蓋得住 */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 6px 14px calc(36px + env(safe-area-inset-bottom));
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.5;
+}
+#mobileOverview[data-flow="defense"] {
+  --mo-ac: var(--indigo);
+  --mo-soft: var(--indigo-soft);
+  --mo-dark: #3d2d73;
+  --mo-panel: #f3effb;
+}
+#mobileOverview > * { max-width: 560px; margin-left: auto; margin-right: auto; }
+
+.mo-back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px 0 0;
+  border: 0;
+  background: transparent;
+  color: var(--mo-dark);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mo-head {
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--line-soft);
+  border-top: 4px solid var(--mo-ac);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.mo-head h1 { margin: 0; color: var(--mo-dark); font-size: 1.4rem; line-height: 1.3; }
+.mo-dl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 8px;
+  color: #33445a;
+  font-size: 0.93rem;
+  font-weight: 700;
+}
+.mo-left {
+  flex: 0 0 auto;
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: var(--mo-soft);
+  color: var(--mo-dark);
+  font-size: 0.86rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.mo-left.is-soon { background: var(--danger-soft); color: var(--danger); }
+.mo-pc {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.mo-pc i {
+  flex: 0 0 auto;
+  position: relative;
+  width: 22px;
+  height: 15px;
+  margin: 0 4px 3px 6px;
+  border: 2px solid var(--muted);
+  border-radius: 3px;
+}
+.mo-pc i::after {
+  content: "";
+  position: absolute;
+  left: -6px;
+  right: -6px;
+  bottom: -6px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--muted);
+}
+
+/* 步驟卡 */
+.mo-step {
+  margin-bottom: 10px;
+  overflow: hidden;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-xs);
+  scroll-margin-top: 8px;
+}
+.mo-step.is-open { border-color: var(--mo-ac); box-shadow: var(--shadow-sm); }
+.mo-sh {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 8px 14px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.mo-step.is-open .mo-sh { background: var(--mo-panel); }
+.mo-num {
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--mo-ac);
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 800;
+}
+.mo-t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.mo-name { font-size: 1.05rem; font-weight: 800; line-height: 1.35; }
+.mo-sub { color: var(--muted); font-size: 0.88rem; font-weight: 600; line-height: 1.35; }
+.mo-cnt {
+  flex: 0 0 auto;
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: var(--mo-panel);
+  color: var(--mo-dark);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+.mo-step.is-open .mo-cnt { background: var(--surface); }
+.mo-chev {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  margin: 0 4px 4px 2px;
+  border-right: 2.5px solid var(--mo-dark);
+  border-bottom: 2.5px solid var(--mo-dark);
+  transform: rotate(45deg);
+  transition: transform 0.2s var(--ease);
+}
+.mo-step.is-open .mo-chev { margin: 6px 4px 0 2px; transform: rotate(-135deg); }
+.mo-body { padding: 2px 16px 12px; border-top: 1px solid var(--line-soft); }
+.mo-body[hidden] { display: none; }
+
+/* 一項文件 */
+.mo-row { padding: 12px 0; border-top: 1px solid var(--line-soft); }
+.mo-row:first-child { border-top: 0; }
+.mo-r1 { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.mo-rn { font-size: 1rem; font-weight: 800; line-height: 1.4; }
+.mo-qty {
+  flex: 0 0 auto;
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: var(--mo-soft);
+  color: var(--mo-dark);
+  font-size: 0.86rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.mo-extra { margin-top: 2px; color: var(--muted); font-size: 0.9rem; }
+.mo-cond { margin-top: 4px; color: #33445a; font-size: 0.95rem; font-weight: 700; }
+.mo-cond:first-child { margin-top: 0; }
+.mo-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.mo-sign {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #fde8f1;
+  color: #a3336a;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+.mo-note { margin-top: 6px; color: #33445a; font-size: 0.93rem; }
+.mo-path {
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--mo-panel);
+  color: var(--mo-dark);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.6;
+}
+.mo-path span { white-space: nowrap; }
+.mo-path b { padding: 0 3px; color: var(--muted); }
+.mo-tip { display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; }
+.mo-tip img {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  padding: 1px;
+  border: 1px solid var(--line-soft);
+  border-radius: 50%;
+  background: #ffffff;
+}
+.mo-tip div {
+  padding: 6px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: #f6fafe;
+  color: #42536a;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+.mo-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.mo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--mo-dark);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+.mo-btn::after { content: "›"; margin-left: 6px; font-size: 1.1rem; line-height: 1; }
+.mo-btn.is-main { width: 100%; border-color: var(--mo-ac); background: var(--mo-soft); }
+
+/* 資格三選一 */
+.mo-optgrp { padding: 10px 0 2px; }
+.mo-opttl { font-size: 1rem; font-weight: 800; }
+.mo-opt {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-left: 4px solid var(--mo-ac);
+  border-radius: 0 10px 10px 0;
+  background: var(--mo-panel);
+}
+.mo-opt b { display: block; font-size: 0.95rem; line-height: 1.4; }
+.mo-opt span { display: block; color: #33445a; font-size: 0.9rem; line-height: 1.5; }
+
+/* 最後確認 */
+.mo-gnote {
+  margin: 10px 0 4px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--warm-panel);
+  color: #7a4510;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.mo-grp { padding: 12px 0 4px; border-top: 1px solid var(--line-soft); }
+.mo-grp:first-child { border-top: 0; }
+.mo-gt { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 2px; font-size: 1rem; font-weight: 800; }
+.mo-gt small { color: var(--muted); font-size: 0.86rem; }
+.mo-it { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 7px 0; border-top: 1px dashed var(--line-soft); }
+.mo-gt + .mo-it { border-top: 0; }
+.mo-il { min-width: 0; }
+.mo-il b { display: block; font-size: 0.97rem; line-height: 1.4; }
+.mo-il span { display: block; color: var(--muted); font-size: 0.86rem; line-height: 1.4; }
+
+.mo-foot { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 18px; color: var(--muted); font-size: 0.9rem; font-weight: 700; }
+.mo-foot img { width: 36px; height: 36px; padding: 2px; border: 1px solid var(--line-soft); border-radius: 50%; background: #ffffff; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mo-chev { transition: none; }
+}

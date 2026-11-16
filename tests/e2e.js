@@ -520,7 +520,7 @@ test('預約教室：訊息即時更新、帶入已填的姓名學號、有選�
   assert.deepStrictEqual(page.errors, []);
 });
 
-test('手機：首頁不被撐寬；被擋視窗有「只寫預約訊息」入口（畢業專區沒有）；預約視窗可帶入、分享、Esc 關閉', async (b, base) => {
+test('手機：首頁不被撐寬；畢業專區仍被擋（無預約入口）；兩張主卡開唯讀流程一覽，預約視窗可帶入、分享、Esc 關閉', async (b, base) => {
   const page = await newPage(b, base, { viewport: { width: 360, height: 668 }, mobile: true });
   await page.addInitScript(() => { navigator.share = (d) => { window.__shared = d.text; return Promise.resolve(); }; });
   // 第一次進站期限提醒開著時，首頁卡片會先藏起來：先等提醒出現並關掉，再找卡片
@@ -530,14 +530,22 @@ test('手機：首頁不被撐寬；被擋視窗有「只寫預約訊息」入�
   await page.waitForSelector('.mode-card');
   assert.strictEqual(await page.evaluate(() => document.documentElement.scrollWidth), 360, '手機首頁不可比螢幕寬');
   await page.evaluate(() => localStorage.setItem(FillForm._KEY, JSON.stringify({ name: '郭哲宇', sid: '113171009' })));
-  // 期限提醒偶爾晚一點才跳出、蓋住按鈕：用 retry（會先關彈窗）
+  const progressBefore = await page.evaluate(() => localStorage.getItem('thesisChecklistProgressV3'));
+  // 畢業專區：仍是「請改用電腦操作」，沒有預約入口
   await retry(page, async () => { if (!(await page.locator('#mobileOnlyNoticeModal:not(.hidden)').count())) await page.click('#openGraduation', { timeout: 2000 }); await page.waitForSelector('#mobileOnlyNoticeModal:not(.hidden)', { timeout: 2000 }); });
   assert.ok(await page.locator('#openMobileBooking').isHidden(), '畢業專區不顯示預約入口');
   await page.click('#closeMobileOnlyNotice');
-  await retry(page, async () => { if (!(await page.locator('#mobileOnlyNoticeModal:not(.hidden)').count())) await page.click('.mode-card[data-mode="defense"]', { timeout: 2000 }); await page.waitForSelector('#openMobileBooking:visible', { timeout: 2000 }); });
-  await page.click('#openMobileBooking');
+  // 學位論文考試：開流程一覽，不是被擋提醒
+  await retry(page, async () => { if (!(await page.locator('#mobileOverview:not(.hidden)').count())) await page.click('.mode-card[data-mode="defense"]', { timeout: 2000 }); await page.waitForSelector('#mobileOverview:not(.hidden)', { timeout: 2000 }); });
+  assert.ok(await page.locator('#mobileOnlyNoticeModal').evaluate((el) => el.classList.contains('hidden')), '主卡不再跳「請改用電腦」');
+  assert.strictEqual(await page.locator('#mobileOverview h1').textContent(), '學位論文考試');
+  assert.strictEqual(await page.locator('.mo-step').count(), 3, '學位論文考試一覽是三步');
+  await page.locator('.mo-sh').nth(1).click();
+  const bookBtn = page.locator('.mo-step.is-open .mo-btn.is-main');
+  await bookBtn.waitFor();
+  assert.strictEqual((await bookBtn.textContent()).trim(), '幫我寫預約訊息');
+  await bookBtn.click();
   await page.waitForSelector('#mobileBookingModal:not(.hidden)');
-  assert.ok(await page.locator('#mobileOnlyNoticeModal').evaluate((el) => el.classList.contains('hidden')), '開預約視窗時關掉被擋提醒');
   const box = page.locator('#mobileBookingBody .booking');
   assert.strictEqual(await box.locator('input').first().inputValue(), '郭哲宇', '姓名帶入自動填表資料');
   await box.locator('.booking-grid select').first().selectOption('湯家偉');
@@ -550,7 +558,58 @@ test('手機：首頁不被撐寬；被擋視窗有「只寫預約訊息」入�
   await box.locator('.booking-share').click();
   assert.strictEqual(await page.evaluate(() => window.__shared), text, '分享的是訊息全文');
   await page.keyboard.press('Escape');
-  assert.ok(await page.locator('#mobileBookingModal').evaluate((el) => el.classList.contains('hidden')), 'Esc 關閉預約視窗');
+  assert.ok(await page.locator('#mobileBookingModal').evaluate((el) => el.classList.contains('hidden')), 'Esc 先關預約視窗');
+  assert.ok(await page.locator('#mobileOverview:not(.hidden)').count(), '一覽還開著');
+  await page.keyboard.press('Escape');
+  assert.ok(await page.locator('#mobileOverview').evaluate((el) => el.classList.contains('hidden')), '再按 Esc 關流程一覽');
+  assert.strictEqual(await page.evaluate(() => localStorage.getItem('thesisChecklistProgressV3')), progressBefore, '流程一覽是唯讀的，不寫入進度');
+  assert.deepStrictEqual(page.errors, []);
+});
+
+test('手機流程一覽：計畫口試五步、單一展開、資格三選一、最後確認 18 份；無下載鈕；上一頁與「回首頁」都只退一層', async (b, base) => {
+  const page = await newPage(b, base, { viewport: { width: 360, height: 668 }, mobile: true });
+  await page.goto(base + '/index.html');
+  await page.waitForSelector('#deadlineModal:not(.hidden)', { timeout: 4000 }).catch(() => {});
+  await dismissModals(page);
+  await page.waitForSelector('.mode-card');
+  const histBefore = await page.evaluate(() => history.length);
+  await retry(page, async () => { if (!(await page.locator('#mobileOverview:not(.hidden)').count())) await page.click('.mode-card[data-mode="proposal"]', { timeout: 2000 }); await page.waitForSelector('#mobileOverview:not(.hidden)', { timeout: 2000 }); });
+  assert.strictEqual(await page.locator('#mobileOverview h1').textContent(), '學位論文計畫口試');
+  assert.strictEqual(await page.locator('.mo-step').count(), 5, '計畫口試一覽是五步');
+  assert.strictEqual(await page.evaluate(() => document.getElementById('mobileOverview').dataset.flow), 'proposal');
+  assert.strictEqual(await page.locator('.mo-step.is-open').count(), 0, '一開始全部收合');
+  const wide = async () => page.evaluate(() => { const o = document.getElementById('mobileOverview'); return o.scrollWidth <= innerWidth && document.documentElement.scrollWidth <= innerWidth; });
+  assert.ok(await wide(), '一覽不可橫向溢出');
+  // 單一展開：開第 1 步、再開第 4 步，第 1 步自動收合
+  await page.locator('.mo-sh').nth(0).click();
+  assert.strictEqual(await page.locator('.mo-step.is-open').count(), 1);
+  assert.strictEqual(await page.locator('.mo-opt').count(), 3, '資格確認有三選一');
+  await page.locator('.mo-sh').nth(3).click();
+  assert.strictEqual(await page.locator('.mo-step.is-open').count(), 1, '一次只展開一步');
+  assert.ok(await page.locator('.mo-sh').nth(3).evaluate((el) => el.getAttribute('aria-expanded') === 'true'));
+  assert.ok(await page.locator('.mo-sh').nth(0).evaluate((el) => el.getAttribute('aria-expanded') === 'false'));
+  // 第 5 步：最後確認 18 份、分三組、說明資格另加證明
+  await page.locator('.mo-sh').nth(4).click();
+  assert.ok((await page.locator('.mo-sh').nth(4).textContent()).includes('18 份'), '最後確認標題顯示 18 份');
+  assert.deepStrictEqual(await page.locator('.mo-step.is-open .mo-gt span').allTextContents(), ['繳交所辦', '繳交指導教授', '繳交口試委員']);
+  assert.ok((await page.locator('.mo-gnote').textContent()).includes('資格'), '提醒資格選項不同要另加證明');
+  assert.ok(await wide(), '展開後不可橫向溢出');
+  // 唯讀：沒有下載檔案的連結（下載一律在電腦）
+  assert.strictEqual(await page.locator('#mobileOverview a[download], #mobileOverview a[href$=".odt"], #mobileOverview a[href$=".docx"]').count(), 0, '手機一覽沒有下載鈕');
+  // 手機上不該出現電腦口吻
+  const body = await page.locator('#mobileOverview').innerText();
+  assert.ok(!/右下角|點擊下方/.test(body), '不出現電腦口吻的句子');
+  // 上一頁：只退一層，回到首頁
+  await page.goBack();
+  await page.waitForSelector('#mobileOverview.hidden', { state: 'attached' });
+  assert.ok(await page.locator('.mode-card').first().isVisible(), '上一頁回到首頁');
+  // 再開一次，用「回首頁」關：歷史也退掉，不用多按一次
+  await retry(page, async () => { if (!(await page.locator('#mobileOverview:not(.hidden)').count())) await page.click('.mode-card[data-mode="defense"]', { timeout: 2000 }); await page.waitForSelector('#mobileOverview:not(.hidden)', { timeout: 2000 }); });
+  await page.click('#mobileOverviewBack');
+  await page.waitForSelector('#mobileOverview.hidden', { state: 'attached' });
+  await page.waitForTimeout(300);
+  assert.ok(await page.evaluate((n) => history.length <= n + 1, histBefore), '用「回首頁」關閉會把那筆瀏覽紀錄退掉，不會越積越多');
+  assert.ok(await page.evaluate(() => (history.state && history.state.view) || 'home') === 'home', '關掉後停在首頁');
   assert.deepStrictEqual(page.errors, []);
 });
 

@@ -12,8 +12,8 @@
       return flowModes[state.mode] ? state.mode : "proposal";
     }
 
-    function currentFlow() {
-      const mode = flowModes[activeMode()];
+    function currentFlow(modeKey) {
+      const mode = flowModes[modeKey && flowModes[modeKey] ? modeKey : activeMode()];
       return {
         ...baseFlow,
         label: mode.label,
@@ -109,7 +109,7 @@
       return window.matchMedia(MOBILE_OPERATION_QUERY).matches;
     }
 
-    // 手機被擋時：點的是第 1、2 張主卡，就多給一顆「只寫預約訊息」入口（畢業專區不用約教室，不顯示）
+    // 手機被擋時（目前只剩畢業專區；兩張申請主卡改開「流程一覽」，見下方 data-mode 處理）：沒載入一覽時的退路，仍給「只寫預約訊息」入口，畢業專區不用約教室所以不顯示
     let mobileBookingMode = null;
     function showMobileOnlyNotice(mode) {
       mobileBookingMode = mode && flowModes[mode] && window.RoomBooking ? mode : null;
@@ -131,7 +131,10 @@
     document.querySelectorAll("[data-mode]").forEach((button) => {
       button.addEventListener("click", () => {
         if (isMobileOperation()) {
-          showMobileOnlyNotice(button.dataset.mode || "proposal");
+          const mobileMode = button.dataset.mode || "proposal";
+          // 手機：流程只限電腦，改開唯讀的「流程一覽」（js/mobile-overview.js）；沒載入時退回「請改用電腦操作」
+          if (window.MobileOverview && flowModes[mobileMode]) MobileOverview.open(mobileMode);
+          else showMobileOnlyNotice(mobileMode);
           return;
         }
         const nextMode = button.dataset.mode || "proposal";
@@ -309,6 +312,7 @@
       if (kind === "workflow" && current === "workflow") steps = 1;
       if (kind === "graduation" && current === "graduation") steps = 1;
       if (kind === "graduation" && current === "graduation-detail") steps = 2;
+      if (kind === "overview" && current === "overview") steps = 1;
       if (steps) {
         ignorePops += 1;
         history.go(-steps);
@@ -329,6 +333,7 @@
       handlingPop = true;
       try {
         if (view === "home") {
+          if (window.MobileOverview && MobileOverview.isOpen()) MobileOverview.hide();
           if (graduationOpen) closeGraduationModal();
           if (document.body.classList.contains("workflow-open")) showHome();
         } else if (view === "graduation" || view === "graduation-detail") {
@@ -350,6 +355,7 @@
       ["submissionNoticeModal", "closeSubmissionNotice"],
       ["mobileBookingModal", "closeMobileBooking"],
       ["mobileOnlyNoticeModal", "closeMobileOnlyNotice"],
+      ["mobileOverview", "mobileOverviewBack"],
       ["deadlineModal", "closeDeadline"],
       ["thesesModal", "closeTheses"],
       ["celebrationModal", "closeCelebration"],
